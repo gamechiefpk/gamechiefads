@@ -31,11 +31,11 @@ class BannerAdView @JvmOverloads constructor(
 
     init {
         if (attrs != null) {
-            val a = context.obtainStyledAttributes(attrs, R.styleable.gads_BannerAdView)
+            val a = context.obtainStyledAttributes(attrs, R.styleable.BannerAdView)
             try {
-                placement = a.getString(R.styleable.gads_BannerAdView_gads_placement)
-                autoLoad = a.getBoolean(R.styleable.gads_BannerAdView_gads_autoLoad, true)
-                hideOnFail = a.getBoolean(R.styleable.gads_BannerAdView_gads_hideOnFail, true)
+                placement = a.getString(R.styleable.BannerAdView_gads_placement)
+                autoLoad = a.getBoolean(R.styleable.BannerAdView_gads_autoLoad, true)
+                hideOnFail = a.getBoolean(R.styleable.BannerAdView_gads_hideOnFail, true)
             } finally {
                 a.recycle()
             }

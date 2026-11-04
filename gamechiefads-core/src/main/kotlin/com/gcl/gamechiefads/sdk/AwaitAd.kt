@@ -1,5 +1,6 @@
 package com.gcl.gamechiefads.sdk
 
+import com.gcl.gamechiefads.AdLog
 import com.google.android.libraries.ads.mobile.sdk.common.Ad
 import com.google.android.libraries.ads.mobile.sdk.common.AdLoadCallback
 import com.google.android.libraries.ads.mobile.sdk.common.LoadAdError
@@ -15,9 +16,13 @@ internal suspend fun <T : Ad> awaitAd(start: (AdLoadCallback<T>) -> Unit): T? =
         try {
             start(object : AdLoadCallback<T> {
                 override fun onAdLoaded(ad: T) = deliver(c, once, ad)
-                override fun onAdFailedToLoad(adError: LoadAdError) = deliver<T>(c, once, null)
+                override fun onAdFailedToLoad(adError: LoadAdError) {
+                    AdLog.d("load failed: ${adError.code} ${adError.message}")
+                    deliver<T>(c, once, null)
+                }
             })
         } catch (t: Throwable) {
+            AdLog.d("load threw: $t")
             deliver<T>(c, once, null)
         }
     }

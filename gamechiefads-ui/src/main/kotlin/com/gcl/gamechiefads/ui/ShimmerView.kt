@@ -35,9 +35,9 @@ class ShimmerView @JvmOverloads constructor(
         val density = resources.displayMetrics.density
         radiusPx = context.resources.getDimension(R.dimen.gads_corner_radius)
         if (attrs != null) {
-            val a = context.obtainStyledAttributes(attrs, R.styleable.gads_ShimmerView)
+            val a = context.obtainStyledAttributes(attrs, R.styleable.ShimmerView)
             try {
-                radiusPx = a.getDimension(R.styleable.gads_ShimmerView_gads_cornerRadius, radiusPx)
+                radiusPx = a.getDimension(R.styleable.ShimmerView_gads_cornerRadius, radiusPx)
             } finally {
                 a.recycle()
             }

@@ -1,5 +1,6 @@
 package com.gcl.gamechiefads.sdk
 
+import com.gcl.gamechiefads.AdLog
 import com.google.android.libraries.ads.mobile.sdk.common.LoadAdError
 import com.google.android.libraries.ads.mobile.sdk.nativead.NativeAd
 import com.google.android.libraries.ads.mobile.sdk.nativead.NativeAdLoader
@@ -16,7 +17,10 @@ internal object NativeSource {
             val request = NativeAdRequest.Builder(unitId, listOf(NativeAd.NativeAdType.NATIVE)).build()
             NativeAdLoader.load(request, object : NativeAdLoaderCallback {
                 override fun onNativeAdLoaded(nativeAd: NativeAd) = deliver(c, once, nativeAd)
-                override fun onAdFailedToLoad(adError: LoadAdError) = deliver<NativeAd>(c, once, null)
+                override fun onAdFailedToLoad(adError: LoadAdError) {
+                    AdLog.d("native load failed: ${adError.code} ${adError.message}")
+                    deliver<NativeAd>(c, once, null)
+                }
             })
         } catch (t: Throwable) {
             deliver<NativeAd>(c, once, null)

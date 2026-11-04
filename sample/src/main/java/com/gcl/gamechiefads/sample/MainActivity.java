@@ -52,7 +52,15 @@ public class MainActivity extends Activity {
         NativeAdTemplateView nativeView = findViewById(R.id.native_view);
         Spinner sizes = findViewById(R.id.size_spinner);
         sizes.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, NativeSize.values()));
-        sizes.setSelection(NativeSize.MEDIUM.ordinal());
+        NativeSize initial = NativeSize.MEDIUM;
+        String requested = getIntent().getStringExtra("size");
+        if (requested != null) {
+            try {
+                initial = NativeSize.valueOf(requested);
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        sizes.setSelection(initial.ordinal());
         sizes.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -86,6 +94,7 @@ public class MainActivity extends Activity {
     }
 
     private void say(String s) {
+        android.util.Log.d("SampleLog", s);
         log.append(s + "\n");
     }
 }

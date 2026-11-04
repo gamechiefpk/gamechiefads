@@ -31,12 +31,14 @@ internal class AdsGate(
                     if (denied != null && clock() - denied < retryDeniedAfterMs) return@withLock false
                     val a = activity ?: return@withLock false
                     consentOk = consent(a)
+                    AdLog.d("consent: canRequestAds=$consentOk")
                     if (!consentOk) {
                         deniedAt = clock()
                         return@withLock false
                     }
                 }
                 sdkOk = init()
+                AdLog.d("sdk init: $sdkOk")
                 sdkOk
             } catch (e: CancellationException) {
                 throw e

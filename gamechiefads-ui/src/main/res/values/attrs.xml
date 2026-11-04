@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="gads_NativeAdTemplateView">
+    <declare-styleable name="NativeAdTemplateView">
         <attr name="gads_size" format="enum">
             <enum name="tiny" value="0" />
             <enum name="small" value="1" />
@@ -15,12 +15,12 @@
         <!-- true (default): the view becomes GONE when there is no ad -->
         <attr name="gads_hideOnFail" format="boolean" />
     </declare-styleable>
-    <declare-styleable name="gads_BannerAdView">
+    <declare-styleable name="BannerAdView">
         <attr name="gads_placement" />
         <attr name="gads_autoLoad" />
         <attr name="gads_hideOnFail" />
     </declare-styleable>
-    <declare-styleable name="gads_ShimmerView">
+    <declare-styleable name="ShimmerView">
         <attr name="gads_cornerRadius" format="dimension" />
     </declare-styleable>
 </resources>

@@ -66,14 +66,14 @@ class NativeAdTemplateView @JvmOverloads constructor(
 
     init {
         if (attrs != null) {
-            val a = context.obtainStyledAttributes(attrs, R.styleable.gads_NativeAdTemplateView)
+            val a = context.obtainStyledAttributes(attrs, R.styleable.NativeAdTemplateView)
             try {
-                if (a.hasValue(R.styleable.gads_NativeAdTemplateView_gads_size)) {
-                    size = NativeSize.fromAttr(a.getInt(R.styleable.gads_NativeAdTemplateView_gads_size, 0))
+                if (a.hasValue(R.styleable.NativeAdTemplateView_gads_size)) {
+                    size = NativeSize.fromAttr(a.getInt(R.styleable.NativeAdTemplateView_gads_size, 0))
                 }
-                placement = a.getString(R.styleable.gads_NativeAdTemplateView_gads_placement)
-                autoLoad = a.getBoolean(R.styleable.gads_NativeAdTemplateView_gads_autoLoad, true)
-                hideOnFail = a.getBoolean(R.styleable.gads_NativeAdTemplateView_gads_hideOnFail, true)
+                placement = a.getString(R.styleable.NativeAdTemplateView_gads_placement)
+                autoLoad = a.getBoolean(R.styleable.NativeAdTemplateView_gads_autoLoad, true)
+                hideOnFail = a.getBoolean(R.styleable.NativeAdTemplateView_gads_hideOnFail, true)
             } finally {
                 a.recycle()
             }
@@ -146,7 +146,7 @@ class NativeAdTemplateView @JvmOverloads constructor(
         val view = ensureContent()
         NativeStyler.apply(view, style)
         try {
-            NativeAdBinder.bind(view, nativeAd)
+            NativeAdBinder.bind(view, nativeAd, size.mediaMaxDp, cropMedia = size != NativeSize.FULL)
         } catch (t: Throwable) {
             releaseAd()
             removeContent()

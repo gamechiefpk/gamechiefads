@@ -26,6 +26,7 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
     @Volatile var loaderUi: AdLoaderUi? = null
 
     val state = AdState()
+    init { AdLog.enabled = AdUnits.isDebuggable(app) }
     private val clock: () -> Long = { SystemClock.elapsedRealtime() }
     private val scope = CoroutineScope(
         SupervisorJob() + Dispatchers.Main.immediate +

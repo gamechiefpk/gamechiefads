@@ -6,3 +6,6 @@ local.properties
 .DS_Store
 captures/
 .kotlin/
+.shots/
+# reference only: the old Google native templates (play-services-ads), not part of the library
+/nativetemplates/

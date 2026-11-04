@@ -1,6 +1,7 @@
 package com.gcl.gamechiefads.sdk
 
 import android.content.Context
+import com.gcl.gamechiefads.AdLog
 import com.google.android.libraries.ads.mobile.sdk.MobileAds
 import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationConfig
 import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationStatus
@@ -44,6 +45,7 @@ internal class SdkInit(context: Context) {
                 },
             )
         } catch (t: Throwable) {
+            AdLog.d("MobileAds.initialize threw: $t")
             finish(false)
         }
     }
