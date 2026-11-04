@@ -77,7 +77,7 @@ AdsConfig.builder()
 6. Static mutable globals for flags: replace by `AdState` + config. Banners: reuse and destroy with lifecycle; remove shimmer on failure too.
 
 ## Next-Gen SDK facts (from Google docs on 2026-11-04; VERIFY against current docs before relying on them)
-- Latest 1.6.0 (2026-10-22). `com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk:1.6.0`. minSdk 24. Kotlin >= 1.9, AGP >= 8.3.0, Java 11 ok. Compile SDK: docs disagree (34 vs 35); use 35.
+- Latest 1.6.0 (2026-10-22). `com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk:1.6.0`. minSdk 24. Kotlin >= 1.9, AGP >= 8.3.0, Java 11 ok. Compile SDK 37 and target SDK 37 (owner request); library minSdk stays 24 (the SDK floor).
 - Remove `play-services-ads`; mediation adapters still depend on it, so apps need a global exclude of `com.google.android.gms:play-services-ads` and `play-services-ads-lite`.
 - Init is REQUIRED before loading ads, call off the main thread: `MobileAds.initialize(context, InitializationConfig.Builder("APP_ID").build()) { ... }`.
   App id passed in code; UMP still needs the app id `<meta-data>` in the manifest. `onInitializationFailed(AdError)` exists since 1.4.0.

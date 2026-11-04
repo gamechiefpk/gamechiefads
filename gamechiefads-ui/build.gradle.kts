@@ -1,6 +1,5 @@
 plugins {
     id("com.android.library")
-    id("org.jetbrains.kotlin.android")
     id("maven-publish")
 }
 
@@ -11,7 +10,7 @@ val gprRepo = System.getenv("GITHUB_REPOSITORY") ?: providers.gradleProperty("GP
 
 android {
     namespace = "com.gcl.gamechiefads.ui"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 24
@@ -22,7 +21,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11) } }
 
     publishing {
         singleVariant("release") { withSourcesJar() }
@@ -31,7 +29,7 @@ android {
 
 dependencies {
     api(project(":gamechiefads-core"))
-    implementation("androidx.annotation:annotation:1.9.1")
+    implementation("androidx.annotation:annotation:1.11.0")
 }
 
 publishing {
