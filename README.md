@@ -44,3 +44,5 @@ maven { url = uri("https://dl-maven-android.mintegral.com/repository/mbridge_and
 ```
 
 Remove `com.google.android.gms:play-services-ads` from your app. Then see [docs/USAGE.md](docs/USAGE.md).
+
+Recipes for common cases: [docs/USE_CASES.md](docs/USE_CASES.md).
