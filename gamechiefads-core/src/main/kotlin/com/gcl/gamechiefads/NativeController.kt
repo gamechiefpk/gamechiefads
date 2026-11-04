@@ -22,6 +22,7 @@ internal class NativeController(
 ) {
     fun load(context: Context, name: String, callback: NativeLoadCallback): AdRequestHandle {
         val p = config().placement(name)
+        AdLog.d("native") { "$name: load requested (known=${p != null}, premium=${state.premium.value})" }
         when {
             p == null -> callback.onFailed("unknown placement: $name")
             !p.enabled -> callback.onFailed("disabled")
@@ -36,10 +37,10 @@ internal class NativeController(
             try {
                 val ad = pipeline.load(p, context as? Activity ?: screens.current, source)
                 when {
-                    !isActive -> ad?.destroy()
-                    ad == null -> callback.onFailed("no fill")
+                    !isActive -> { AdLog.d("native") { "${p.name}: cancelled, late ad destroyed" }; ad?.destroy() }
+                    ad == null -> { AdLog.d("native") { "${p.name}: no fill" }; callback.onFailed("no fill") }
                     state.premium.value -> { ad.destroy(); callback.onFailed("premium") }
-                    else -> callback.onLoaded(ad)
+                    else -> { AdLog.d("native") { "${p.name}: loaded" }; callback.onLoaded(ad) }
                 }
             } catch (e: CancellationException) {
                 throw e

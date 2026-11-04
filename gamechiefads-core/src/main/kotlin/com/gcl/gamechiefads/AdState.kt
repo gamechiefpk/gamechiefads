@@ -16,7 +16,10 @@ internal class AdState {
     val lastShownAtMs: StateFlow<Long?> = _lastShownAtMs
     val screensSinceAd: StateFlow<Int> = _screensSinceAd
 
-    fun setPremium(value: Boolean) { _premium.value = value }
+    fun setPremium(value: Boolean) {
+        if (_premium.value != value) AdLog.d("state") { "premium=$value" }
+        _premium.value = value
+    }
     fun setAdShowing(value: Boolean) { _adShowing.value = value }
 
     /** Counts one resumed (non-excluded) screen. */

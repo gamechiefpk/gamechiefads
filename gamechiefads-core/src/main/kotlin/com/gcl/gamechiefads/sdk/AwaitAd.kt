@@ -15,14 +15,17 @@ internal suspend fun <T : Ad> awaitAd(start: (AdLoadCallback<T>) -> Unit): T? =
         val once = AtomicBoolean(false)
         try {
             start(object : AdLoadCallback<T> {
-                override fun onAdLoaded(ad: T) = deliver(c, once, ad)
+                override fun onAdLoaded(ad: T) {
+                    AdLog.d("sdk") { "load ok: ${ad.javaClass.simpleName}" }
+                    deliver(c, once, ad)
+                }
                 override fun onAdFailedToLoad(adError: LoadAdError) {
-                    AdLog.d("load failed: ${adError.code} ${adError.message}")
+                    AdLog.d("sdk") { "load failed: code=${adError.code} ${adError.message}" }
                     deliver<T>(c, once, null)
                 }
             })
         } catch (t: Throwable) {
-            AdLog.d("load threw: $t")
+            AdLog.d("sdk") { "load threw: $t" }
             deliver<T>(c, once, null)
         }
     }

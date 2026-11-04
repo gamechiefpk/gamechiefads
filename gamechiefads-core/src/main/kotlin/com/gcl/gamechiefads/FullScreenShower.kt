@@ -26,6 +26,7 @@ internal class FullScreenShower(
 
     fun show(activity: Activity, ad: FullScreenAd, events: Events) {
         state.setAdShowing(true)
+        AdLog.d("shower") { "show ${ad.javaClass.simpleName} on ${activity.javaClass.simpleName}, adShowing=true" }
         var finished = false
         var shown = false
         var watchdog: Job? = null
@@ -33,6 +34,7 @@ internal class FullScreenShower(
         fun finish(wasShown: Boolean, reason: String?) {
             if (finished) return
             finished = true
+            AdLog.d("shower") { "finish shown=$wasShown reason=$reason, adShowing=false" }
             watchdog?.cancel()
             state.setAdShowing(false)
             ad.destroy()
@@ -41,11 +43,15 @@ internal class FullScreenShower(
 
         watchdog = scope.launch {
             delay(startTimeoutMs)
-            if (!shown) finish(false, "show timeout")
+            if (!shown) {
+                AdLog.d("shower") { "watchdog: ad never started within ${startTimeoutMs}ms" }
+                finish(false, "show timeout")
+            }
         }
         ad.show(activity, object : FullScreenAd.Listener {
             override fun onShown() {
                 shown = true
+                AdLog.d("shower") { "ad on screen (gap + screen counter reset)" }
                 watchdog?.cancel()
                 state.markShown(clock())
                 if (!finished) events.onShown()

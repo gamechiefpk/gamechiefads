@@ -164,3 +164,19 @@ implement `AdLoaderUi`. Without one, no overlay is shown.
   flag if the SDK never reports).
 - Premium turned on while an ad is loading: the loaded ad is dropped, not shown.
 - Ads are only shown on the visible, alive activity; if the user left, the ad is dropped.
+
+## 13. Debug trace log
+
+Debuggable builds print a trace to logcat, tag `GamechiefAds`, every line prefixed with its area. Release builds
+print nothing (and build no log strings).
+
+```
+adb logcat -s GamechiefAds
+```
+
+Areas: `init`, `gate` (consent, SDK init), `consent`, `sdk` (load ok/failed with the AdMob error code),
+`pipeline` and `waterfall` (each unit id, hit or miss, total time), `interstitial`, `random` (the policy decision with
+screen count and gap), `appopen`, `splash`, `shower` (ad on screen, closed, watchdog), `pool`, `screen`, `state`
+(premium), `banner`, `native`, `banner-ui`, `native-ui`, `loader`, `remote`.
+
+To silence it in a debug build: `GamechiefAds.setDebugLogging(false)`.

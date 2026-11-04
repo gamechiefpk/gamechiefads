@@ -28,11 +28,13 @@ internal class SplashAdsImpl(
         val done = Once(onDone)
         val a = first
         if (used || a == null || state.premium.value || !screens.isUsable(activity)) {
+            AdLog.d("splash") { "show: no ad shown (used=$used, hasAd=${a != null}, premium=${state.premium.value}); onDone" }
             dispose()
             done.run()
             return
         }
         used = true
+        AdLog.d("splash") { "show first ad" }
         first = null
         shower.show(activity, a, object : FullScreenShower.Events {
             override fun onShown() {}
@@ -57,13 +59,18 @@ internal class SplashAdsImpl(
         val b = second
         second = null
         if (b == null || state.premium.value || !screens.isUsable(activity)) {
+            AdLog.d("splash") { "no second ad (loaded=${b != null}); onDone" }
             b?.destroy()
             done.run()
             return
         }
+        AdLog.d("splash") { "first closed -> show second ad" }
         shower.show(activity, b, object : FullScreenShower.Events {
             override fun onShown() {}
-            override fun onFinished(shown: Boolean, reason: String?) = done.run()
+            override fun onFinished(shown: Boolean, reason: String?) {
+                AdLog.d("splash") { "second finished (shown=$shown); onDone" }
+                done.run()
+            }
         })
     }
 

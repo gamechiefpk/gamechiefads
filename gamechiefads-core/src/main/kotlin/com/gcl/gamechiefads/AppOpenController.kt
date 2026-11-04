@@ -26,7 +26,10 @@ internal class AppOpenController(
     @Volatile private var pausedOnce = false
     private var prefetchStarted = false
 
-    fun pauseOnce() { pausedOnce = true }
+    fun pauseOnce() {
+        pausedOnce = true
+        AdLog.d("appopen") { "pauseOnce set" }
+    }
 
     /** First screen that is not in the skip list (i.e. not the splash): prefetch once, no earlier. */
     fun onScreenResumed(activity: Activity) {
@@ -34,6 +37,7 @@ internal class AppOpenController(
         val p = enabledPlacement() ?: return
         if (activity.javaClass.name in p.excludedScreens) return
         prefetchStarted = true
+        AdLog.d("appopen") { "first normal screen ${activity.javaClass.simpleName}: prefetch" }
         fetch()
     }
 
@@ -41,10 +45,12 @@ internal class AppOpenController(
         val p = enabledPlacement() ?: return
         if (pausedOnce) {
             pausedOnce = false
+            AdLog.d("appopen") { "foreground: skipped (pauseAppOpenOnce)" }
             return
         }
-        val activity = screens.current ?: return
+        val activity = screens.current ?: run { AdLog.d("appopen") { "foreground: no current screen" }; return }
         val decision = AdPolicy.evaluate(p, state.context(clock(), activity.javaClass.name))
+        AdLog.d("appopen") { "foreground on ${activity.javaClass.simpleName}: $decision, ready=${pool.isReady(Placements.APP_OPEN)}" }
         if (decision == Decision.DENY_EXCLUDED_SCREEN) return
         if (decision == Decision.ALLOW && screens.isUsable(activity)) {
             val ad = pool.take(Placements.APP_OPEN)
@@ -66,7 +72,8 @@ internal class AppOpenController(
         val p = enabledPlacement() ?: return
         scope.launch {
             try {
-                pool.fill(Placements.APP_OPEN) { pipeline.load(p, screens.current, source) }
+                val ready = pool.fill(Placements.APP_OPEN) { pipeline.load(p, screens.current, source) }
+                AdLog.d("appopen") { "fetch finished, ready=$ready" }
             } catch (e: CancellationException) {
                 throw e
             } catch (t: Throwable) { /* fail open */ }

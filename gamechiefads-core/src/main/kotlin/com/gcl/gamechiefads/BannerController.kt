@@ -27,18 +27,24 @@ internal class BannerController(
     fun attach(container: FrameLayout, name: String, listener: BannerListener? = null) {
         val p = config().placement(name)
         if (p == null || !p.enabled || state.premium.value) {
+            AdLog.d("banner") { "$name: not loaded (known=${p != null}, enabled=${p?.enabled}, premium=${state.premium.value})" }
             clear(container)
             container.visibility = View.GONE
             listener?.onFailed(if (p == null) "unknown placement: $name" else if (!p.enabled) "disabled" else "premium")
             return
         }
-        if (container.getTag(TAG) != null) return // live banner already there or loading: reuse
+        if (container.getTag(TAG) != null) {
+            AdLog.d("banner") { "$name: reusing live/loading banner" }
+            return // live banner already there or loading: reuse
+        }
+        AdLog.d("banner") { "$name: load start" }
         val ctx = container.context
         val widthDp = widthDp(container)
         val job = scope.launch(start = CoroutineStart.LAZY) {
             try {
                 val banner = pipeline.load(p, ctx as? Activity ?: screens.current) { unit -> load(ctx, unit, widthDp) }
                 if (banner == null || !container.isAttachedToWindow || state.premium.value) {
+                    AdLog.d("banner") { "$name: dropped (loaded=${banner != null}, attached=${container.isAttachedToWindow}, premium=${state.premium.value})" }
                     banner?.destroy()
                     container.setTag(TAG, null)
                     container.visibility = View.GONE
@@ -48,12 +54,14 @@ internal class BannerController(
                 container.removeAllViews()
                 container.addView(banner.view)
                 container.setTag(TAG, banner)
+                AdLog.d("banner") { "$name: shown" }
                 container.visibility = View.VISIBLE
                 remember(container)
                 listener?.onLoaded()
             } catch (e: CancellationException) {
                 throw e
             } catch (t: Throwable) {
+                AdLog.d("banner") { "$name: error $t" }
                 container.setTag(TAG, null)
                 container.visibility = View.GONE
                 listener?.onFailed(t.message ?: "error")
@@ -64,6 +72,7 @@ internal class BannerController(
         container.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
             override fun onViewAttachedToWindow(v: View) {}
             override fun onViewDetachedFromWindow(v: View) {
+                AdLog.d("banner") { "$name: view detached -> destroyed" }
                 job.cancel()
                 clear(container)
                 container.removeOnAttachStateChangeListener(this)
@@ -73,6 +82,7 @@ internal class BannerController(
 
     /** Premium turned on: remove every banner this controller put on screen. */
     fun hideAll() {
+        AdLog.d("banner") { "premium on -> hiding all banners" }
         live.removeAll { ref ->
             ref.get()?.let { clear(it); it.visibility = View.GONE }
             true

@@ -28,8 +28,17 @@ internal class Consent {
                     .build()
                 info.requestConsentInfoUpdate(
                     activity, params,
-                    { UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) { finish() } },
-                    { finish() },
+                    {
+                        AdLog.d("consent") { "info updated, status=${info.consentStatus}, formAvailable=${info.isConsentFormAvailable}" }
+                        UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) { err ->
+                            if (err != null) AdLog.d("consent") { "form error: ${err.errorCode} ${err.message}" }
+                            finish()
+                        }
+                    },
+                    { err ->
+                        AdLog.d("consent") { "info update failed: ${err.errorCode} ${err.message}" }
+                        finish()
+                    },
                 )
             } catch (t: Throwable) {
                 finish()

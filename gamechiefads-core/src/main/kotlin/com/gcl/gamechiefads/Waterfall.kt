@@ -19,10 +19,13 @@ internal object Waterfall {
         for (unit in units) {
             if (unit.isBlank()) continue
             val hit = try {
-                withTimeoutOrNull(tierTimeoutMs) { load(unit) }
+                withTimeoutOrNull(tierTimeoutMs) { load(unit) }.also {
+                    if (it == null) AdLog.d("waterfall") { "tier $unit: miss (${tierTimeoutMs}ms cap)" }
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Throwable) {
+                AdLog.d("waterfall") { "tier $unit threw: $e" }
                 null // fail open: a broken tier is just a miss
             }
             if (hit != null) return@withTimeoutOrNull hit

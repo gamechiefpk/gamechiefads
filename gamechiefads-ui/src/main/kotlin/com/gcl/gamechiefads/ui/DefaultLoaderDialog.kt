@@ -11,6 +11,7 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import com.gcl.gamechiefads.AdLoaderUi
+import com.gcl.gamechiefads.AdLog
 import com.gcl.gamechiefads.ui.R
 
 /**
@@ -30,7 +31,9 @@ class DefaultLoaderDialog @JvmOverloads constructor(private val message: CharSeq
             d.setContentView(content(activity))
             d.show()
             dialog = d
+            AdLog.d("loader") { "shown on ${activity.javaClass.simpleName}" }
         } catch (t: Throwable) {
+            AdLog.d("loader") { "show failed (flow continues): $t" }
             dialog = null
         }
     }
@@ -38,7 +41,10 @@ class DefaultLoaderDialog @JvmOverloads constructor(private val message: CharSeq
     override fun dismiss() {
         val d = dialog
         dialog = null
-        if (d != null) runCatching { d.dismiss() }
+        if (d != null) {
+            AdLog.d("loader") { "dismissed" }
+            runCatching { d.dismiss() }
+        }
     }
 
     private fun content(activity: Activity): FrameLayout {

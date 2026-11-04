@@ -16,13 +16,17 @@ internal object NativeSource {
         try {
             val request = NativeAdRequest.Builder(unitId, listOf(NativeAd.NativeAdType.NATIVE)).build()
             NativeAdLoader.load(request, object : NativeAdLoaderCallback {
-                override fun onNativeAdLoaded(nativeAd: NativeAd) = deliver(c, once, nativeAd)
+                override fun onNativeAdLoaded(nativeAd: NativeAd) {
+                    AdLog.d("sdk") { "native load ok" }
+                    deliver(c, once, nativeAd)
+                }
                 override fun onAdFailedToLoad(adError: LoadAdError) {
-                    AdLog.d("native load failed: ${adError.code} ${adError.message}")
+                    AdLog.d("sdk") { "native load failed: code=${adError.code} ${adError.message}" }
                     deliver<NativeAd>(c, once, null)
                 }
             })
         } catch (t: Throwable) {
+            AdLog.d("sdk") { "native load threw: $t" }
             deliver<NativeAd>(c, once, null)
         }
     }

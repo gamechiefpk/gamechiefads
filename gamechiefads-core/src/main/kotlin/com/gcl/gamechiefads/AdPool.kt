@@ -45,8 +45,8 @@ internal class AdPool(
                 else -> Start.GO
             }
         }
-        if (start == Start.ALREADY_READY) return true
-        if (start == Start.BUSY) return false
+        if (start == Start.ALREADY_READY) { AdLog.d("pool") { "$placement: fill skipped, already ready" }; return true }
+        if (start == Start.BUSY) { AdLog.d("pool") { "$placement: fill skipped, already loading" }; return false }
         try {
             val ad = load() ?: return false
             if (!put(placement, ad)) ad.destroy()
@@ -67,6 +67,7 @@ internal class AdPool(
     private fun dropIfExpired(placement: String) {
         val e = ready[placement] ?: return
         if (clock() - e.loadedAtMs >= ttlMs) {
+            AdLog.d("pool") { "$placement: ready ad expired, dropped" }
             ready.remove(placement)
             e.ad.destroy()
         }

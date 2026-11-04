@@ -34,6 +34,7 @@ internal class ScreenTracker(private val state: AdState) : Application.ActivityL
         if (lastCounted?.get() === activity) return
         lastCounted = WeakReference(activity)
         state.onScreenResumed()
+        AdLog.d("screen") { "new screen ${activity.javaClass.simpleName}, count since last ad=${state.screensSinceAd.value}" }
         onScreen?.invoke(activity)
     }
 

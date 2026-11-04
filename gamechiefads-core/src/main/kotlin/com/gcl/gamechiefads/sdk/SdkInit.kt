@@ -26,9 +26,13 @@ internal class SdkInit(context: Context) {
 
     suspend fun ensure(appId: String, timeoutMs: Long): Boolean = mutex.withLock {
         if (isReady()) return@withLock true
-        withContext(Dispatchers.Default) {
+        AdLog.d("sdk") { "MobileAds.initialize start (timeout ${timeoutMs}ms)" }
+        val t0 = System.nanoTime()
+        val ok = withContext(Dispatchers.Default) {
             withTimeoutOrNull(timeoutMs) { initialize(appId) } ?: false
         }
+        AdLog.d("sdk") { "MobileAds.initialize ${if (ok) "done" else "FAILED/timeout"} in ${(System.nanoTime() - t0) / 1_000_000}ms" }
+        ok
     }
 
     private fun isReady(): Boolean = try { MobileAds.isInitialized } catch (t: Throwable) { false }
@@ -45,7 +49,7 @@ internal class SdkInit(context: Context) {
                 },
             )
         } catch (t: Throwable) {
-            AdLog.d("MobileAds.initialize threw: $t")
+            AdLog.d("sdk") { "MobileAds.initialize threw: $t" }
             finish(false)
         }
     }

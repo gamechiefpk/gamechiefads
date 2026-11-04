@@ -26,6 +26,7 @@ internal class InterstitialController(
     /** Default path: load now, then show. [listener] may be null. */
     fun showOnDemand(activity: Activity, name: String, listener: InterstitialListener?) {
         val events = ListenerDispatcher(listener)
+        AdLog.d("interstitial") { "$name: showOnDemand requested from ${activity.javaClass.simpleName}" }
         val p = allowed(activity, name, events) ?: return
         state.setAdShowing(true) // claim the slot before loading
         scope.launch {
@@ -39,10 +40,11 @@ internal class InterstitialController(
                     runCatching { ui?.dismiss() }
                 }
                 when {
-                    ad == null -> events.onFinished(false, "no fill")
-                    state.premium.value -> { ad.destroy(); events.onFinished(false, "premium") }
-                    !screens.isUsable(activity) -> { ad.destroy(); events.onFinished(false, "screen gone") }
+                    ad == null -> { AdLog.d("interstitial") { "$name: no fill -> not shown" }; events.onFinished(false, "no fill") }
+                    state.premium.value -> { AdLog.d("interstitial") { "$name: became premium while loading -> dropped" }; ad.destroy(); events.onFinished(false, "premium") }
+                    !screens.isUsable(activity) -> { AdLog.d("interstitial") { "$name: screen gone while loading -> dropped" }; ad.destroy(); events.onFinished(false, "screen gone") }
                     else -> {
+                        AdLog.d("interstitial") { "$name: showing" }
                         handedOver = true
                         shower.show(activity, ad, refillAfter(name, events))
                     }
@@ -50,6 +52,7 @@ internal class InterstitialController(
             } catch (e: CancellationException) {
                 throw e
             } catch (t: Throwable) {
+                AdLog.d("interstitial") { "$name: error $t" }
                 events.onFinished(false, t.message ?: "error")
             } finally {
                 if (!handedOver) state.setAdShowing(false)
@@ -59,11 +62,16 @@ internal class InterstitialController(
 
     /** Opt-in: make sure one ad is ready for [name]. No request if one is ready or loading. */
     fun preload(name: String) {
-        val p = config().placement(name) ?: return
-        if (!p.enabled || state.premium.value) return
+        val p = config().placement(name) ?: run { AdLog.d("interstitial") { "$name: preload ignored, unknown placement" }; return }
+        if (!p.enabled || state.premium.value) {
+            AdLog.d("interstitial") { "$name: preload ignored (enabled=${p.enabled}, premium=${state.premium.value})" }
+            return
+        }
         scope.launch {
             try {
-                pool.fill(name) { pipeline.load(p, screens.current, source) }
+                AdLog.d("interstitial") { "$name: preload requested" }
+                val ready = pool.fill(name) { pipeline.load(p, screens.current, source) }
+                AdLog.d("interstitial") { "$name: preload finished, ready=$ready" }
             } catch (e: CancellationException) {
                 throw e
             } catch (t: Throwable) { /* fail open */ }
@@ -78,10 +86,18 @@ internal class InterstitialController(
      */
     fun showPreloaded(activity: Activity, name: String, listener: InterstitialListener?): Boolean {
         val p = config().placement(name) ?: return false
-        if (AdPolicy.evaluateExplicit(p, state.context(clock(), activity.javaClass.name)) != Decision.ALLOW) return false
+        val decision = AdPolicy.evaluateExplicit(p, state.context(clock(), activity.javaClass.name))
+        if (decision != Decision.ALLOW) {
+            AdLog.d("interstitial") { "$name: showPreloaded denied: $decision" }
+            return false
+        }
         val ad = pool.take(name)
         if (ad == null) {
-            if (!config().fallbackToLoad) return false
+            if (!config().fallbackToLoad) {
+                AdLog.d("interstitial") { "$name: showPreloaded: nothing ready (fallbackToLoad off)" }
+                return false
+            }
+            AdLog.d("interstitial") { "$name: showPreloaded: nothing ready -> falling back to on-demand" }
             showOnDemand(activity, name, listener)
             return true
         }
@@ -90,6 +106,7 @@ internal class InterstitialController(
             ad.destroy()
             return false
         }
+        AdLog.d("interstitial") { "$name: showing preloaded ad" }
         shower.show(activity, ad, refillAfter(name, events))
         return true
     }
@@ -102,6 +119,7 @@ internal class InterstitialController(
         }
         val decision = AdPolicy.evaluateExplicit(p, state.context(clock(), activity.javaClass.name))
         if (decision != Decision.ALLOW) {
+            AdLog.d("interstitial") { "$name: denied: $decision" }
             events.onFinished(false, decision.name)
             return null
         }
@@ -114,7 +132,10 @@ internal class InterstitialController(
         override fun onFinished(shown: Boolean, reason: String?) {
             inner.onFinished(shown, reason)
             val c = config()
-            if (c.autoRefill && c.placement(name)?.mode == AdMode.PRELOAD) preload(name)
+            if (c.autoRefill && c.placement(name)?.mode == AdMode.PRELOAD) {
+                AdLog.d("interstitial") { "$name: auto-refill" }
+                preload(name)
+            }
         }
     }
 }

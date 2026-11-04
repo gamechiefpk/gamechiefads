@@ -5,6 +5,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import com.gcl.gamechiefads.AdLog
 import com.gcl.gamechiefads.BannerListener
 import com.gcl.gamechiefads.GamechiefAds
 import com.gcl.gamechiefads.ui.R
@@ -54,6 +55,7 @@ class BannerAdView @JvmOverloads constructor(
     }
 
     override fun onDetachedFromWindow() {
+        AdLog.d("banner-ui") { "${placement ?: "?"}: detached -> cleared" }
         clear() // the core destroys the banner when its holder leaves the window
         super.onDetachedFromWindow()
     }
@@ -62,17 +64,20 @@ class BannerAdView @JvmOverloads constructor(
         val p = placement ?: return
         clear()
         visibility = VISIBLE
+        AdLog.d("banner-ui") { "$p: load start" }
         val h = FrameLayout(context)
         holder = h
         addView(h, LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         addShimmer()
         GamechiefAds.banner(h, p, object : BannerListener {
             override fun onLoaded() {
+                AdLog.d("banner-ui") { "$p: loaded, shimmer removed" }
                 removeShimmer()
                 listener?.onLoaded()
             }
 
             override fun onFailed(reason: String) {
+                AdLog.d("banner-ui") { "$p: failed: $reason (hideOnFail=$hideOnFail), shimmer removed" }
                 removeShimmer() // also on failure: never leave a shimmer behind
                 if (hideOnFail) visibility = GONE
                 listener?.onFailed(reason)

@@ -23,6 +23,7 @@ internal class SplashFlow(
     fun prepare(activity: Activity, callback: SplashCallback) {
         val ads = SplashAdsImpl(state, shower, screens, scope)
         scope.launch {
+            AdLog.d("splash") { "prepare start (timeout ${config().splashTimeoutMs}ms, premium=${state.premium.value})" }
             try {
                 val cfg = config()
                 val first = cfg.placement(Placements.SPLASH)?.takeIf { it.enabled }
@@ -43,8 +44,9 @@ internal class SplashFlow(
                 }
             } catch (e: CancellationException) {
                 throw e
-            } catch (t: Throwable) { /* fail open: no ad */ }
+            } catch (t: Throwable) { AdLog.d("splash") { "error, failing open: $t" } }
             if (state.premium.value) ads.dispose()
+            AdLog.d("splash") { "onReady: first=${ads.first != null}, second=${ads.second != null}" }
             callback.onReady(ads)
         }
     }

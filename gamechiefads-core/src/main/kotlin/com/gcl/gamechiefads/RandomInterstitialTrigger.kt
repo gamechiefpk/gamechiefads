@@ -28,7 +28,9 @@ internal class RandomInterstitialTrigger(
             delay(settleMs) // let the screen finish its transition before covering it
             val p = config().placement(Placements.RANDOM) ?: return@launch
             if (!screens.isUsable(activity)) return@launch
-            val decision = AdPolicy.evaluate(p, state.context(clock(), activity.javaClass.name))
+            val ctx = state.context(clock(), activity.javaClass.name)
+            val decision = AdPolicy.evaluate(p, ctx)
+            AdLog.d("random") { "${activity.javaClass.simpleName}: $decision (screens=${ctx.screensSinceAd}/${p.everyNScreens}, lastShown=${ctx.lastShownAtMs?.let { "${(ctx.nowMs - it) / 1000}s ago" } ?: "never"}, gap=${p.minGapSeconds}s)" }
             if (decision != Decision.ALLOW) return@launch
             if (p.mode == AdMode.PRELOAD) {
                 // preload mode: show only what is ready; otherwise ask for one for the next time

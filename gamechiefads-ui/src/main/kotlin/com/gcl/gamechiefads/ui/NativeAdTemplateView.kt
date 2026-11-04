@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import com.gcl.gamechiefads.AdRequestHandle
+import com.gcl.gamechiefads.AdLog
 import com.gcl.gamechiefads.GamechiefAds
 import com.gcl.gamechiefads.NativeLoadCallback
 import com.gcl.gamechiefads.ui.R
@@ -110,6 +111,7 @@ class NativeAdTemplateView @JvmOverloads constructor(
     }
 
     override fun onDetachedFromWindow() {
+        AdLog.d("native-ui") { "${placement ?: "(bound)"}: detached -> destroy" }
         destroy()
         super.onDetachedFromWindow()
     }
@@ -121,11 +123,13 @@ class NativeAdTemplateView @JvmOverloads constructor(
         removeContent()
         visibility = VISIBLE
         showShimmer()
+        AdLog.d("native-ui") { "$p: load start (size=$size)" }
         var finished = false
         val h = GamechiefAds.loadNative(context, p, object : NativeLoadCallback {
             override fun onLoaded(ad: NativeAd) {
                 finished = true
                 handle = null
+                AdLog.d("native-ui") { "$p: ad received, binding" }
                 this@NativeAdTemplateView.ad = ad
                 bindInternal(ad)
                 listener?.onLoaded()
@@ -134,6 +138,7 @@ class NativeAdTemplateView @JvmOverloads constructor(
             override fun onFailed(reason: String) {
                 finished = true
                 handle = null
+                AdLog.d("native-ui") { "$p: failed: $reason (hideOnFail=$hideOnFail)" }
                 hideShimmer() // also on failure: never leave a shimmer behind
                 if (hideOnFail) visibility = GONE
                 listener?.onFailed(reason)
@@ -148,6 +153,7 @@ class NativeAdTemplateView @JvmOverloads constructor(
         try {
             NativeAdBinder.bind(view, nativeAd, size.mediaMaxDp, cropMedia = size != NativeSize.FULL)
         } catch (t: Throwable) {
+            AdLog.d("native-ui") { "bind failed: $t" }
             releaseAd()
             removeContent()
             hideShimmer()
@@ -157,6 +163,7 @@ class NativeAdTemplateView @JvmOverloads constructor(
         }
         view.visibility = VISIBLE
         hideShimmer()
+        AdLog.d("native-ui") { "${placement ?: "(bound)"}: shown (size=$size)" }
     }
 
     private fun ensureContent(): NativeAdView {

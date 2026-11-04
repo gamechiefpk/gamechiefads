@@ -28,21 +28,29 @@ internal class AdsGate(
             try {
                 if (!consentOk) {
                     val denied = deniedAt
-                    if (denied != null && clock() - denied < retryDeniedAfterMs) return@withLock false
-                    val a = activity ?: return@withLock false
+                    if (denied != null && clock() - denied < retryDeniedAfterMs) {
+                        AdLog.d("gate") { "consent denied earlier; not asking again yet" }
+                        return@withLock false
+                    }
+                    val a = activity ?: run {
+                        AdLog.d("gate") { "no activity to show consent with" }
+                        return@withLock false
+                    }
+                    AdLog.d("gate") { "consent: gathering" }
                     consentOk = consent(a)
-                    AdLog.d("consent: canRequestAds=$consentOk")
+                    AdLog.d("gate") { "consent: canRequestAds=$consentOk" }
                     if (!consentOk) {
                         deniedAt = clock()
                         return@withLock false
                     }
                 }
                 sdkOk = init()
-                AdLog.d("sdk init: $sdkOk")
+                AdLog.d("gate") { "sdk init: $sdkOk" }
                 sdkOk
             } catch (e: CancellationException) {
                 throw e
             } catch (t: Throwable) {
+                AdLog.d("gate") { "gate threw: $t" }
                 false
             }
         }

@@ -18,6 +18,12 @@ object GamechiefAds {
         if (runtime == null) runtime = AdsRuntime(app, config)
     }
 
+    /** Debug trace log (logcat tag "GamechiefAds"). On by default in debuggable apps, ignored in release builds. */
+    @JvmStatic
+    fun setDebugLogging(enabled: Boolean) {
+        runtime?.setLogging(enabled)
+    }
+
     /** Wire from your billing library's premium callback. Premium = no ads of any kind. */
     @JvmStatic
     fun setPremium(premium: Boolean) {

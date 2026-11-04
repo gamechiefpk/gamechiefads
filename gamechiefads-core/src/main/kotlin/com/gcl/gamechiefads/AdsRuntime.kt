@@ -26,7 +26,11 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
     @Volatile var loaderUi: AdLoaderUi? = null
 
     val state = AdState()
-    init { AdLog.enabled = AdUnits.isDebuggable(app) }
+    private val debuggable = AdUnits.isDebuggable(app)
+    init {
+        AdLog.enabled = debuggable
+        AdLog.d("init") { "GamechiefAds ready: placements=${baseConfig.placements.keys}, appId=${baseConfig.appId ?: "(test)"}, test ids=$debuggable" }
+    }
     private val clock: () -> Long = { SystemClock.elapsedRealtime() }
     private val scope = CoroutineScope(
         SupervisorJob() + Dispatchers.Main.immediate +
@@ -67,7 +71,13 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
         scope.launch { state.premium.drop(1).filter { it }.collect { banner.hideAll() } }
     }
 
-    fun applyRemote(json: String?) { config = RemoteOverrides.apply(base, json) }
+    fun applyRemote(json: String?) {
+        config = RemoteOverrides.apply(base, json)
+        AdLog.d("remote") { "overrides applied (${json?.length ?: 0} chars)" }
+    }
+
+    /** Logging can only be on for debuggable apps. */
+    fun setLogging(on: Boolean) { AdLog.enabled = on && debuggable }
     fun pauseAppOpenOnce() = appOpen.pauseOnce()
 
     private companion object {
