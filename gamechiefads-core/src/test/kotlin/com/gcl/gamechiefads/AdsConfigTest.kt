@@ -14,7 +14,7 @@ class AdsConfigTest {
             .interstitial("random").units("HF", "MF", "NORMAL").everyNScreens(3).minGapSeconds(30)
             .excludeScreens(SplashActivity::class.java)
             .appOpen("splash").units("o1").tierTimeoutMs(3000)
-            .remoteConfigKey("ads_config")
+            .appId("ca-app-pub-1~2").remoteConfigKey("ads_config")
             .build()
 
         val r = c.placement("random")!!
@@ -26,6 +26,7 @@ class AdsConfigTest {
         assertEquals(AdMode.ON_DEMAND, r.mode)
         assertEquals(AdFormat.APP_OPEN, c.placement("splash")!!.format)
         assertEquals("ads_config", c.remoteConfigKey)
+        assertEquals("ca-app-pub-1~2", c.appId)
         assertNull(c.placement("missing"))
     }
 

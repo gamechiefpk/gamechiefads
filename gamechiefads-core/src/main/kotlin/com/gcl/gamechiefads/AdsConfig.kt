@@ -3,6 +3,8 @@ package com.gcl.gamechiefads
 /** Whole-library configuration as plain data. Java-friendly via [builder]. */
 data class AdsConfig(
     val placements: Map<String, PlacementConfig>,
+    /** AdMob app id ("ca-app-pub-...~..."), passed to the SDK init and UMP. Null = Google's test app id. */
+    val appId: String? = null,
     /** Firebase Remote Config key holding the JSON read by [RemoteOverrides]. */
     val remoteConfigKey: String? = null,
     /** If a preloaded ad is not ready, load on demand instead of returning false. */
@@ -25,6 +27,7 @@ data class AdsConfig(
     class Builder internal constructor() {
         private val done = LinkedHashMap<String, PlacementConfig>()
         private var current: PlacementConfig? = null
+        private var appId: String? = null
         private var remoteConfigKey: String? = null
         private var fallbackToLoad = false
         private var autoRefill = false
@@ -44,6 +47,7 @@ data class AdsConfig(
         fun tierTimeoutMs(ms: Long) = edit { it.copy(tierTimeoutMs = ms.coerceAtLeast(1)) }
         fun enabled(enabled: Boolean) = edit { it.copy(enabled = enabled) }
 
+        fun appId(id: String?) = apply { appId = id }
         fun remoteConfigKey(key: String?) = apply { remoteConfigKey = key }
         fun fallbackToLoad(value: Boolean) = apply { fallbackToLoad = value }
         fun autoRefill(value: Boolean) = apply { autoRefill = value }
@@ -51,7 +55,7 @@ data class AdsConfig(
 
         fun build(): AdsConfig {
             commit()
-            return AdsConfig(done.toMap(), remoteConfigKey, fallbackToLoad, autoRefill, overallBudgetMs)
+            return AdsConfig(done.toMap(), appId, remoteConfigKey, fallbackToLoad, autoRefill, overallBudgetMs)
         }
 
         private fun start(name: String, format: AdFormat) = apply {

@@ -1,0 +1,27 @@
+package com.gcl.gamechiefads
+
+import android.content.Context
+import android.content.pm.ApplicationInfo
+
+/** Google's published test ids and the rule "debug builds always use test ids". */
+internal object AdUnits {
+    const val TEST_APP_ID = "ca-app-pub-3940256099942544~3347511713"
+    const val TEST_INTERSTITIAL = "ca-app-pub-3940256099942544/1033173712"
+    const val TEST_APP_OPEN = "ca-app-pub-3940256099942544/9257395921"
+    const val TEST_BANNER = "ca-app-pub-3940256099942544/9214589741"
+    const val TEST_NATIVE = "ca-app-pub-3940256099942544/2247696110"
+
+    fun testUnit(format: AdFormat): String = when (format) {
+        AdFormat.INTERSTITIAL -> TEST_INTERSTITIAL
+        AdFormat.APP_OPEN -> TEST_APP_OPEN
+        AdFormat.BANNER -> TEST_BANNER
+        AdFormat.NATIVE -> TEST_NATIVE
+    }
+
+    /** Debug: one test unit (no point walking a waterfall of test ids). Release: the configured units. */
+    fun resolve(p: PlacementConfig, debug: Boolean): List<String> =
+        if (debug) listOf(testUnit(p.format)) else p.units
+
+    fun isDebuggable(context: Context): Boolean =
+        (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+}

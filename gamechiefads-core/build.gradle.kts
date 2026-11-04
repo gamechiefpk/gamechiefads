@@ -28,6 +28,9 @@ android {
 }
 
 dependencies {
+    // api: the ui module (and apps) bind NativeAd/AdView types returned by the sdk/ sources
+    api("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk:1.6.0")
+    implementation("com.google.android.ump:user-messaging-platform:4.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     implementation("androidx.annotation:annotation:1.11.0")
 
