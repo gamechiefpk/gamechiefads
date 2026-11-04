@@ -22,10 +22,15 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
+    testOptions { unitTests.isReturnDefaultValues = true }
+
     publishing {
         singleVariant("release") { withSourcesJar() }
     }
 }
+
+// Kotlin interface default methods become real Java default methods (optional listener callbacks)
+kotlin { compilerOptions { freeCompilerArgs.add("-Xjvm-default=all") } }
 
 dependencies {
     // api: the ui module (and apps) bind NativeAd/AdView types returned by the sdk/ sources
@@ -33,6 +38,7 @@ dependencies {
     implementation("com.google.android.ump:user-messaging-platform:4.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     implementation("androidx.annotation:annotation:1.11.0")
+    implementation("androidx.lifecycle:lifecycle-process:2.11.0")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
