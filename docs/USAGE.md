@@ -180,3 +180,35 @@ screen count and gap), `appopen`, `splash`, `shower` (ad on screen, closed, watc
 (premium), `banner`, `native`, `banner-ui`, `native-ui`, `loader`, `remote`.
 
 To silence it in a debug build: `GamechiefAds.setDebugLogging(false)`.
+
+## 14. Mediation (AdMob mediation with network adapters)
+
+Mediation needs no library code: it is set up in the AdMob console (ad sources, bidding, waterfall groups) and runs
+inside the ad unit ids you already pass in `AdsConfig`. The library only has to get the order right, and it does:
+consent first, then SDK init, and ads are requested only after init completes (Google requires this so bidding
+adapters take part in the first request).
+
+What the app must do:
+
+1. Use only adapter versions that are built for the Next-Gen SDK or still work with it. Adapters still depend on the
+   legacy `play-services-ads`; the global excludes in the README are mandatory, otherwise the build fails with
+   duplicate symbols.
+2. Add every mediation partner to the AdMob Privacy & messaging partner lists (GDPR / US states), or the partner will
+   not serve.
+3. Banners: turn off auto refresh in each third-party network's own ad unit settings.
+4. Third-party mediation *platforms* (as opposed to AdMob mediation) are not all compatible with Next-Gen. Google's
+   migration page lists which ones are; check it for your platform.
+
+Check which adapters are really active in a debug build, `adb logcat -s GamechiefAds`:
+
+```
+[mediation] AdMobAdapter: READY (310ms); FacebookAdapter: READY (1200ms)
+[sdk] load ok: InterstitialAd via Meta Audience Network (640ms) [tried: AdMob Network:err 210ms, Meta Audience Network:ok 640ms]
+```
+
+The first line is the adapter status after init, the second shows who served each ad and which sources failed first.
+An adapter missing from the first line was not initialised (wrong version, missing exclude, or not in the AdMob
+group). Not verified against a real adapter yet: the emulator test used Google's test ids only.
+
+Adapter artifacts and versions are not listed in Google's Next-Gen docs, so take them from each network's AdMob
+mediation setup page.

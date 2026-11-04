@@ -63,12 +63,25 @@ internal class SdkInit(context: Context) {
                 appContext,
                 InitializationConfig.Builder(appId).build(),
                 object : OnAdapterInitializationCompleteListener {
-                    override fun onAdapterInitializationComplete(status: InitializationStatus) = finish(true)
+                    override fun onAdapterInitializationComplete(status: InitializationStatus) {
+                        logAdapters(status)
+                        finish(true)
+                    }
                 },
             )
         } catch (t: Throwable) {
             AdLog.d("sdk") { "MobileAds.initialize threw: $t" }
             finish(false)
+        }
+    }
+
+    /** Debug trace: one line per mediation adapter, so a missing/failed network is visible at once. */
+    private fun logAdapters(status: InitializationStatus) {
+        AdLog.d("mediation") {
+            val map = try { status.adapterStatusMap } catch (t: Throwable) { emptyMap() }
+            if (map.isEmpty()) "no adapters reported" else map.entries.joinToString("; ") { (name, st) ->
+                "${name.substringAfterLast('.')}: ${st.initializationState} (${st.latency}ms)"
+            }
         }
     }
 
