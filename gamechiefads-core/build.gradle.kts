@@ -3,10 +3,11 @@ plugins {
     id("maven-publish")
 }
 
-val libGroup = providers.gradleProperty("LIB_GROUP").get()
 val libVersion = (System.getenv("RELEASE_VERSION") ?: providers.gradleProperty("LIB_VERSION").get())
     .removePrefix("v")
 val gprRepo = System.getenv("GITHUB_REPOSITORY") ?: providers.gradleProperty("GPR_REPO").get()
+// JitPack builds publish as com.github.<owner>.<repo>:<module>:<tag>; everything else uses LIB_GROUP
+val libGroup = if (System.getenv("JITPACK") != null) "com.github.${gprRepo.replace('/', '.')}" else providers.gradleProperty("LIB_GROUP").get()
 
 android {
     namespace = "com.gcl.gamechiefads"

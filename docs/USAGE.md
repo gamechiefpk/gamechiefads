@@ -183,21 +183,31 @@ To silence it in a debug build: `GamechiefAds.setDebugLogging(false)`.
 
 ## 14. Mediation (AdMob mediation with network adapters)
 
-Mediation needs no library code: it is set up in the AdMob console (ad sources, bidding, waterfall groups) and runs
-inside the ad unit ids you already pass in `AdsConfig`. The library only has to get the order right, and it does:
-consent first, then SDK init, and ads are requested only after init completes (Google requires this so bidding
-adapters take part in the first request).
+Supported partners, one tested set in the `gamechiefads-mediation` module (versions from Google's Next-Gen adapter pages):
+
+| Network | Adapter | Notes |
+|---|---|---|
+| Pangle | `pangle:8.4.0.5.0` | needs the bytedance maven repo. Call `PangleMediationAdapter.setPAConsent(...)` before init if you use consent. One ad source mapping per region (US, KR, ROW) in AdMob. |
+| Unity Ads | `unity:4.21.0.0` | bidding only (waterfall support ended 31 Jan 2026). |
+| Meta Audience Network | `facebook:6.22.0.1` | bidding only. |
+| Mintegral | `mintegral:17.1.91.0` | needs the mintegral maven repo. Call `MBridgeSDKFactory.getMBridgeSDK().setDoNotTrackStatus(...)` after init if needed. |
+| AppLovin | `applovin:13.6.4.2` | bidding and waterfall; banner only via waterfall. Disabled for child-directed / under-age apps. |
+
+Add `gamechiefads-mediation` and the two vendor repositories from the README. Mediation itself needs no library code:
+it is set up in the AdMob console and runs inside the ad unit ids you already pass in `AdsConfig`. The library gets the
+order right: consent first, then SDK init, and ads are requested only after init completes (Google requires this so
+bidding adapters take part in the first request).
 
 What the app must do:
 
-1. Use only adapter versions that are built for the Next-Gen SDK or still work with it. Adapters still depend on the
-   legacy `play-services-ads`; the global excludes in the README are mandatory, otherwise the build fails with
-   duplicate symbols.
+1. Keep the global excludes from the README. Every adapter still depends on the legacy `play-services-ads`, which cannot
+   live next to the Next-Gen SDK (duplicate symbols). The module also excludes it per adapter, but other libraries may
+   bring it in.
 2. Add every mediation partner to the AdMob Privacy & messaging partner lists (GDPR / US states), or the partner will
    not serve.
 3. Banners: turn off auto refresh in each third-party network's own ad unit settings.
-4. Third-party mediation *platforms* (as opposed to AdMob mediation) are not all compatible with Next-Gen. Google's
-   migration page lists which ones are; check it for your platform.
+4. Unity, Meta and Pangle US need an Activity context for some formats: always load through the library (it uses the
+   current Activity) rather than calling the SDK yourself.
 
 Check which adapters are really active in a debug build, `adb logcat -s GamechiefAds`:
 
@@ -207,8 +217,5 @@ Check which adapters are really active in a debug build, `adb logcat -s Gamechie
 ```
 
 The first line is the adapter status after init, the second shows who served each ad and which sources failed first.
-An adapter missing from the first line was not initialised (wrong version, missing exclude, or not in the AdMob
-group). Not verified against a real adapter yet: the emulator test used Google's test ids only.
-
-Adapter artifacts and versions are not listed in Google's Next-Gen docs, so take them from each network's AdMob
-mediation setup page.
+An adapter missing from the first line was not initialised (wrong version, missing exclude, or not in the AdMob group).
+Not verified against real adapters yet: the emulator test used Google's test ids only.
