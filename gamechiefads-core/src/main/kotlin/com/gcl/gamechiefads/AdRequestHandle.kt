@@ -14,3 +14,9 @@ interface NativeLoadCallback {
 
     fun onFailed(reason: String)
 }
+
+/** Optional result of [GamechiefAds.banner]. Exactly one method is called, on the main thread. */
+interface BannerListener {
+    fun onLoaded() {}
+    fun onFailed(reason: String) {}
+}

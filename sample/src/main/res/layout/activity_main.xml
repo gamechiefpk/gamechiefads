@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <Button android:id="@+id/btn_show" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Show interstitial (on-demand)" />
+        <Button android:id="@+id/btn_preload" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Preload interstitial (opt-in)" />
+        <Button android:id="@+id/btn_show_preloaded" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Show preloaded interstitial" />
+        <Button android:id="@+id/btn_premium" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Toggle premium" />
+        <Button android:id="@+id/btn_second" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Open second screen (counts for random ad)" />
+
+        <TextView
+            android:id="@+id/log"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="monospace"
+            android:minLines="3"
+            android:textSize="12sp" />
+
+        <com.gcl.gamechiefads.ui.BannerAdView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:gads_placement="banner_main" />
+
+        <Spinner
+            android:id="@+id/size_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" />
+
+        <com.gcl.gamechiefads.ui.NativeAdTemplateView
+            android:id="@+id/native_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:gads_autoLoad="false" />
+    </LinearLayout>
+</ScrollView>

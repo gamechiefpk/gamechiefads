@@ -2,4 +2,5 @@
 <resources>
     <!-- Required "Ad" attribution on native ads. Translate per locale. -->
     <string name="gads_ad_badge">Ad</string>
+    <string name="gads_loading_ad">Loading ad…</string>
 </resources>

@@ -73,9 +73,18 @@ object GamechiefAds {
 
     /** Loads an adaptive banner into [container]; the container is hidden if there is no ad. */
     @JvmStatic
-    fun banner(container: FrameLayout, placement: String) {
+    fun banner(container: FrameLayout, placement: String) = banner(container, placement, null)
+
+    /** Same, with an optional result callback (the ui module's BannerAdView uses it for its shimmer). */
+    @JvmStatic
+    fun banner(container: FrameLayout, placement: String, listener: BannerListener?) {
         val r = runtime
-        if (r == null) container.visibility = android.view.View.GONE else r.banner.attach(container, placement)
+        if (r == null) {
+            container.visibility = android.view.View.GONE
+            listener?.onFailed("not initialized")
+        } else {
+            r.banner.attach(container, placement, listener)
+        }
     }
 
     /** Low-level native load, used by the ui module's NativeAdTemplateView. */

@@ -6,6 +6,7 @@ import android.widget.FrameLayout
 import com.gcl.gamechiefads.sdk.LoadedBanner
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
@@ -23,23 +24,25 @@ internal class BannerController(
 ) {
     private val live = ArrayList<WeakReference<FrameLayout>>()
 
-    fun attach(container: FrameLayout, name: String) {
+    fun attach(container: FrameLayout, name: String, listener: BannerListener? = null) {
         val p = config().placement(name)
         if (p == null || !p.enabled || state.premium.value) {
             clear(container)
             container.visibility = View.GONE
+            listener?.onFailed(if (p == null) "unknown placement: $name" else if (!p.enabled) "disabled" else "premium")
             return
         }
         if (container.getTag(TAG) != null) return // live banner already there or loading: reuse
         val ctx = container.context
         val widthDp = widthDp(container)
-        val job = scope.launch {
+        val job = scope.launch(start = CoroutineStart.LAZY) {
             try {
                 val banner = pipeline.load(p, ctx as? Activity ?: screens.current) { unit -> load(ctx, unit, widthDp) }
                 if (banner == null || !container.isAttachedToWindow || state.premium.value) {
                     banner?.destroy()
                     container.setTag(TAG, null)
                     container.visibility = View.GONE
+                    listener?.onFailed("no fill")
                     return@launch
                 }
                 container.removeAllViews()
@@ -47,14 +50,17 @@ internal class BannerController(
                 container.setTag(TAG, banner)
                 container.visibility = View.VISIBLE
                 remember(container)
+                listener?.onLoaded()
             } catch (e: CancellationException) {
                 throw e
             } catch (t: Throwable) {
                 container.setTag(TAG, null)
                 container.visibility = View.GONE
+                listener?.onFailed(t.message ?: "error")
             }
         }
         container.setTag(TAG, job) // marks "loading"; replaced by the banner on success
+        job.start()
         container.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
             override fun onViewAttachedToWindow(v: View) {}
             override fun onViewDetachedFromWindow(v: View) {

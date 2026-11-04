@@ -1,5 +1,8 @@
 package com.gcl.gamechiefads
 
+import android.content.Context
+import androidx.annotation.StringRes
+
 /** Whole-library configuration as plain data. Java-friendly via [builder]. */
 data class AdsConfig(
     val placements: Map<String, PlacementConfig>,
@@ -43,6 +46,10 @@ data class AdsConfig(
         fun nativeAd(name: String) = start(name, AdFormat.NATIVE)
 
         fun units(vararg ids: String) = edit { it.copy(units = ids.filter(String::isNotBlank)) }
+        /** Same as [units] but from string resources, e.g. unitsRes(app, R.string.HF, R.string.MF). */
+        fun unitsRes(context: Context, @StringRes vararg ids: Int) =
+            edit { it.copy(units = ids.map { id -> context.getString(id) }.filter(String::isNotBlank)) }
+
         fun mode(mode: AdMode) = edit { it.copy(mode = mode) }
         fun everyNScreens(n: Int) = edit { it.copy(everyNScreens = n.coerceAtLeast(0)) }
         fun minGapSeconds(s: Int) = edit { it.copy(minGapSeconds = s.coerceAtLeast(0)) }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Google's published TEST ids. Debug builds use test ids automatically; these keep release builds safe too. -->
+    <string name="admob_app_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>
+    <string name="unit_interstitial" translatable="false">ca-app-pub-3940256099942544/1033173712</string>
+    <string name="unit_app_open" translatable="false">ca-app-pub-3940256099942544/9257395921</string>
+    <string name="unit_banner" translatable="false">ca-app-pub-3940256099942544/9214589741</string>
+    <string name="unit_native" translatable="false">ca-app-pub-3940256099942544/2247696110</string>
+</resources>
