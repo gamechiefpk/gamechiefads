@@ -33,7 +33,8 @@ internal class SplashFlow(
                         if (second != null) {
                             ads.secondJob = scope.launch {
                                 try {
-                                    ads.second = pipeline.load(second, activity, source)
+                                    // own job: bound it by the splash limit too, so it can never outlive the splash
+                                    ads.second = withTimeoutOrNull(cfg.splashTimeoutMs) { pipeline.load(second, activity, source) }
                                 } catch (e: CancellationException) {
                                     throw e
                                 } catch (t: Throwable) { /* second ad is optional */ }

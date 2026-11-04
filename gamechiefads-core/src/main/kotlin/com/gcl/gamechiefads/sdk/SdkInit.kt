@@ -6,33 +6,51 @@ import com.google.android.libraries.ads.mobile.sdk.MobileAds
 import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationConfig
 import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationStatus
 import com.google.android.libraries.ads.mobile.sdk.initialization.OnAdapterInitializationCompleteListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
 
 /**
  * One-time Next-Gen SDK init, off the main thread. Safe to call many times: concurrent callers
- * share one init and later calls return at once. A failed or timed-out init is retried next call.
+ * share one init run. A caller that stops waiting (its timeout) does NOT cancel the init: it keeps
+ * running and the next caller picks up the result, so a slow first init is not thrown away.
+ * Only a finished-and-failed init is retried.
  * Only call it after consent allows requesting ads.
  */
 internal class SdkInit(context: Context) {
     private val appContext = context.applicationContext
-    private val mutex = Mutex()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val lock = Any()
+    private var pending: Deferred<Boolean>? = null
 
-    suspend fun ensure(appId: String, timeoutMs: Long): Boolean = mutex.withLock {
-        if (isReady()) return@withLock true
-        AdLog.d("sdk") { "MobileAds.initialize start (timeout ${timeoutMs}ms)" }
-        val t0 = System.nanoTime()
-        val ok = withContext(Dispatchers.Default) {
-            withTimeoutOrNull(timeoutMs) { initialize(appId) } ?: false
+    suspend fun ensure(appId: String, timeoutMs: Long): Boolean {
+        if (isReady()) return true
+        val run = synchronized(lock) {
+            val cur = pending
+            if (cur != null && !(cur.isCompleted && !cur.getCompleted())) {
+                AdLog.d("sdk") { "MobileAds.initialize already running/done, waiting up to ${timeoutMs}ms" }
+                cur
+            } else {
+                AdLog.d("sdk") { "MobileAds.initialize start (this caller waits up to ${timeoutMs}ms)" }
+                scope.async { runInit(appId) }.also { pending = it }
+            }
         }
-        AdLog.d("sdk") { "MobileAds.initialize ${if (ok) "done" else "FAILED/timeout"} in ${(System.nanoTime() - t0) / 1_000_000}ms" }
-        ok
+        val ok = withTimeoutOrNull(timeoutMs) { run.await() } ?: false
+        if (!ok) AdLog.d("sdk") { "init not ready for this caller (it keeps running if still pending)" }
+        return ok
+    }
+
+    private suspend fun runInit(appId: String): Boolean {
+        val t0 = System.nanoTime()
+        val ok = withTimeoutOrNull(HARD_LIMIT_MS) { initialize(appId) } ?: false
+        AdLog.d("sdk") { "MobileAds.initialize ${if (ok) "done" else "FAILED"} in ${(System.nanoTime() - t0) / 1_000_000}ms" }
+        return ok
     }
 
     private fun isReady(): Boolean = try { MobileAds.isInitialized } catch (t: Throwable) { false }
@@ -52,5 +70,9 @@ internal class SdkInit(context: Context) {
             AdLog.d("sdk") { "MobileAds.initialize threw: $t" }
             finish(false)
         }
+    }
+
+    private companion object {
+        const val HARD_LIMIT_MS = 60_000L // a never-answering SDK must not block retries forever
     }
 }

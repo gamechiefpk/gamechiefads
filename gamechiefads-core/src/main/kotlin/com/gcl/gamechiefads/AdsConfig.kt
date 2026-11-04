@@ -18,12 +18,15 @@ data class AdsConfig(
     val overallBudgetMs: Long = DEFAULT_OVERALL_BUDGET_MS,
     /** Hard limit for prepareSplash: consent + init + waterfall together. */
     val splashTimeoutMs: Long = DEFAULT_SPLASH_TIMEOUT_MS,
+    /** How long one ad request waits for the SDK to finish its (one-time) init. A late init is kept, not restarted. */
+    val initTimeoutMs: Long = DEFAULT_INIT_TIMEOUT_MS,
 ) {
     fun placement(name: String): PlacementConfig? = placements[name]
 
     companion object {
         const val DEFAULT_OVERALL_BUDGET_MS = 8_000L
         const val DEFAULT_SPLASH_TIMEOUT_MS = 10_000L
+        const val DEFAULT_INIT_TIMEOUT_MS = 8_000L
 
         @JvmStatic
         fun builder(): Builder = Builder()
@@ -39,6 +42,7 @@ data class AdsConfig(
         private var autoRefill = false
         private var overallBudgetMs = DEFAULT_OVERALL_BUDGET_MS
         private var splashTimeoutMs = DEFAULT_SPLASH_TIMEOUT_MS
+        private var initTimeoutMs = DEFAULT_INIT_TIMEOUT_MS
 
         fun interstitial(name: String) = start(name, AdFormat.INTERSTITIAL)
         fun appOpen(name: String) = start(name, AdFormat.APP_OPEN)
@@ -65,10 +69,11 @@ data class AdsConfig(
         fun overallBudgetMs(ms: Long) = apply { overallBudgetMs = ms.coerceAtLeast(1) }
 
         fun splashTimeoutMs(ms: Long) = apply { splashTimeoutMs = ms.coerceAtLeast(1) }
+        fun initTimeoutMs(ms: Long) = apply { initTimeoutMs = ms.coerceAtLeast(1) }
 
         fun build(): AdsConfig {
             commit()
-            return AdsConfig(done.toMap(), appId, remoteConfigKey, fallbackToLoad, autoRefill, overallBudgetMs, splashTimeoutMs)
+            return AdsConfig(done.toMap(), appId, remoteConfigKey, fallbackToLoad, autoRefill, overallBudgetMs, splashTimeoutMs, initTimeoutMs)
         }
 
         private fun start(name: String, format: AdFormat) = apply {

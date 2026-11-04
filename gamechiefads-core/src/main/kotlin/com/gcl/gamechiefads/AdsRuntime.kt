@@ -42,7 +42,7 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
     private val sdkInit = SdkInit(app)
     private val gate = AdsGate(
         consent = { a: Activity -> consent.gather(a, config.appId) },
-        init = { sdkInit.ensure(config.appId ?: AdUnits.TEST_APP_ID, INIT_TIMEOUT_MS) },
+        init = { sdkInit.ensure(config.appId ?: AdUnits.TEST_APP_ID, config.initTimeoutMs) },
         clock = clock,
     )
     private val pipeline = AdLoadPipeline({ config }, gate::ready, AdUnits.isDebuggable(app))
@@ -82,7 +82,6 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
 
     private companion object {
         const val TAG = "GamechiefAds"
-        const val INIT_TIMEOUT_MS = 5_000L
         const val APP_OPEN_TTL_MS = 4 * 60 * 60 * 1000L - 5 * 60 * 1000L
     }
 }
