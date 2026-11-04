@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="gads_NativeAdTemplateView">
+        <attr name="gads_size" format="enum">
+            <enum name="tiny" value="0" />
+            <enum name="small" value="1" />
+            <enum name="small_media" value="2" />
+            <enum name="medium" value="3" />
+            <enum name="large" value="4" />
+            <enum name="full" value="5" />
+        </attr>
+        <!-- Placement name from AdsConfig. With autoLoad the ad loads when the view is attached. -->
+        <attr name="gads_placement" format="string" />
+        <attr name="gads_autoLoad" format="boolean" />
+        <!-- true (default): the view becomes GONE when there is no ad -->
+        <attr name="gads_hideOnFail" format="boolean" />
+    </declare-styleable>
+    <declare-styleable name="gads_ShimmerView">
+        <attr name="gads_cornerRadius" format="dimension" />
+    </declare-styleable>
+</resources>

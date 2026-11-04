@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="gads_card_bg">#1E1F22</color>
+    <color name="gads_card_stroke">#3A3B3F</color>
+    <color name="gads_text_primary">#ECEFF1</color>
+    <color name="gads_text_secondary">#A0A4A8</color>
+    <color name="gads_cta_bg">#8AB4F8</color>
+    <color name="gads_cta_text">#0B1B33</color>
+    <color name="gads_shimmer_base">#2A2C30</color>
+    <color name="gads_shimmer_highlight">#3A3D42</color>
+</resources>

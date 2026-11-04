@@ -27,6 +27,9 @@ android {
     }
 }
 
+// Kotlin interface default methods become real Java default methods (optional listener callbacks)
+kotlin { compilerOptions { freeCompilerArgs.add("-Xjvm-default=all") } }
+
 dependencies {
     api(project(":gamechiefads-core"))
     implementation("androidx.annotation:annotation:1.11.0")
