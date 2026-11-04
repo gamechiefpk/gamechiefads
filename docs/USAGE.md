@@ -193,7 +193,7 @@ Supported partners, one tested set in the `gamechiefads-mediation` module (versi
 | Mintegral | `mintegral:17.1.91.0` | needs the mintegral maven repo. Call `MBridgeSDKFactory.getMBridgeSDK().setDoNotTrackStatus(...)` after init if needed. |
 | AppLovin | `applovin:13.6.4.2` | bidding and waterfall; banner only via waterfall. Disabled for child-directed / under-age apps. |
 
-Add `gamechiefads-mediation` and the two vendor repositories from the README. Mediation itself needs no library code:
+The single `gamechiefads` dependency already includes it; add the two vendor repositories from the README. Mediation itself needs no library code:
 it is set up in the AdMob console and runs inside the ad unit ids you already pass in `AdsConfig`. The library gets the
 order right: consent first, then SDK init, and ads are requested only after init completes (Google requires this so
 bidding adapters take part in the first request).

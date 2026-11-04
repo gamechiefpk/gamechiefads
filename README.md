@@ -20,9 +20,8 @@ App `build.gradle` (replace `TAG` with the latest release tag, e.g. `v0.1.0`):
 
 ```groovy
 dependencies {
-    implementation "com.github.gamechiefpk.gamechiefads:gamechiefads-core:TAG"
-    implementation "com.github.gamechiefpk.gamechiefads:gamechiefads-ui:TAG"          // optional: native/banner views, loader dialog
-    implementation "com.github.gamechiefpk.gamechiefads:gamechiefads-mediation:TAG"   // optional: Pangle, Unity, Meta, Mintegral, AppLovin adapters
+    // one dependency: core + ui (native, banner, loader) + mediation (Pangle, Unity, Meta, Mintegral, AppLovin)
+    implementation "com.github.gamechiefpk.gamechiefads:gamechiefads:TAG"
 }
 
 configurations.all {   // mediation adapters still pull in the old SDK; the two cannot coexist
@@ -31,7 +30,7 @@ configurations.all {   // mediation adapters still pull in the old SDK; the two 
 }
 ```
 
-Only if you use the mediation module, also add these two repositories next to `jitpack.io`:
+Also add these two repositories next to `jitpack.io` (the mediation adapters need them):
 
 ```groovy
 maven { url = uri("https://artifact.bytedance.com/repository/pangle/") }
