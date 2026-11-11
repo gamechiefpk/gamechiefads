@@ -1,100 +1,63 @@
 package com.gcl.gamechiefads.sample;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
-import android.widget.TextView;
+import android.widget.Button;
 
 import com.gcl.gamechiefads.GamechiefAds;
-import com.gcl.gamechiefads.InterstitialListener;
-import com.gcl.gamechiefads.ui.NativeAdTemplateView;
-import com.gcl.gamechiefads.ui.NativeSize;
 
-public class MainActivity extends Activity {
-    private TextView log;
+/** Hub: one button per ad type, plus premium and remote-override switches. */
+public class MainActivity extends DemoActivity {
     private boolean premium;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        log = findViewById(R.id.log);
+    protected String screenTitle() {
+        return "GamechiefAds demo";
+    }
 
-        // 1) on-demand (default): loader overlay, waterfall, load then show. Listener may be null.
-        findViewById(R.id.btn_show).setOnClickListener(v ->
-                GamechiefAds.showInterstitial(this, "manual", listener("on-demand")));
+    @Override
+    protected void build() {
+        note("Google test ads only. Open a screen per ad type. The dark box below is the event log of every screen.");
 
-        // 2) opt-in preloading
-        findViewById(R.id.btn_preload).setOnClickListener(v -> {
-            GamechiefAds.preloadInterstitial("preloaded");
-            say("preload requested");
-        });
-        findViewById(R.id.btn_show_preloaded).setOnClickListener(v -> {
-            boolean started = GamechiefAds.showPreloadedInterstitial(this, "preloaded", listener("preloaded"));
-            say("ready=" + GamechiefAds.isInterstitialReady("preloaded") + " started=" + started);
-        });
+        button("Interstitials: on-demand, preload, double tap", () -> open(InterstitialActivity.class));
+        button("Banner", () -> open(BannerActivity.class));
+        button("Native: all 6 sizes + style", () -> open(NativeActivity.class));
+        button("App-open (leave and return)", () -> open(AppOpenActivity.class));
+        button("Random interstitial (screen counter)", () -> open(SecondActivity.class));
+        button("Library trace (logcat GamechiefAds)", () -> open(TraceActivity.class));
+        button("Run the splash again", () -> open(SplashActivity.class));
 
-        // 3) premium switch: no ads of any kind while on
-        findViewById(R.id.btn_premium).setOnClickListener(v -> {
+        note("Switches");
+        Button p = button("Premium: OFF (tap to turn on)", () -> { });
+        p.setOnClickListener(v -> {
             premium = !premium;
             GamechiefAds.setPremium(premium);
+            p.setText("Premium: " + (premium ? "ON, no ads at all" : "OFF") + " (tap to toggle)");
             say("premium=" + premium);
         });
 
-        // 4) screens count towards the random interstitial; no ad code in SecondActivity at all
-        findViewById(R.id.btn_second).setOnClickListener(v -> startActivity(new Intent(this, SecondActivity.class)));
-
-        // 5) native ad in every size
-        NativeAdTemplateView nativeView = findViewById(R.id.native_view);
-        Spinner sizes = findViewById(R.id.size_spinner);
-        sizes.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, NativeSize.values()));
-        NativeSize initial = NativeSize.MEDIUM;
-        String requested = getIntent().getStringExtra("size");
-        if (requested != null) {
-            try {
-                initial = NativeSize.valueOf(requested);
-            } catch (IllegalArgumentException ignored) {
-            }
-        }
-        sizes.setSelection(initial.ordinal());
-        sizes.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                nativeView.setSize(NativeSize.values()[position]);
-                nativeView.load("native_main");
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
+        button("Remote override: random every screen, no gap", () -> {
+            GamechiefAds.applyRemoteOverrides("{\"placements\":{\"random\":{\"every\":1,\"gap\":0}}}");
+            say("remote: random every=1 gap=0");
+        });
+        button("Remote override: random every 3 screens, gap 30 s", () -> {
+            GamechiefAds.applyRemoteOverrides("{\"placements\":{\"random\":{\"every\":3,\"gap\":30}}}");
+            say("remote: random every=3 gap=30");
+        });
+        button("Remote override: ALL ads off", () -> {
+            GamechiefAds.applyRemoteOverrides("{\"enabled\":false}");
+            say("remote: enabled=false");
+        });
+        button("Remote override: back to app defaults", () -> {
+            GamechiefAds.applyRemoteOverrides(null);
+            say("remote: cleared");
+        });
+        button("Clear log", () -> {
+            DemoLog.clear();
+            recreate();
         });
     }
 
-    private InterstitialListener listener(String name) {
-        return new InterstitialListener() {
-            @Override
-            public void onShown() {
-                say(name + ": shown");
-            }
-
-            @Override
-            public void onNotShown(String reason) {
-                say(name + ": not shown (" + reason + ")");
-            }
-
-            @Override
-            public void onComplete(boolean wasShown) {
-                say(name + ": complete shown=" + wasShown);
-            }
-        };
-    }
-
-    private void say(String s) {
-        android.util.Log.d("SampleLog", s);
-        log.append(s + "\n");
+    private void open(Class<?> c) {
+        startActivity(new Intent(this, c));
     }
 }

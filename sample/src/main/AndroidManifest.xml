@@ -7,7 +7,7 @@
     <application
         android:name=".SampleApp"
         android:allowBackup="false"
-        android:label="GamechiefAds Sample"
+        android:label="GamechiefAds Demo"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
         <!-- Required by the Ads SDK and UMP. This is Google's TEST app id; use your own in real apps. -->
@@ -23,10 +23,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!-- exported only so adb can open a chosen native size: am start -n ...MainActivity -e size LARGE -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="true" />
+        <activity android:name=".MainActivity" />
+        <activity android:name=".InterstitialActivity" />
+        <activity android:name=".BannerActivity" />
+        <activity android:name=".NativeActivity" />
+        <activity android:name=".AppOpenActivity" />
+        <activity android:name=".TraceActivity" />
         <activity android:name=".SecondActivity" />
     </application>
 </manifest>
