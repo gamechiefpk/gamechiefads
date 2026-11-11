@@ -7,6 +7,7 @@ import com.google.android.libraries.ads.mobile.sdk.banner.AdView
 import com.google.android.libraries.ads.mobile.sdk.banner.BannerAd
 import com.google.android.libraries.ads.mobile.sdk.banner.BannerAdRequest
 import android.os.Bundle
+import com.gcl.gamechiefads.AdLog
 import com.gcl.gamechiefads.BannerType
 import kotlinx.coroutines.CancellationException
 
@@ -36,6 +37,7 @@ internal object BannerSource {
             runCatching { view.destroy() }
             return null
         }
+        AdLog.d("sdk") { "banner loaded: type=$type size=${loaded.getAdSize()} collapsible=${runCatching { loaded.isCollapsible() }.getOrNull()}" }
         return LoadedBanner(view) { view.destroy() }
     }
 

@@ -219,3 +219,114 @@ Check which adapters are really active in a debug build, `adb logcat -s Gamechie
 The first line is the adapter status after init, the second shows who served each ad and which sources failed first.
 An adapter missing from the first line was not initialised (wrong version, missing exclude, or not in the AdMob group).
 Not verified against real adapters yet: the emulator test used Google's test ids only.
+
+## 15. Placements as constants
+
+Declare every ad spot once, in upper case, and pass the constant instead of a string:
+
+```java
+public final class AdIds {
+    public static final AdPlacement AFTER_SAVE  = AdPlacement.of("after_save");
+    public static final AdPlacement BANNER_HOME = AdPlacement.of("banner_home");
+    public static final AdPlacement EXIT_NATIVE = AdPlacement.of("exit_native");
+}
+// config:  .interstitial(AdIds.AFTER_SAVE).units(...)
+// use:     GamechiefAds.showInterstitial(this, AdIds.AFTER_SAVE, null);
+//          AdsUi.banner(frameLayout, AdIds.BANNER_HOME);
+```
+
+The string methods still work. Built-in constants: `AdPlacement.RANDOM`, `APP_OPEN`, `SPLASH`, `SPLASH_SECOND`.
+
+## 16. Banner types
+
+The type is part of the placement, not of the call:
+
+```java
+.banner(AdIds.BANNER_HOME).units("...").bannerType(BannerType.ADAPTIVE)             // default
+.banner(AdIds.BANNER_BOTTOM).units("...").bannerType(BannerType.COLLAPSIBLE_BOTTOM) // expands upwards
+.banner(AdIds.BANNER_RECT).units("...").bannerType(BannerType.MEDIUM_RECTANGLE)     // 300x250
+```
+
+`ADAPTIVE`, `INLINE_ADAPTIVE`, `COLLAPSIBLE_BOTTOM`, `COLLAPSIBLE_TOP`, `BANNER` (320x50), `LARGE_BANNER` (320x100),
+`MEDIUM_RECTANGLE`, `FULL_BANNER` (468x60), `LEADERBOARD` (728x90). Remote Config can change it: `"bannerType": "MEDIUM_RECTANGLE"`.
+Collapsible banners belong at the edge of the screen (bottom banner: `COLLAPSIBLE_BOTTOM`) and are served by Google demand
+only; a mediated network shows a normal banner. Debug builds log whether the SDK granted it (`collapsible=true`).
+
+Loading needs no XML, only the FrameLayout the app already has (ui module):
+
+```java
+AdsUi.banner(findViewById(R.id.bannerContainer), AdIds.BANNER_HOME);   // shimmer, hides itself without an ad
+```
+
+Without the ui module: `GamechiefAds.banner(frameLayout, AdIds.BANNER_HOME)`.
+
+## 17. Full-screen native ad (like an interstitial)
+
+```java
+FullScreenNativeAd.show(this, AdIds.EXIT_NATIVE, new InterstitialListener() {
+    @Override public void onComplete(boolean wasShown) { finish(); }
+});
+// optional: new FullScreenNativeAd.Options(3 /* close after s */, NativeStyle.DEFAULT, DefaultLoaderDialog.builder().build())
+```
+
+A `nativeAd(...)` placement shown over the whole screen with a close button that works after a short countdown (back is
+blocked until then). It takes the single full-screen slot: premium users never see it, no other ad can start while it is
+open, and it resets the gap and screen counter. For your own full-screen design use
+`GamechiefAds.openFullScreenSlot(activity, placement)` and call `release()` when your screen closes.
+
+## 18. Loading overlay
+
+```java
+GamechiefAds.setLoaderUi(DefaultLoaderDialog.builder()
+    .title("Designing your room").message("A short ad keeps this app free")
+    .tips("Tip: swipe to compare", "Tip: try night mode")      // optional, fade through
+    .accentColor(0xFF6C4CF1).cornerRadiusDp(28).build());
+```
+
+Dimmed and blurred background (Android 12+), rounded card, spinner, texts that follow light and dark mode. Texts per
+placement win over the global ones: `.interstitial(AdIds.AFTER_SAVE).loaderText("Saving...", "One short ad")` or Remote
+Config `loaderTitle` / `loaderMessage`.
+
+## 19. No ads on back presses
+
+The random interstitial counts and triggers only when a NEW screen opens (a freshly created Activity). Coming back to an
+earlier screen with the back button, or because the screen above finished, is not a screen: no count, no ad. Rotation and
+returning from an ad were never counted either. App code that calls `showInterstitial` itself decides for itself, for
+example not inside `onBackPressed`.
+
+## 20. Double ads (two ads, one ad break)
+
+```java
+.interstitial(AdIds.AFTER_SAVE).units(...).doubleAd(true)
+.appOpen(Placements.APP_OPEN).units(...).doubleAd(true)
+```
+
+Both ads are requested at the same time. The first is shown as soon as it is ready; the second is waited for at most
+`doubleSecondWaitMs` (default 2.5 s) and, if it is missing, the first is shown alone. When the first ad is closed the
+second starts inside the same callback: no gap, no flash of the app between them, and the "ad showing" flag is never released
+in between. Your listener / `onDone` is called once, after the last ad. Remote Config switches it per placement:
+`{"placements":{"after_save":{"double":true},"app_open":{"double":true}}}`.
+
+Splash: enable the `splash_second` placement (also via Remote Config `enabled`) and both splash ads play back to back
+the same way. Preloaded interstitials stay single.
+
+## 21. Floors (the ad unit waterfall) under your control
+
+`units(HF, MF, NORMAL)` is tried top to bottom. Per placement you can change how:
+
+```java
+.interstitial(AdIds.AFTER_SAVE).units(HF, MF, NORMAL)
+    .tierTimeoutMs(3000)                 // default timeout of a unit
+    .unitTimeoutMs(HF, 1500)             // the high floor rarely fills: give it less time
+    .skipUnitAfterFails(3, 120)          // 3 misses in a row: skip that unit for 120 s, then try it again
+    .disableUnit(MF)                     // keep the id, stop requesting it
+    .waterfallMode(WaterfallMode.PARALLEL)   // all units at once, first ad wins (more requests, less waiting)
+```
+
+Global: `overallBudgetMs` caps the whole waterfall. A placement never ends up with zero units (if every unit is skipped, all
+are tried). Everything is also a Remote Config field:
+`{"placements":{"after_save":{"waterfall":"parallel","tierTimeouts":{"ca-app-pub-...":1500},"disabledUnits":["..."],"skipAfterFails":3,"skipForSec":120}}}`.
+
+Debug builds replace your ids with Google test ids, so floors cannot be seen in debug unless you call
+`.testIdsInDebug(false)` on the config (release builds always use your ids). The trace shows every unit:
+`[pipeline] after_save: SEQUENTIAL waterfall, 2/3 unit(s)` (a unit was skipped) and `[waterfall] tier ...: miss`.

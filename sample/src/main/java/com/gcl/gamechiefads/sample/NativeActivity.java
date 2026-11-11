@@ -24,26 +24,31 @@ public class NativeActivity extends DemoActivity {
 
     @Override
     protected void build() {
+        // one ad at a time: each template starts loading when the previous one finished (a slow emulator or network
+        // does not like six requests at once). In a real app a list normally shows one or two native ads.
         for (int i = 0; i < IDS.length; i++) {
-            String name = NAMES[i];
+            final int index = i;
             NativeAdTemplateView v = findViewById(IDS[i]);
             v.setListener(new NativeAdTemplateView.Listener() {
                 @Override
                 public void onLoaded() {
-                    say("native " + name + ": loaded");
+                    say("native " + NAMES[index] + ": loaded");
+                    loadFrom(index + 1);
                 }
 
                 @Override
                 public void onFailed(String reason) {
-                    say("native " + name + ": failed (" + reason + ")");
+                    say("native " + NAMES[index] + ": failed (" + reason + ")");
+                    loadFrom(index + 1);
                 }
             });
         }
+        loadFrom(0);
         button("Full-screen native (like an interstitial)", () ->
                 FullScreenNativeAd.show(this, AdIds.NATIVE_FULLSCREEN, listener("native-fs")));
-        button("Reload all", () -> {
-            for (int id : IDS) ((NativeAdTemplateView) findViewById(id)).load(AdIds.NATIVE_MAIN);
+        button("Reload all (one after another)", () -> {
             say("native: reload all");
+            loadFrom(0);
         });
         button("Switch style (default / dark)", () -> {
             dark = !dark;
@@ -54,5 +59,10 @@ public class NativeActivity extends DemoActivity {
             for (int id : IDS) ((NativeAdTemplateView) findViewById(id)).setStyle(style);
             say("native style: " + (dark ? "dark" : "default"));
         });
+    }
+
+    private void loadFrom(int index) {
+        if (index >= IDS.length) return;
+        ((NativeAdTemplateView) findViewById(IDS[index])).load(AdIds.NATIVE_MAIN);
     }
 }

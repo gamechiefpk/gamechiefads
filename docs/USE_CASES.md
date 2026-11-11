@@ -154,3 +154,33 @@ adb logcat -s GamechiefAds
 Look at the `[random]` line for the policy decision (`DENY_MIN_GAP`, `DENY_EVERY_N`, `DENY_EXCLUDED_SCREEN`,
 `DENY_PREMIUM`), at `[gate]` for consent or init problems, and at `[pipeline]` / `[sdk]` for the AdMob error code of
 each unit. Release builds print nothing.
+
+## 13. Banner types and a code-only banner
+
+```java
+// config: .banner(AdIds.BANNER_RECT).units("...").bannerType(BannerType.MEDIUM_RECTANGLE)
+AdsUi.banner(findViewById(R.id.bannerContainer), AdIds.BANNER_RECT);   // a FrameLayout, no XML view needed
+```
+
+## 14. A full-screen native ad when leaving a screen
+
+```java
+@Override public void onBackPressed() {
+    FullScreenNativeAd.show(this, AdIds.EXIT_NATIVE, new InterstitialListener() {
+        @Override public void onComplete(boolean wasShown) { finish(); }
+    });
+}
+```
+
+## 15. Two ads in a row, switched from Remote Config
+
+```java
+.interstitial(AdIds.AFTER_SAVE).units(...)            // normal
+// Remote Config: {"placements":{"after_save":{"double":true}}}   -> two ads back to back, one break
+```
+
+## 16. A high floor that keeps missing
+
+```java
+.interstitial(AdIds.AFTER_SAVE).units(HF, MF, NORMAL).unitTimeoutMs(HF, 1500).skipUnitAfterFails(3, 120)
+```
