@@ -55,7 +55,9 @@ internal class AppOpenController(
         if (decision == Decision.ALLOW && screens.isUsable(activity)) {
             val ad = pool.take(Placements.APP_OPEN)
             if (ad != null) {
-                shower.show(activity, ad, object : FullScreenShower.Events {
+                val second = if (p.doubleAd) pool.take(Placements.APP_OPEN_SECOND) else null
+                AdLog.d("appopen") { "showing ${if (second != null) "2 ads (double)" else "1 ad"}" }
+                shower.showAll(activity, listOfNotNull(ad, second), object : FullScreenShower.Events {
                     override fun onShown() {}
                     override fun onFinished(shown: Boolean, reason: String?) = fetch()
                 })
@@ -70,9 +72,18 @@ internal class AppOpenController(
 
     private fun fetch() {
         val p = enabledPlacement() ?: return
+        if (p.doubleAd) {
+            scope.launch {
+                try {
+                    pool.fill(Placements.APP_OPEN_SECOND) { pipeline.load(p, screens.current, source) { it.destroy() } }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (t: Throwable) { /* fail open */ }
+            }
+        }
         scope.launch {
             try {
-                val ready = pool.fill(Placements.APP_OPEN) { pipeline.load(p, screens.current, source) }
+                val ready = pool.fill(Placements.APP_OPEN) { pipeline.load(p, screens.current, source) { it.destroy() } }
                 AdLog.d("appopen") { "fetch finished, ready=$ready" }
             } catch (e: CancellationException) {
                 throw e

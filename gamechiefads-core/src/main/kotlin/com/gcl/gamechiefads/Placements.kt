@@ -13,4 +13,7 @@ object Placements {
 
     /** Optional second splash app-open ad, shown only after the first one closed. */
     const val SPLASH_SECOND = "splash_second"
+
+    /** Pool key for the second app-open ad of a double break. Not a configurable placement. */
+    internal const val APP_OPEN_SECOND = "app_open_second"
 }

@@ -77,9 +77,40 @@ object GamechiefAds {
         runtime?.pauseAppOpenOnce()
     }
 
-    /** Loads an adaptive banner into [container]; the container is hidden if there is no ad. */
+    // ---- typed placements: pass your AdPlacement constants instead of strings (see AdPlacement) ----
+
+    @JvmStatic
+    fun showInterstitial(activity: Activity, placement: AdPlacement, listener: InterstitialListener?) =
+        showInterstitial(activity, placement.name, listener)
+
+    @JvmStatic
+    fun preloadInterstitial(placement: AdPlacement) = preloadInterstitial(placement.name)
+
+    @JvmStatic
+    fun isInterstitialReady(placement: AdPlacement): Boolean = isInterstitialReady(placement.name)
+
+    @JvmStatic
+    fun showPreloadedInterstitial(activity: Activity, placement: AdPlacement, listener: InterstitialListener?): Boolean =
+        showPreloadedInterstitial(activity, placement.name, listener)
+
+    /**
+     * Claims the single full-screen ad slot for something you show yourself (the ui module's full-screen native ad).
+     * Null = not allowed now (premium, disabled, another ad showing). Call release() when your screen closes.
+     */
+    @JvmStatic
+    fun openFullScreenSlot(activity: Activity, placement: AdPlacement): FullScreenSlot? =
+        runtime?.slots?.open(activity, placement.name)
+
+    /** Loads a banner of the placement's [BannerType] into [container]; the container is hidden if there is no ad. */
     @JvmStatic
     fun banner(container: FrameLayout, placement: String) = banner(container, placement, null)
+
+    @JvmStatic
+    fun banner(container: FrameLayout, placement: AdPlacement) = banner(container, placement.name, null)
+
+    @JvmStatic
+    fun banner(container: FrameLayout, placement: AdPlacement, listener: BannerListener?) =
+        banner(container, placement.name, listener)
 
     /** Same, with an optional result callback (the ui module's BannerAdView uses it for its shimmer). */
     @JvmStatic
@@ -92,6 +123,15 @@ object GamechiefAds {
             r.banner.attach(container, placement, listener)
         }
     }
+
+    /** The configured [BannerType] of a banner placement (ADAPTIVE if unknown). The ui module sizes its shimmer with it. */
+    @JvmStatic
+    fun bannerTypeOf(placement: AdPlacement): BannerType =
+        runtime?.config?.placement(placement.name)?.bannerType ?: BannerType.ADAPTIVE
+
+    @JvmStatic
+    fun loadNative(context: Context, placement: AdPlacement, callback: NativeLoadCallback): AdRequestHandle =
+        loadNative(context, placement.name, callback)
 
     /** Low-level native load, used by the ui module's NativeAdTemplateView. */
     @JvmStatic

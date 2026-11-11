@@ -33,20 +33,20 @@ internal class InterstitialController(
             var handedOver = false
             val ui = loaderUi()
             try {
-                runCatching { ui?.show(activity) }
-                val ad = try {
-                    pipeline.load(p, activity, source)
+                runCatching { ui?.show(activity, LoaderInfo(name, p.loaderTitle, p.loaderMessage)) }
+                val ads: List<FullScreenAd> = try {
+                    loadAds(p, activity)
                 } finally {
                     runCatching { ui?.dismiss() }
                 }
                 when {
-                    ad == null -> { AdLog.d("interstitial") { "$name: no fill -> not shown" }; events.onFinished(false, "no fill") }
-                    state.premium.value -> { AdLog.d("interstitial") { "$name: became premium while loading -> dropped" }; ad.destroy(); events.onFinished(false, "premium") }
-                    !screens.isUsable(activity) -> { AdLog.d("interstitial") { "$name: screen gone while loading -> dropped" }; ad.destroy(); events.onFinished(false, "screen gone") }
+                    ads.isEmpty() -> { AdLog.d("interstitial") { "$name: no fill -> not shown" }; events.onFinished(false, "no fill") }
+                    state.premium.value -> { AdLog.d("interstitial") { "$name: became premium while loading -> dropped" }; ads.forEach { it.destroy() }; events.onFinished(false, "premium") }
+                    !screens.isUsable(activity) -> { AdLog.d("interstitial") { "$name: screen gone while loading -> dropped" }; ads.forEach { it.destroy() }; events.onFinished(false, "screen gone") }
                     else -> {
-                        AdLog.d("interstitial") { "$name: showing" }
+                        AdLog.d("interstitial") { "$name: showing ${ads.size} ad(s)" }
                         handedOver = true
-                        shower.show(activity, ad, refillAfter(name, events))
+                        shower.showAll(activity, ads, refillAfter(name, events))
                     }
                 }
             } catch (e: CancellationException) {
@@ -58,6 +58,13 @@ internal class InterstitialController(
                 if (!handedOver) state.setAdShowing(false)
             }
         }
+    }
+
+    /** One ad, or two for a "double" placement (loaded together, shown back to back). */
+    private suspend fun loadAds(p: PlacementConfig, activity: Activity): List<FullScreenAd> {
+        if (!p.doubleAd) return listOfNotNull(pipeline.load(p, activity, source) { it.destroy() })
+        val pair = pipeline.loadPair(p, activity, source, config().doubleSecondWaitMs) { it.destroy() }
+        return listOfNotNull(pair?.first, pair?.second)
     }
 
     /** Opt-in: make sure one ad is ready for [name]. No request if one is ready or loading. */

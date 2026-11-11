@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import com.gcl.gamechiefads.AdRequestHandle
 import com.gcl.gamechiefads.AdLog
+import com.gcl.gamechiefads.AdPlacement
 import com.gcl.gamechiefads.GamechiefAds
 import com.gcl.gamechiefads.NativeLoadCallback
 import com.gcl.gamechiefads.ui.R
@@ -83,6 +84,8 @@ class NativeAdTemplateView @JvmOverloads constructor(
     }
 
     /** Starts (or restarts) loading [placement]. */
+    fun load(placement: AdPlacement) = load(placement.name)
+
     fun load(placement: String) {
         this.placement = placement
         startLoad()

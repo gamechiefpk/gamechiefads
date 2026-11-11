@@ -20,7 +20,7 @@ internal class BannerController(
     private val pipeline: AdLoadPipeline,
     private val screens: ScreenHost,
     private val scope: CoroutineScope,
-    private val load: suspend (android.content.Context, String, Int) -> LoadedBanner?,
+    private val load: suspend (android.content.Context, String, Int, BannerType) -> LoadedBanner?,
 ) {
     private val live = ArrayList<WeakReference<FrameLayout>>()
 
@@ -42,7 +42,7 @@ internal class BannerController(
         val widthDp = widthDp(container)
         val job = scope.launch(start = CoroutineStart.LAZY) {
             try {
-                val banner = pipeline.load(p, ctx as? Activity ?: screens.current) { unit -> load(ctx, unit, widthDp) }
+                val banner = pipeline.load(p, ctx as? Activity ?: screens.current, { unit -> load(ctx, unit, widthDp, p.bannerType) }) { it.destroy() }
                 if (banner == null || !container.isAttachedToWindow || state.premium.value) {
                     AdLog.d("banner") { "$name: dropped (loaded=${banner != null}, attached=${container.isAttachedToWindow}, premium=${state.premium.value})" }
                     banner?.destroy()

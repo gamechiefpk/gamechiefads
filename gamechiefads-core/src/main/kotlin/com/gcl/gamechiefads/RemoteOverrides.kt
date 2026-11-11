@@ -32,6 +32,18 @@ internal object RemoteOverrides {
         parseMode(o.optString("mode", ""))?.let { r = r.copy(mode = it) }
         val tier = (o.opt("tierTimeoutMs") as? Number)?.toLong() ?: 0L
         if (tier > 0) r = r.copy(tierTimeoutMs = tier)
+        if (o.opt("double") is Boolean) r = r.copy(doubleAd = o.getBoolean("double"))
+        parseEnum<BannerType>(o.optString("bannerType", ""))?.let { r = r.copy(bannerType = it) }
+        parseEnum<WaterfallMode>(o.optString("waterfall", ""))?.let { r = r.copy(waterfall = it) }
+        o.optJSONObject("tierTimeouts")?.let { t ->
+            val m = t.keys().asSequence().mapNotNull { k -> (t.opt(k) as? Number)?.toLong()?.takeIf { it > 0 }?.let { k to it } }.toMap()
+            r = r.copy(unitTimeouts = m)
+        }
+        o.optJSONArray("disabledUnits")?.let { r = r.copy(disabledUnits = stringList(it).orEmpty().toSet()) }
+        nonNegativeInt(o, "skipAfterFails")?.let { r = r.copy(skipAfterFails = it) }
+        nonNegativeInt(o, "skipForSec")?.takeIf { it > 0 }?.let { r = r.copy(skipForSeconds = it) }
+        if (o.has("loaderTitle")) r = r.copy(loaderTitle = o.optString("loaderTitle").takeIf { it.isNotBlank() })
+        if (o.has("loaderMessage")) r = r.copy(loaderMessage = o.optString("loaderMessage").takeIf { it.isNotBlank() })
         return r
     }
 
@@ -44,6 +56,9 @@ internal object RemoteOverrides {
         val v = o.opt(key) as? Number ?: return null
         return v.toInt().takeIf { it >= 0 }
     }
+
+    private inline fun <reified E : Enum<E>> parseEnum(s: String): E? =
+        enumValues<E>().firstOrNull { it.name.equals(s.trim().replace('-', '_'), ignoreCase = true) }
 
     private fun parseMode(s: String): AdMode? = when (s.lowercase()) {
         "preload" -> AdMode.PRELOAD

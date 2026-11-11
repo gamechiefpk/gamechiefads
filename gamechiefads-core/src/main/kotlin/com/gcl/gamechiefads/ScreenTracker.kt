@@ -15,6 +15,9 @@ internal class ScreenTracker(private val state: AdState) : Application.ActivityL
     private var lastCounted: WeakReference<Activity>? = null
     private var configChange = false
 
+    /** Instances created fresh (not restored, not rotated) that have not been resumed yet: the "forward" screens. */
+    private val fresh = java.util.Collections.newSetFromMap(java.util.WeakHashMap<Activity, Boolean>())
+
     /** Called after a new screen was counted. */
     var onScreen: ((Activity) -> Unit)? = null
 
@@ -33,6 +36,11 @@ internal class ScreenTracker(private val state: AdState) : Application.ActivityL
         }
         if (lastCounted?.get() === activity) return
         lastCounted = WeakReference(activity)
+        if (!fresh.remove(activity)) {
+            // an older screen came back (back press / finish of the screen above it): not a new screen, no ad trigger
+            AdLog.d("screen") { "back to ${activity.javaClass.simpleName}: not counted, no trigger" }
+            return
+        }
         state.onScreenResumed()
         AdLog.d("screen") { "new screen ${activity.javaClass.simpleName}, count since last ad=${state.screensSinceAd.value}" }
         onScreen?.invoke(activity)
@@ -47,7 +55,9 @@ internal class ScreenTracker(private val state: AdState) : Application.ActivityL
         if (lastCounted?.get() === activity) lastCounted = null
     }
 
-    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+        if (savedInstanceState == null && !isAdActivity(activity)) fresh.add(activity)
+    }
     override fun onActivityStarted(activity: Activity) {}
     override fun onActivityStopped(activity: Activity) {}
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}

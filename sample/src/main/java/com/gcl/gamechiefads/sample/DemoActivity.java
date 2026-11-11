@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -20,6 +21,8 @@ import com.gcl.gamechiefads.InterstitialListener;
 abstract class DemoActivity extends Activity {
     protected LinearLayout content;
     private TextView log;
+    private LinearLayout outerLayout;
+    private FrameLayout bottom;
     private ScrollView logScroll;
 
     protected abstract String screenTitle();
@@ -45,6 +48,7 @@ abstract class DemoActivity extends Activity {
         content.setPadding((int) (16 * dp), (int) (24 * dp), (int) (16 * dp), (int) (16 * dp));
         scroll.addView(content);
         outer.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1f));
+        outerLayout = outer;
 
         log = new TextView(this);
         log.setTypeface(Typeface.MONOSPACE);
@@ -62,6 +66,15 @@ abstract class DemoActivity extends Activity {
         if (layoutRes() != 0) getLayoutInflater().inflate(layoutRes(), content, true);
         build();
         logScroll.post(() -> logScroll.fullScroll(View.FOCUS_DOWN));
+    }
+
+    /** A FrameLayout pinned between the content and the log (for banners that belong at the screen edge). */
+    protected FrameLayout bottomBar() {
+        if (bottom == null) {
+            bottom = new FrameLayout(this);
+            outerLayout.addView(bottom, outerLayout.getChildCount() - 1, new LinearLayout.LayoutParams(-1, -2));
+        }
+        return bottom;
     }
 
     protected void title(String t) {

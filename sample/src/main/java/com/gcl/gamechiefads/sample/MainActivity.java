@@ -43,6 +43,18 @@ public class MainActivity extends DemoActivity {
             GamechiefAds.applyRemoteOverrides("{\"placements\":{\"random\":{\"every\":3,\"gap\":30}}}");
             say("remote: random every=3 gap=30");
         });
+        button("Remote override: double ON (manual + app-open)", () -> {
+            GamechiefAds.applyRemoteOverrides("{\"placements\":{\"manual\":{\"double\":true},\"app_open\":{\"double\":true}}}");
+            say("remote: manual + app_open double=true");
+        });
+        button("Remote override: floors run in PARALLEL", () -> {
+            GamechiefAds.applyRemoteOverrides("{\"placements\":{\"floors\":{\"waterfall\":\"parallel\"}}}");
+            say("remote: floors waterfall=parallel");
+        });
+        button("Remote override: banners as medium rectangle", () -> {
+            GamechiefAds.applyRemoteOverrides("{\"placements\":{\"banner_adaptive\":{\"bannerType\":\"MEDIUM_RECTANGLE\"}}}");
+            say("remote: banner_adaptive -> MEDIUM_RECTANGLE (open Banners again)");
+        });
         button("Remote override: ALL ads off", () -> {
             GamechiefAds.applyRemoteOverrides("{\"enabled\":false}");
             say("remote: enabled=false");

@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import com.gcl.gamechiefads.AdLog
+import com.gcl.gamechiefads.AdPlacement
 import com.gcl.gamechiefads.BannerListener
 import com.gcl.gamechiefads.GamechiefAds
 import com.gcl.gamechiefads.ui.R
@@ -43,6 +44,8 @@ class BannerAdView @JvmOverloads constructor(
         }
         if (isInEditMode) addShimmer()
     }
+
+    fun load(placement: AdPlacement) = load(placement.name)
 
     fun load(placement: String) {
         this.placement = placement

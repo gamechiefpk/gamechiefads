@@ -2,6 +2,7 @@ package com.gcl.gamechiefads.sample;
 
 import android.graphics.Color;
 
+import com.gcl.gamechiefads.ui.FullScreenNativeAd;
 import com.gcl.gamechiefads.ui.NativeAdTemplateView;
 import com.gcl.gamechiefads.ui.NativeStyle;
 
@@ -38,8 +39,10 @@ public class NativeActivity extends DemoActivity {
                 }
             });
         }
+        button("Full-screen native (like an interstitial)", () ->
+                FullScreenNativeAd.show(this, AdIds.NATIVE_FULLSCREEN, listener("native-fs")));
         button("Reload all", () -> {
-            for (int id : IDS) ((NativeAdTemplateView) findViewById(id)).load("native_main");
+            for (int id : IDS) ((NativeAdTemplateView) findViewById(id)).load(AdIds.NATIVE_MAIN);
             say("native: reload all");
         });
         button("Switch style (default / dark)", () -> {

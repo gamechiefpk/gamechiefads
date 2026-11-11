@@ -72,7 +72,7 @@ class SplashFlowTest {
         assertEquals(10_001, currentTime) // never the old 15 s
     }
 
-    @Test fun secondAdShowsOnlyAfterTheFirstClosedAndNavigatesOnce() = runTest { // old bug 3
+    @Test fun secondAdFollowsTheFirstWithNoGapAndNavigatesOnce() = runTest { // old bug 3 + "one continuous break"
         val r = rig(second = true); val res = Result()
         val first = FakeAd.manual(); val secondAd = FakeAd.manual()
         r.loadBehavior = { if (it == "s1") first else secondAd }
@@ -83,13 +83,26 @@ class SplashFlowTest {
         runCurrent()
         assertEquals(1, first.shows); assertEquals(0, secondAd.shows)
         advanceTimeBy(5_000)
-        assertEquals(0, secondAd.shows) // still waiting for the first to close
+        assertEquals(0, secondAd.shows) // never on top of the first
         first.listener!!.onDismissed()
-        assertEquals(0, secondAd.shows) // not immediately...
-        advanceTimeBy(SplashAdsImpl.SETTLE_MS + 1); runCurrent()
-        assertEquals(1, secondAd.shows) // ...only after it closed
+        assertEquals(1, secondAd.shows) // started inside the dismiss callback: no gap, no flicker
+        assertTrue(r.state.adShowing.value) // the slot was never released in between
         assertEquals(0, done)
         secondAd.listener!!.onDismissed()
+        assertEquals(1, done)
+        assertFalse(r.state.adShowing.value)
+    }
+
+    @Test fun secondSplashAdThatIsSlowIsDroppedAfterItsOwnTimeout() = runTest {
+        val r = rig(second = true); val res = Result()
+        r.loadBehavior = { if (it == "s1") FakeAd() else { delay(60_000); FakeAd(it) } }
+        r.splash.prepare(r.activity, res.callback)
+        advanceUntilIdle()
+        assertEquals(1, res.calls); assertTrue(res.ads!!.hasAd())
+        assertTrue(currentTime <= 3_000L) // not held up beyond the second ad's own tier timeout
+        var done = 0
+        res.ads!!.show(r.activity) { done++ }
+        advanceUntilIdle()
         assertEquals(1, done)
     }
 

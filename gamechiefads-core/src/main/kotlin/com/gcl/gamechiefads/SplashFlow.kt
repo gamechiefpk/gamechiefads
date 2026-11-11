@@ -3,13 +3,17 @@ package com.gcl.gamechiefads
 import android.app.Activity
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Splash: consent -> init -> waterfall -> timeout. The callback runs exactly once, inside
  * config.splashTimeoutMs, with or without an ad (premium, consent denied, offline, no fill all
- * give "no ad"). The optional second ad loads in the background and never delays the first.
+ * give "no ad"). If the optional `splash_second` placement is enabled (Remote Config can switch it)
+ * both ads are requested together; the second is waited for at most config.doubleSecondWaitMs after
+ * the first arrived, and both are shown back to back as one break.
  */
 internal class SplashFlow(
     private val state: AdState,
@@ -21,26 +25,31 @@ internal class SplashFlow(
     private val source: suspend (String) -> FullScreenAd?,
 ) {
     fun prepare(activity: Activity, callback: SplashCallback) {
-        val ads = SplashAdsImpl(state, shower, screens, scope)
+        val ads = SplashAdsImpl(state, shower, screens)
         scope.launch {
             AdLog.d("splash") { "prepare start (timeout ${config().splashTimeoutMs}ms, premium=${state.premium.value})" }
             try {
                 val cfg = config()
-                val first = cfg.placement(Placements.SPLASH)?.takeIf { it.enabled }
-                if (first != null && !state.premium.value) {
-                    val second = cfg.placement(Placements.SPLASH_SECOND)?.takeIf { it.enabled }
+                val firstP = cfg.placement(Placements.SPLASH)?.takeIf { it.enabled }
+                if (firstP != null && !state.premium.value) {
+                    val secondP = cfg.placement(Placements.SPLASH_SECOND)?.takeIf { it.enabled }
                     withTimeoutOrNull(cfg.splashTimeoutMs) {
-                        if (second != null) {
-                            ads.secondJob = scope.launch {
-                                try {
-                                    // own job: bound it by the splash limit too, so it can never outlive the splash
-                                    ads.second = withTimeoutOrNull(cfg.splashTimeoutMs) { pipeline.load(second, activity, source) }
-                                } catch (e: CancellationException) {
-                                    throw e
-                                } catch (t: Throwable) { /* second ad is optional */ }
+                        coroutineScope {
+                            val d1 = async { pipeline.load(firstP, activity, source) { it.destroy() } }
+                            val d2 = secondP?.let { sp -> async { pipeline.load(sp, activity, source) { it.destroy() } } }
+                            val a = d1.await()
+                            if (a != null) {
+                                ads.first = a
+                                if (d2 != null) {
+                                    val b = withTimeoutOrNull(cfg.doubleSecondWaitMs) { d2.await() }
+                                    if (b != null) ads.second = b
+                                    else if (d2.isCompleted && !d2.isCancelled) ads.second = d2.getCompleted()
+                                    else d2.cancel()
+                                }
+                            } else if (d2 != null) {
+                                ads.first = d2.await() // nothing from the splash units: use the second ad alone
                             }
                         }
-                        ads.first = pipeline.load(first, activity, source)
                     }
                 }
             } catch (e: CancellationException) {

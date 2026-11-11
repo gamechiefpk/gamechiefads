@@ -20,7 +20,7 @@ internal object AdUnits {
 
     /** Debug: one test unit (no point walking a waterfall of test ids). Release: the configured units. */
     fun resolve(p: PlacementConfig, debug: Boolean): List<String> =
-        if (debug) listOf(testUnit(p.format)) else p.units
+        if (debug) listOf(testUnit(p.format)) else p.units.filter { it !in p.disabledUnits }
 
     fun isDebuggable(context: Context): Boolean =
         (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0

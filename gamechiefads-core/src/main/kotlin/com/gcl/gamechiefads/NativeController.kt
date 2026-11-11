@@ -35,7 +35,7 @@ internal class NativeController(
     private fun start(context: Context, p: PlacementConfig, callback: NativeLoadCallback): AdRequestHandle {
         val job = scope.launch {
             try {
-                val ad = pipeline.load(p, context as? Activity ?: screens.current, source)
+                val ad = pipeline.load(p, context as? Activity ?: screens.current, source) { it.destroy() }
                 when {
                     !isActive -> { AdLog.d("native") { "${p.name}: cancelled, late ad destroyed" }; ad?.destroy() }
                     ad == null -> { AdLog.d("native") { "${p.name}: no fill" }; callback.onFailed("no fill") }

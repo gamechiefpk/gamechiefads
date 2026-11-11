@@ -45,7 +45,7 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
         init = { sdkInit.ensure(config.appId ?: AdUnits.TEST_APP_ID, config.initTimeoutMs) },
         clock = clock,
     )
-    private val pipeline = AdLoadPipeline({ config }, gate::ready, AdUnits.isDebuggable(app))
+    private val pipeline = AdLoadPipeline({ config }, gate::ready, AdUnits.isDebuggable(app), FloorPolicy(clock))
     private val shower = FullScreenShower(state, clock, scope)
 
     val interstitial = InterstitialController(
@@ -59,6 +59,7 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
     private val random = RandomInterstitialTrigger(state, { config }, tracker, interstitial, scope, clock)
     val splash = SplashFlow(state, { config }, pipeline, shower, tracker, scope, AppOpenSource::load)
     val banner = BannerController(state, { config }, pipeline, tracker, scope, BannerSource::load)
+    val slots = FullScreenSlots(state, { config }, tracker, clock)
     val native = NativeController(state, { config }, pipeline, tracker, scope, NativeSource::load)
 
     init {
