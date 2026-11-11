@@ -34,7 +34,8 @@ public class SampleApp extends Application {
 
                 .banner("banner_main").unitsRes(this, R.string.unit_banner).tierTimeoutMs(6000)
                 .nativeAd("native_main").unitsRes(this, R.string.unit_native).tierTimeoutMs(6000)
-                .splashTimeoutMs(15000)
+                .initTimeoutMs(15000)      // emulators can need 10 s+ for the first SDK init; phones need ~1-2 s
+                .splashTimeoutMs(25000)
                 .overallBudgetMs(10000)
                 .build();
 
