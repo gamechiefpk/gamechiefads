@@ -79,6 +79,12 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
 
     /** Logging can only be on for debuggable apps. */
     fun setLogging(on: Boolean) { AdLog.enabled = on && debuggable }
+    /** Changes the default loader texts now; survives later Remote Config overrides unless they set the same keys. */
+    fun setLoaderText(title: String?, message: String?) {
+        base = base.copy(loaderTitle = title, loaderMessage = message)
+        config = config.copy(loaderTitle = title, loaderMessage = message)
+    }
+
     fun pauseAppOpenOnce() = appOpen.pauseOnce()
 
     private companion object {

@@ -36,6 +36,12 @@ object GamechiefAds {
         runtime?.applyRemote(json)
     }
 
+    /** Changes the loading overlay texts at any time (e.g. after a language change). Null = default text. */
+    @JvmStatic
+    fun setLoaderText(title: String?, message: String?) {
+        runtime?.setLoaderText(title, message)
+    }
+
     /** Replaces the "loading ad" overlay shown by on-demand interstitials. Null = no overlay. */
     @JvmStatic
     fun setLoaderUi(ui: AdLoaderUi?) {

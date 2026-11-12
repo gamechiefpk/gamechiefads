@@ -24,6 +24,9 @@ data class AdsConfig(
     val doubleSecondWaitMs: Long = DEFAULT_DOUBLE_WAIT_MS,
     /** Debug builds replace your unit ids by Google test ids (default). false = use the configured units even in debug. */
     val testIdsInDebug: Boolean = true,
+    /** Default texts of the loading overlay for every placement without its own. Null = the loader's own text. */
+    val loaderTitle: String? = null,
+    val loaderMessage: String? = null,
 ) {
     fun placement(name: String): PlacementConfig? = placements[name]
 
@@ -50,6 +53,8 @@ data class AdsConfig(
         private var initTimeoutMs = DEFAULT_INIT_TIMEOUT_MS
         private var doubleSecondWaitMs = DEFAULT_DOUBLE_WAIT_MS
         private var testIdsInDebug = true
+        private var loaderTitle: String? = null
+        private var loaderMessage: String? = null
 
         fun interstitial(name: String) = start(name, AdFormat.INTERSTITIAL)
         fun appOpen(name: String) = start(name, AdFormat.APP_OPEN)
@@ -95,6 +100,9 @@ data class AdsConfig(
         /** Texts of the loading overlay for this placement (null = the loader's own text). */
         fun loaderText(title: String?, message: String?) = edit { it.copy(loaderTitle = title, loaderMessage = message) }
 
+        /** Loading overlay texts for ALL placements (a placement's own loaderText wins). Can also change at runtime. */
+        fun defaultLoaderText(title: String?, message: String?) = apply { loaderTitle = title; loaderMessage = message }
+
         fun appId(id: String?) = apply { appId = id }
         fun remoteConfigKey(key: String?) = apply { remoteConfigKey = key }
         fun fallbackToLoad(value: Boolean) = apply { fallbackToLoad = value }
@@ -110,7 +118,7 @@ data class AdsConfig(
 
         fun build(): AdsConfig {
             commit()
-            return AdsConfig(done.toMap(), appId, remoteConfigKey, fallbackToLoad, autoRefill, overallBudgetMs, splashTimeoutMs, initTimeoutMs, doubleSecondWaitMs, testIdsInDebug)
+            return AdsConfig(done.toMap(), appId, remoteConfigKey, fallbackToLoad, autoRefill, overallBudgetMs, splashTimeoutMs, initTimeoutMs, doubleSecondWaitMs, testIdsInDebug, loaderTitle, loaderMessage)
         }
 
         private fun start(name: String, format: AdFormat) = apply {

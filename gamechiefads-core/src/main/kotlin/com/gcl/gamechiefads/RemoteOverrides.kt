@@ -20,7 +20,9 @@ internal object RemoteOverrides {
             val patched = remote?.optJSONObject(name)?.let { patch(p, it) } ?: p
             if (allEnabled) patched else patched.copy(enabled = false)
         }
-        return base.copy(placements = merged)
+        val title = if (root.has("loaderTitle")) root.optString("loaderTitle").takeIf { it.isNotBlank() } else base.loaderTitle
+        val message = if (root.has("loaderMessage")) root.optString("loaderMessage").takeIf { it.isNotBlank() } else base.loaderMessage
+        return base.copy(placements = merged, loaderTitle = title, loaderMessage = message)
     }
 
     private fun patch(p: PlacementConfig, o: JSONObject): PlacementConfig {

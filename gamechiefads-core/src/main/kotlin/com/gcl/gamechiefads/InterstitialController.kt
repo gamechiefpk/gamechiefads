@@ -33,7 +33,7 @@ internal class InterstitialController(
             var handedOver = false
             val ui = loaderUi()
             try {
-                runCatching { ui?.show(activity, LoaderInfo(name, p.loaderTitle, p.loaderMessage)) }
+                runCatching { ui?.show(activity, LoaderInfo(name, p.loaderTitle ?: config().loaderTitle, p.loaderMessage ?: config().loaderMessage)) }
                 val ads: List<FullScreenAd> = try {
                     loadAds(p, activity)
                 } finally {
