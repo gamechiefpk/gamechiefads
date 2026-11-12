@@ -24,6 +24,7 @@ internal class Rig(scope: CoroutineScope, var config: AdsConfig, var gateReady: 
     val interstitial = InterstitialController(
         state, { config }, pool, pipeline, shower, screens, scope, { now }, { loaderUi }, source,
     )
+    val rewarded = RewardedController(state, { config }, pipeline, shower, screens, scope, { now }, { loaderUi }, source)
     val random = RandomInterstitialTrigger(state, { config }, screens, interstitial, scope, { now })
     val splash = SplashFlow(state, { config }, pipeline, shower, screens, scope, source, interstitialSource)
     val appOpen = AppOpenController(state, { config }, appOpenPool, pipeline, shower, screens, scope, { now }, source)

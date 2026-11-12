@@ -68,6 +68,7 @@ public class SampleApp extends Application {
                 .banner(AdIds.BANNER_INLINE).unitsRes(this, R.string.unit_banner).tierTimeoutMs(10000)
                 .bannerType(BannerType.INLINE_ADAPTIVE)
 
+                .rewarded(AdIds.REWARDED).unitsRes(this, R.string.unit_rewarded).tierTimeoutMs(10000)
                 .nativeAd(AdIds.NATIVE_MAIN).unitsRes(this, R.string.unit_native).tierTimeoutMs(10000)
                 .nativeAd(AdIds.NATIVE_FULLSCREEN).unitsRes(this, R.string.unit_native).tierTimeoutMs(10000)
                 .initTimeoutMs(15000)      // emulators can need 10 s+ for the first SDK init; phones need ~1-2 s

@@ -224,3 +224,21 @@ adb logcat -s GamechiefAds
 
 Look at `[random]` (the reason: `DENY_MIN_GAP`, `DENY_EVERY_N`, `DENY_EXCLUDED_SCREEN`, `DENY_PREMIUM`), `[gate]` (consent or
 init) and `[pipeline]` / `[sdk]` (the AdMob error of each unit). Release builds print nothing.
+
+---
+
+## Rewarded ads
+
+### 19. "Watch an ad to get coins / unlock"
+
+```java
+// config:  .rewarded(AdIds.REWARDED).units(HF, MF, NORMAL)
+GamechiefAds.showRewarded(this, AdIds.REWARDED, new RewardListener() {
+    @Override public void onRewardEarned(int amount, String type) { addCoins(10); }   // give the reward ONLY here
+    @Override public void onNotAvailable(String reason) { toast("No ad available, try again later"); }
+});
+```
+
+- Close the ad early: no reward. Only `onRewardEarned` means the user watched it.
+- A premium user gets `onRewardEarned` without an ad. For no reward: `.premiumGetsReward(false)`.
+- Tapping twice is safe: the second tap is refused.

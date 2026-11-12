@@ -13,6 +13,9 @@ final class AdIds {
     static final AdPlacement DOUBLE_INTERSTITIAL = AdPlacement.of("double_interstitial");
     static final AdPlacement FLOORS = AdPlacement.of("floors");
 
+    // rewarded
+    static final AdPlacement REWARDED = AdPlacement.of("rewarded");
+
     // banner (one placement per banner type)
     static final AdPlacement BANNER_ADAPTIVE = AdPlacement.of("banner_adaptive");
     static final AdPlacement BANNER_COLLAPSIBLE = AdPlacement.of("banner_collapsible");

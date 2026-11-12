@@ -35,6 +35,7 @@ internal object RemoteOverrides {
         val tier = (o.opt("tierTimeoutMs") as? Number)?.toLong() ?: 0L
         if (tier > 0) r = r.copy(tierTimeoutMs = tier)
         if (o.opt("double") is Boolean) r = r.copy(doubleAd = o.getBoolean("double"))
+        if (o.opt("premiumGetsReward") is Boolean) r = r.copy(premiumGetsReward = o.getBoolean("premiumGetsReward"))
         parseEnum<BannerType>(o.optString("bannerType", ""))?.let { r = r.copy(bannerType = it) }
         if (o.opt("flooring") is Boolean) r = r.copy(flooring = o.getBoolean("flooring"))
         if (p.name == Placements.SPLASH || p.name == Placements.SPLASH_SECOND) {

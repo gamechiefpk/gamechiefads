@@ -63,6 +63,25 @@ object GamechiefAds {
         else r.interstitial.showOnDemand(activity, placement, listener)
     }
 
+    /**
+     * Rewarded ad on demand: loader, floors, show. Give the reward ONLY in [RewardListener.onRewardEarned].
+     * [listener] may be null. Premium users get the reward with no ad unless the placement says premiumGetsReward(false).
+     */
+    @JvmStatic
+    fun showRewarded(activity: Activity, placement: String, listener: RewardListener?) {
+        val r = runtime
+        if (r == null) {
+            listener?.onNotAvailable("not initialized")
+            listener?.onComplete(false)
+        } else {
+            r.rewarded.show(activity, placement, listener)
+        }
+    }
+
+    @JvmStatic
+    fun showRewarded(activity: Activity, placement: AdPlacement, listener: RewardListener?) =
+        showRewarded(activity, placement.name, listener)
+
     /** Opt-in: request one interstitial for later. No request if one is ready or loading. */
     @JvmStatic
     fun preloadInterstitial(placement: String) {

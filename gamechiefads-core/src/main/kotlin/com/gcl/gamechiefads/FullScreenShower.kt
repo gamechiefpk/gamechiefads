@@ -24,6 +24,9 @@ internal class FullScreenShower(
     interface Events {
         fun onShown()
 
+        /** Rewarded ads only. */
+        fun onRewarded(amount: Int, type: String) {}
+
         /** Once. shown=true: at least one ad was shown and closed. shown=false: nothing shown, [reason] says why. */
         fun onFinished(shown: Boolean, reason: String?)
     }
@@ -85,6 +88,10 @@ internal class FullScreenShower(
                         anyShown = true
                         if (!finished) events.onShown()
                     }
+                }
+
+                override fun onRewarded(amount: Int, type: String) {
+                    if (!finished) events.onRewarded(amount, type)
                 }
 
                 override fun onDismissed() = adDone(shown, null)

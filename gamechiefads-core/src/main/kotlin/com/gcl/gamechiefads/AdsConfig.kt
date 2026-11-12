@@ -60,11 +60,13 @@ data class AdsConfig(
         fun appOpen(name: String) = start(name, AdFormat.APP_OPEN)
         fun banner(name: String) = start(name, AdFormat.BANNER)
         fun nativeAd(name: String) = start(name, AdFormat.NATIVE)
+        fun rewarded(name: String) = start(name, AdFormat.REWARDED)
 
         fun interstitial(placement: AdPlacement) = interstitial(placement.name)
         fun appOpen(placement: AdPlacement) = appOpen(placement.name)
         fun banner(placement: AdPlacement) = banner(placement.name)
         fun nativeAd(placement: AdPlacement) = nativeAd(placement.name)
+        fun rewarded(placement: AdPlacement) = rewarded(placement.name)
 
         fun units(vararg ids: String) = edit { it.copy(units = ids.filter(String::isNotBlank)) }
         /** Same as [units] but from string resources, e.g. unitsRes(app, R.string.HF, R.string.MF). */
@@ -96,6 +98,8 @@ data class AdsConfig(
         // ---- format options
         /** Interstitial / app-open: two ads back to back as one break. Also switchable by Remote Config. */
         fun doubleAd(value: Boolean) = edit { it.copy(doubleAd = value) }
+        /** Rewarded: true (default) = premium users get the reward with no ad. false = they get nothing. */
+        fun premiumGetsReward(value: Boolean) = edit { it.copy(premiumGetsReward = value) }
         fun bannerType(type: BannerType) = edit { it.copy(bannerType = type) }
         /** Texts of the loading overlay for this placement (null = the loader's own text). */
         fun loaderText(title: String?, message: String?) = edit { it.copy(loaderTitle = title, loaderMessage = message) }

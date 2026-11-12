@@ -16,5 +16,8 @@ internal interface FullScreenAd {
         fun onShown()
         fun onDismissed()
         fun onFailed(reason: String)
+
+        /** Rewarded ads only: the user earned the reward (before the ad is closed). */
+        fun onRewarded(amount: Int, type: String) {}
     }
 }

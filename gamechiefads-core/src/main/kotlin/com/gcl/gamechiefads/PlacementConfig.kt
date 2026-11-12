@@ -1,6 +1,6 @@
 package com.gcl.gamechiefads
 
-enum class AdFormat { INTERSTITIAL, APP_OPEN, BANNER, NATIVE }
+enum class AdFormat { INTERSTITIAL, APP_OPEN, BANNER, NATIVE, REWARDED }
 
 /** ON_DEMAND = load then show (default). PRELOAD = show a ready ad from the pool. */
 enum class AdMode { ON_DEMAND, PRELOAD }
@@ -46,6 +46,8 @@ data class PlacementConfig(
     /** Text of the loading overlay for this placement; null = the loader's own text. */
     val loaderTitle: String? = null,
     val loaderMessage: String? = null,
+    /** Rewarded only: a premium user is given the reward without seeing an ad (default). false = no reward, no ad. */
+    val premiumGetsReward: Boolean = true,
 ) {
     companion object {
         const val DEFAULT_TIER_TIMEOUT_MS = 3_000L

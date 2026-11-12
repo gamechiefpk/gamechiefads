@@ -374,3 +374,27 @@ The size is fixed to LARGE_BANNER whatever the placement says. Premium, flooring
 for any banner; the container is hidden when there is no ad, and the banner is destroyed when the screen closes.
 
 The sample app has a **Splash lab** screen to try every combination.
+
+## 23. Rewarded ads
+
+```java
+// config (use rewarded unit ids; floors, timeouts, flooring, loader text work like for interstitials)
+.rewarded(AdIds.REWARDED).units(HF, MF, NORMAL)
+
+// show
+GamechiefAds.showRewarded(this, AdIds.REWARDED, new RewardListener() {
+    @Override public void onRewardEarned(int amount, String type) { addCoins(10); }       // the ONLY place to give the reward
+    @Override public void onNotAvailable(String reason) { toast("No ad available, try again later"); }
+    @Override public void onComplete(boolean rewarded) { /* always last, once */ }
+});
+```
+
+What the library does for you: the "Ad is loading, please wait" box, the floors with per-unit timeouts and an overall budget,
+consent, one ad at a time (a second tap is refused with `DENY_AD_SHOWING`), a safe loader when the screen is closed
+meanwhile, and no crash with a `null` listener. The reward is reported only when the SDK says it was earned: closing the
+ad early gives `onComplete(false)` and no reward. All callbacks run on the main thread.
+
+Premium users: by default they get `onRewardEarned(1, "premium")` straight away, with no ad (they paid, so features that
+ads unlock stay open). To give them nothing instead: `.rewarded(...).premiumGetsReward(false)` or Remote Config
+`{"placements":{"rewarded":{"premiumGetsReward":false}}}`. Everything else (units, enabled, flooring, timeouts) is also
+switchable from Remote Config.

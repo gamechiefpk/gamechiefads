@@ -19,6 +19,7 @@ public class MainActivity extends DemoActivity {
         note("Google test ads only. Open a screen per ad type. The dark box below is the event log of every screen.");
 
         button("Interstitials: on-demand, preload, double tap", () -> open(InterstitialActivity.class));
+        button("Rewarded ad (coins)", () -> open(RewardedActivity.class));
         button("Banner", () -> open(BannerActivity.class));
         button("Native: all 6 sizes + style", () -> open(NativeActivity.class));
         button("App-open (leave and return)", () -> open(AppOpenActivity.class));

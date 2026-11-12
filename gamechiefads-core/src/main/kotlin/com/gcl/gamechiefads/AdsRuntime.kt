@@ -9,6 +9,7 @@ import com.gcl.gamechiefads.sdk.AppOpenSource
 import com.gcl.gamechiefads.sdk.BannerSource
 import com.gcl.gamechiefads.sdk.InterstitialSource
 import com.gcl.gamechiefads.sdk.NativeSource
+import com.gcl.gamechiefads.sdk.RewardedSource
 import com.gcl.gamechiefads.sdk.SdkInit
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -47,6 +48,8 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
     )
     private val pipeline = AdLoadPipeline({ config }, gate::ready, AdUnits.isDebuggable(app), FloorPolicy(clock))
     private val shower = FullScreenShower(state, clock, scope)
+
+    val rewarded = RewardedController(state, { config }, pipeline, shower, tracker, scope, clock, { loaderUi }, RewardedSource::load)
 
     val interstitial = InterstitialController(
         state, { config }, AdPool(clock = clock), pipeline, shower, tracker, scope, clock,
