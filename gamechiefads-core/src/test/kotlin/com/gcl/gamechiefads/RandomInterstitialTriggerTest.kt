@@ -23,6 +23,31 @@ class RandomInterstitialTriggerTest {
         assertEquals(0, r.state.screensSinceAd.value) // counter restarts after the ad
     }
 
+    @Test fun randomDoubleShowsTwoAdsAtOnceAndCountsOneBreak() = runTest {
+        val r = rig { doubleAd(true) }; r.screens(3)
+        val ads = mutableListOf<FakeAd>()
+        r.loadBehavior = { FakeAd.manual().also { ads += it } }
+        r.random.onScreenResumed(r.activity)
+        advanceUntilIdle()
+        assertEquals(2, ads.size)
+        assertEquals(1, ads[0].shows); assertEquals(1, ads[1].shows) // stacked, shown together
+        ads[1].listener!!.onDismissed()
+        assertTrue(r.state.adShowing.value) // still one ad break
+        ads[0].listener!!.onDismissed()
+        assertTrue(!r.state.adShowing.value)
+        assertEquals(0, r.state.screensSinceAd.value)
+    }
+
+    @Test fun randomDoubleWithOneMissingShowsOne() = runTest {
+        val r = rig { doubleAd(true) }; r.screens(3)
+        var n = 0
+        r.loadBehavior = { if (n++ == 0) FakeAd(it) else null }
+        r.random.onScreenResumed(r.activity)
+        advanceUntilIdle()
+        assertTrue(!r.state.adShowing.value)
+        assertEquals(0, r.state.screensSinceAd.value)
+    }
+
     @Test fun notBeforeNScreens() = runTest {
         val r = rig(); r.screens(2)
         r.random.onScreenResumed(r.activity)

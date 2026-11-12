@@ -306,7 +306,7 @@ Both ads are requested at the same time and, once loaded (the second is waited f
 the top ad and the other one is already underneath, so it looks as if the first ad never closed: no gap, no flash of the
 app, no second ad launch. The "ad showing" flag is held until the last one is closed. Your listener / `onDone` is called
 once, after the last ad. Remote Config switches it per placement:
-`{"placements":{"after_save":{"double":true},"app_open":{"double":true}}}`.
+`{"placements":{"after_save":{"double":true},"app_open":{"double":true},"random":{"double":true}}}`. This includes the automatic random interstitial (`.interstitial(Placements.RANDOM)...doubleAd(true)`): when the screen rule fires, two ads are loaded together and shown stacked.
 
 Splash: set `.doubleAd(true)` on the splash placement (or enable `splash_second`) and both splash ads are shown together
 the same way. Preloaded interstitials stay single.
