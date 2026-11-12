@@ -67,10 +67,10 @@ class SplashOptionsTest {
         assertEquals(2, r.loads.size)
         var done = 0
         res.ads!!.show(r.activity) { done++ }; runCurrent()
-        assertEquals(1, a.shows); assertEquals(0, b.shows)
-        a.listener!!.onDismissed()
-        assertEquals(1, b.shows); assertTrue(r.state.adShowing.value); assertEquals(0, done)
+        assertEquals(1, a.shows); assertEquals(1, b.shows) // both at the same time
         b.listener!!.onDismissed()
+        assertTrue(r.state.adShowing.value); assertEquals(0, done)
+        a.listener!!.onDismissed()
         assertEquals(1, done); assertFalse(r.state.adShowing.value)
     }
 

@@ -89,12 +89,11 @@ class FloorsAndDoubleTest {
         r.interstitial.showOnDemand(r.activity, "home", l)
         advanceUntilIdle()
         assertEquals(2, ads.size)
-        assertEquals(1, ads[0].shows); assertEquals(0, ads[1].shows)
-        ads[0].listener!!.onDismissed()
-        assertEquals(1, ads[1].shows) // right inside the dismiss callback
+        assertEquals(1, ads[0].shows); assertEquals(1, ads[1].shows) // both started at the same time
+        ads[1].listener!!.onDismissed() // top ad closed, the other is already underneath
         assertTrue(r.state.adShowing.value)
         assertEquals(listOf("shown"), l.calls) // the app is told once, at the end of the break
-        ads[1].listener!!.onDismissed()
+        ads[0].listener!!.onDismissed()
         assertEquals(listOf("shown", "closed", "complete:true"), l.calls)
         assertFalse(r.state.adShowing.value)
     }
@@ -117,19 +116,19 @@ class FloorsAndDoubleTest {
         assertFalse(off.placement("home")!!.doubleAd)
     }
 
-    @Test fun showAllWithAFailedFirstDestroysTheRestAndReportsNotShown() = runTest {
+    @Test fun showAllWithAFailedFirstStillShowsTheOther() = runTest {
         val state = AdState()
         val shower = FullScreenShower(state, { 1L }, this)
-        val a = FakeAd(onShow = { it.onFailed("boom") }); val b = FakeAd()
+        val a = FakeAd(onShow = { it.onFailed("boom") }); val b = FakeAd.manual()
         var shown: Boolean? = null
         shower.showAll(TestActivity(), listOf(a, b), object : FullScreenShower.Events {
             override fun onShown() {}
             override fun onFinished(shown: Boolean, reason: String?) { this@FloorsAndDoubleTest.record(shown) }
         })
         runCurrent()
-        shown = recorded
-        assertEquals(false, shown); assertTrue(b.destroyed); assertEquals(0, b.shows)
-        assertFalse(state.adShowing.value)
+        assertEquals(1, b.shows); assertTrue(state.adShowing.value); assertEquals(null, recorded)
+        b.listener!!.onDismissed()
+        assertEquals(true, recorded); assertFalse(state.adShowing.value)
     }
 
     private var recorded: Boolean? = null

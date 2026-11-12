@@ -52,7 +52,7 @@ GamechiefAds.prepareSplash(this, ads -> {          // runs once, inside config.s
 
 Flow: consent (UMP) -> SDK init -> waterfall for `splash` -> done. Premium, consent denied, offline, no fill or
 timeout all give `ads.hasAd() == false`; `ads.show` then calls your `onDone` straight away. If a `splash_second`
-placement exists it loads in the background and is shown only after the first ad was closed.
+placement exists it loads in the background and is shown at the same time as the first (stacked, see section 20).
 
 ## 4. Interstitial, on-demand (default)
 
@@ -301,13 +301,14 @@ example not inside `onBackPressed`.
 .appOpen(Placements.APP_OPEN).units(...).doubleAd(true)
 ```
 
-Both ads are requested at the same time. The first is shown as soon as it is ready; the second is waited for at most
-`doubleSecondWaitMs` (default 2.5 s) and, if it is missing, the first is shown alone. When the first ad is closed the
-second starts inside the same callback: no gap, no flash of the app between them, and the "ad showing" flag is never released
-in between. Your listener / `onDone` is called once, after the last ad. Remote Config switches it per placement:
+Both ads are requested at the same time and, once loaded (the second is waited for at most `doubleSecondWaitMs`, default
+2.5 s; if it is missing the first is shown alone), BOTH are shown at the same moment and stack on screen. The user closes
+the top ad and the other one is already underneath, so it looks as if the first ad never closed: no gap, no flash of the
+app, no second ad launch. The "ad showing" flag is held until the last one is closed. Your listener / `onDone` is called
+once, after the last ad. Remote Config switches it per placement:
 `{"placements":{"after_save":{"double":true},"app_open":{"double":true}}}`.
 
-Splash: enable the `splash_second` placement (also via Remote Config `enabled`) and both splash ads play back to back
+Splash: set `.doubleAd(true)` on the splash placement (or enable `splash_second`) and both splash ads are shown together
 the same way. Preloaded interstitials stay single.
 
 ## 21. Floors (the ad unit waterfall) under your control
@@ -345,7 +346,7 @@ The splash ad is an **app-open ad by default**. Each option is a placement setti
 // flooring off: ONE request, to the LAST unit (the lowest floor, the one that normally always fills)
 .appOpen(Placements.SPLASH).units(HF, MF, NORMAL).flooring(false)
 
-// double: two ads requested together, shown back to back (no gap), onDone runs once after the last
+// double: two ads requested together, shown at the same time (stacked, so closing one reveals the other), onDone runs once after the last
 .appOpen(Placements.SPLASH).units(HF, MF, NORMAL).doubleAd(true)
 ```
 

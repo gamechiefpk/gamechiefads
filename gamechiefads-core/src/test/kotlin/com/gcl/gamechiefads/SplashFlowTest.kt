@@ -81,14 +81,12 @@ class SplashFlowTest {
         var done = 0
         res.ads!!.show(r.activity) { done++ }
         runCurrent()
-        assertEquals(1, first.shows); assertEquals(0, secondAd.shows)
+        assertEquals(1, first.shows); assertEquals(1, secondAd.shows) // both started at once, stacked on screen
         advanceTimeBy(5_000)
-        assertEquals(0, secondAd.shows) // never on top of the first
-        first.listener!!.onDismissed()
-        assertEquals(1, secondAd.shows) // started inside the dismiss callback: no gap, no flicker
-        assertTrue(r.state.adShowing.value) // the slot was never released in between
+        secondAd.listener!!.onDismissed() // the user closes the top ad: the other one is already there
+        assertTrue(r.state.adShowing.value) // the slot is held until the last one closes
         assertEquals(0, done)
-        secondAd.listener!!.onDismissed()
+        first.listener!!.onDismissed()
         assertEquals(1, done)
         assertFalse(r.state.adShowing.value)
     }
