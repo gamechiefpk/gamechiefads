@@ -75,6 +75,8 @@ data class AdsConfig(
         fun enabled(enabled: Boolean) = edit { it.copy(enabled = enabled) }
 
         // ---- floor (waterfall) control
+        /** false = no floors: one request to the last unit only. true (default) = walk all units, high floor first. */
+        fun flooring(enabled: Boolean) = edit { it.copy(flooring = enabled) }
         /** SEQUENTIAL (default, one unit at a time) or PARALLEL (all at once, first ad wins). */
         fun waterfallMode(mode: WaterfallMode) = edit { it.copy(waterfall = mode) }
         /** Gives one unit its own timeout, e.g. a short one for the high floor that rarely fills. */

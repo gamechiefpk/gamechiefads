@@ -24,8 +24,9 @@ internal class BannerController(
 ) {
     private val live = ArrayList<WeakReference<FrameLayout>>()
 
-    fun attach(container: FrameLayout, name: String, listener: BannerListener? = null) {
-        val p = config().placement(name)
+    /** [forceType] ignores the placement's configured type (bannerForSplash always uses LARGE_BANNER). */
+    fun attach(container: FrameLayout, name: String, listener: BannerListener? = null, forceType: BannerType? = null) {
+        val p = config().placement(name)?.let { if (forceType != null) it.copy(bannerType = forceType) else it }
         if (p == null || !p.enabled || state.premium.value) {
             AdLog.d("banner") { "$name: not loaded (known=${p != null}, enabled=${p?.enabled}, premium=${state.premium.value})" }
             clear(container)

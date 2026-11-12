@@ -2,6 +2,7 @@ package com.gcl.gamechiefads.sample;
 
 import android.app.Application;
 
+import com.gcl.gamechiefads.AdPlacement;
 import com.gcl.gamechiefads.AdsConfig;
 import com.gcl.gamechiefads.BannerType;
 import com.gcl.gamechiefads.GamechiefAds;
@@ -9,13 +10,15 @@ import com.gcl.gamechiefads.Placements;
 import com.gcl.gamechiefads.ui.DefaultLoaderDialog;
 
 public class SampleApp extends Application {
+    /** An id that never fills: stands in for a high floor that misses. */
+    static final String NO_FILL_UNIT = "ca-app-pub-3940256099942544/0000000000";
 
     @Override
     public void onCreate() {
         super.onCreate();
 
         // An id that never fills: stands in for a "high floor" that misses, to show the floor controls.
-        final String HIGH_FLOOR_NO_FILL = "ca-app-pub-3940256099942544/0000000000";
+        final String HIGH_FLOOR_NO_FILL = NO_FILL_UNIT;
 
         // 3000 ms per tier is fine on real devices; the emulator is slow, so the sample uses 10000
         AdsConfig config = AdsConfig.builder()
@@ -40,8 +43,14 @@ public class SampleApp extends Application {
                 .units(HIGH_FLOOR_NO_FILL, getString(R.string.unit_interstitial), getString(R.string.unit_interstitial))
                 .tierTimeoutMs(10000).unitTimeoutMs(HIGH_FLOOR_NO_FILL, 1500).skipUnitAfterFails(2, 60)
 
-                .appOpen(Placements.SPLASH).unitsRes(this, R.string.unit_app_open).tierTimeoutMs(10000)
-                .appOpen(Placements.SPLASH_SECOND).unitsRes(this, R.string.unit_app_open).tierTimeoutMs(10000)
+                // splash: an app-open ad by default (use .interstitial(Placements.SPLASH) for an interstitial instead).
+                // Floors: the first unit never fills, so flooring ON shows a miss before the hit; flooring OFF asks only the last unit.
+                .appOpen(Placements.SPLASH)
+                .units(HIGH_FLOOR_NO_FILL, getString(R.string.unit_app_open), getString(R.string.unit_app_open))
+                .tierTimeoutMs(10000).unitTimeoutMs(HIGH_FLOOR_NO_FILL, 1500)
+                .flooring(true).doubleAd(true)
+                // large banner shown on the splash screen with GamechiefAds.bannerForSplash / AdsUi.bannerForSplash
+                .banner(AdPlacement.SPLASH_BANNER).unitsRes(this, R.string.unit_banner).tierTimeoutMs(10000)
                 .appOpen(Placements.APP_OPEN).unitsRes(this, R.string.unit_app_open).tierTimeoutMs(10000)
                 .minGapSeconds(10).excludeScreens(SplashActivity.class)
 

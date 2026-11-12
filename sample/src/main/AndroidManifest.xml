@@ -24,6 +24,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".MainActivity" />
+        <activity android:name=".SplashLabActivity" />
         <activity android:name=".InterstitialActivity" />
         <activity android:name=".BannerActivity" />
         <activity android:name=".NativeActivity" />

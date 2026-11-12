@@ -34,6 +34,14 @@ internal object RemoteOverrides {
         if (tier > 0) r = r.copy(tierTimeoutMs = tier)
         if (o.opt("double") is Boolean) r = r.copy(doubleAd = o.getBoolean("double"))
         parseEnum<BannerType>(o.optString("bannerType", ""))?.let { r = r.copy(bannerType = it) }
+        if (o.opt("flooring") is Boolean) r = r.copy(flooring = o.getBoolean("flooring"))
+        if (p.name == Placements.SPLASH || p.name == Placements.SPLASH_SECOND) {
+            // splash can switch between an app-open and an interstitial ad (send matching "units" too)
+            when (o.optString("type", "").trim().lowercase().replace('-', '_')) {
+                "app_open", "appopen" -> r = r.copy(format = AdFormat.APP_OPEN)
+                "interstitial" -> r = r.copy(format = AdFormat.INTERSTITIAL)
+            }
+        }
         parseEnum<WaterfallMode>(o.optString("waterfall", ""))?.let { r = r.copy(waterfall = it) }
         o.optJSONObject("tierTimeouts")?.let { t ->
             val m = t.keys().asSequence().mapNotNull { k -> (t.opt(k) as? Number)?.toLong()?.takeIf { it > 0 }?.let { k to it } }.toMap()

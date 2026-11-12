@@ -20,7 +20,11 @@ internal object AdUnits {
 
     /** Debug: one test unit (no point walking a waterfall of test ids). Release: the configured units. */
     fun resolve(p: PlacementConfig, debug: Boolean): List<String> =
-        if (debug) listOf(testUnit(p.format)) else p.units.filter { it !in p.disabledUnits }
+        if (debug) listOf(testUnit(p.format)) else applyFlooring(p, p.units.filter { it !in p.disabledUnits })
+
+    /** Flooring off = a single request to the last (lowest floor) unit. */
+    private fun applyFlooring(p: PlacementConfig, units: List<String>): List<String> =
+        if (!p.flooring && units.size > 1) listOf(units.last()) else units
 
     fun isDebuggable(context: Context): Boolean =
         (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0

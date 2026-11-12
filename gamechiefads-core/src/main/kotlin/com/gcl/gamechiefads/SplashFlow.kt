@@ -22,8 +22,16 @@ internal class SplashFlow(
     private val shower: FullScreenShower,
     private val screens: ScreenHost,
     private val scope: CoroutineScope,
+    /** Loads an app-open ad (the splash default). */
     private val source: suspend (String) -> FullScreenAd?,
+    /** Loads an interstitial, used when the splash placement is declared with interstitial(...) or switched remotely. */
+    private val interstitialSource: suspend (String) -> FullScreenAd? = source,
 ) {
+    private suspend fun loadOne(p: PlacementConfig, activity: Activity): FullScreenAd? {
+        val src = if (p.format == AdFormat.INTERSTITIAL) interstitialSource else source
+        return pipeline.load(p, activity, src) { it.destroy() }
+    }
+
     fun prepare(activity: Activity, callback: SplashCallback) {
         val ads = SplashAdsImpl(state, shower, screens)
         scope.launch {
@@ -35,8 +43,13 @@ internal class SplashFlow(
                     val secondP = cfg.placement(Placements.SPLASH_SECOND)?.takeIf { it.enabled }
                     withTimeoutOrNull(cfg.splashTimeoutMs) {
                         coroutineScope {
-                            val d1 = async { pipeline.load(firstP, activity, source) { it.destroy() } }
-                            val d2 = secondP?.let { sp -> async { pipeline.load(sp, activity, source) { it.destroy() } } }
+                            val d1 = async { loadOne(firstP, activity) }
+                            // second ad: its own splash_second placement, else a second request to the same units when double
+                            val d2 = when {
+                                secondP != null -> async { loadOne(secondP, activity) }
+                                firstP.doubleAd -> async { loadOne(firstP, activity) }
+                                else -> null
+                            }
                             val a = d1.await()
                             if (a != null) {
                                 ads.first = a

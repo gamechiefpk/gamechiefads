@@ -24,6 +24,7 @@ public class MainActivity extends DemoActivity {
         button("App-open (leave and return)", () -> open(AppOpenActivity.class));
         button("Random interstitial (screen counter)", () -> open(SecondActivity.class));
         button("Library trace (logcat GamechiefAds)", () -> open(TraceActivity.class));
+        button("Splash lab: app open / interstitial, flooring, double", () -> open(SplashLabActivity.class));
         button("Run the splash again", () -> open(SplashActivity.class));
 
         note("Switches");

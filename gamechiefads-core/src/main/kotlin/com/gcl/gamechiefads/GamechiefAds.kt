@@ -124,6 +124,23 @@ object GamechiefAds {
         }
     }
 
+    /**
+     * Banner for the splash screen: always a LARGE_BANNER (320x100), loaded from the placement
+     * [Placements.SPLASH_BANNER] (declare it with `.banner(AdPlacement.SPLASH_BANNER).units(...)`; flooring, units,
+     * premium and Remote Config work like for any banner). Hidden when there is no ad.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun bannerForSplash(container: FrameLayout, listener: BannerListener? = null) {
+        val r = runtime
+        if (r == null) {
+            container.visibility = android.view.View.GONE
+            listener?.onFailed("not initialized")
+        } else {
+            r.banner.attach(container, Placements.SPLASH_BANNER, listener, BannerType.LARGE_BANNER)
+        }
+    }
+
     /** The configured [BannerType] of a banner placement (ADAPTIVE if unknown). The ui module sizes its shimmer with it. */
     @JvmStatic
     fun bannerTypeOf(placement: AdPlacement): BannerType =

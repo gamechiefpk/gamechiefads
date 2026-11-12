@@ -13,6 +13,8 @@ internal class Rig(scope: CoroutineScope, var config: AdsConfig, var gateReady: 
     val loads = mutableListOf<String>()
     var loadBehavior: suspend (String) -> FullScreenAd? = { FakeAd(it) }
     private val source: suspend (String) -> FullScreenAd? = { unit -> loads += unit; loadBehavior(unit) }
+    val interstitialLoads = mutableListOf<String>()
+    private val interstitialSource: suspend (String) -> FullScreenAd? = { unit -> interstitialLoads += unit; loadBehavior(unit) }
 
     val pool = AdPool(clock = { now })
     val appOpenPool = AdPool(clock = { now })
@@ -23,6 +25,6 @@ internal class Rig(scope: CoroutineScope, var config: AdsConfig, var gateReady: 
         state, { config }, pool, pipeline, shower, screens, scope, { now }, { loaderUi }, source,
     )
     val random = RandomInterstitialTrigger(state, { config }, screens, interstitial, scope, { now })
-    val splash = SplashFlow(state, { config }, pipeline, shower, screens, scope, source)
+    val splash = SplashFlow(state, { config }, pipeline, shower, screens, scope, source, interstitialSource)
     val appOpen = AppOpenController(state, { config }, appOpenPool, pipeline, shower, screens, scope, { now }, source)
 }

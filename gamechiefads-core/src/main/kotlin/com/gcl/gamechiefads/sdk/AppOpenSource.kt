@@ -20,10 +20,10 @@ private class SdkAppOpen(private val ad: AppOpenAd) : FullScreenAd {
     override fun show(activity: Activity, listener: FullScreenAd.Listener) {
         try {
             ad.adEventCallback = object : AppOpenAdEventCallback {
-                override fun onAdShowedFullScreenContent() = listener.onShown()
-                override fun onAdDismissedFullScreenContent() = listener.onDismissed()
+                override fun onAdShowedFullScreenContent() = MainThread.run { listener.onShown() }
+                override fun onAdDismissedFullScreenContent() = MainThread.run { listener.onDismissed() }
                 override fun onAdFailedToShowFullScreenContent(fullScreenContentError: FullScreenContentError) =
-                    listener.onFailed(fullScreenContentError.message)
+                    MainThread.run { listener.onFailed(fullScreenContentError.message) }
             }
             ad.show(activity)
         } catch (t: Throwable) {

@@ -57,7 +57,7 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
         AppOpenSource::load,
     )
     private val random = RandomInterstitialTrigger(state, { config }, tracker, interstitial, scope, clock)
-    val splash = SplashFlow(state, { config }, pipeline, shower, tracker, scope, AppOpenSource::load)
+    val splash = SplashFlow(state, { config }, pipeline, shower, tracker, scope, AppOpenSource::load, InterstitialSource::load)
     val banner = BannerController(state, { config }, pipeline, tracker, scope, BannerSource::load)
     val slots = FullScreenSlots(state, { config }, tracker, clock)
     val native = NativeController(state, { config }, pipeline, tracker, scope, NativeSource::load)

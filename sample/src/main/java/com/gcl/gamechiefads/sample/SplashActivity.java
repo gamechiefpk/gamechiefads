@@ -19,6 +19,9 @@ public class SplashActivity extends Activity {
         TextView status = findViewById(R.id.status);
         Button start = findViewById(R.id.start);
 
+        // large banner at the bottom of the splash, in parallel with the splash ad
+        com.gcl.gamechiefads.ui.AdsUi.bannerForSplash(findViewById(R.id.splashBanner));
+
         // consent -> init -> waterfall -> timeout. Called once, with or without an ad.
         GamechiefAds.prepareSplash(this, (SplashAds ads) -> {
             status.setText(ads.hasAd() ? "Ad ready" : "No ad (premium, offline, consent denied or timeout)");

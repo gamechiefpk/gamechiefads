@@ -29,5 +29,6 @@ class AdPlacement private constructor(val name: String) {
         @JvmField val APP_OPEN = AdPlacement(Placements.APP_OPEN)
         @JvmField val SPLASH = AdPlacement(Placements.SPLASH)
         @JvmField val SPLASH_SECOND = AdPlacement(Placements.SPLASH_SECOND)
+        @JvmField val SPLASH_BANNER = AdPlacement(Placements.SPLASH_BANNER)
     }
 }

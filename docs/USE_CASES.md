@@ -184,3 +184,17 @@ AdsUi.banner(findViewById(R.id.bannerContainer), AdIds.BANNER_RECT);   // a Fram
 ```java
 .interstitial(AdIds.AFTER_SAVE).units(HF, MF, NORMAL).unitTimeoutMs(HF, 1500).skipUnitAfterFails(3, 120)
 ```
+
+## 17. Splash: app open or interstitial, with or without floors, one or two ads
+
+```java
+.appOpen(Placements.SPLASH).units(HF, MF, NORMAL).flooring(true).doubleAd(true)   // defaults: app open
+.interstitial(Placements.SPLASH).units(IHF, INORMAL).flooring(false)              // interstitial, one request
+```
+
+## 18. A large banner on the splash screen
+
+```java
+// config: .banner(AdPlacement.SPLASH_BANNER).units("ca-app-pub-.../banner")
+AdsUi.bannerForSplash(findViewById(R.id.splashBanner));   // a FrameLayout, always a 320x100 large banner
+```

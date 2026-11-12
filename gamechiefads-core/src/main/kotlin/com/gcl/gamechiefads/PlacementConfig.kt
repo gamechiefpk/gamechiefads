@@ -23,6 +23,11 @@ data class PlacementConfig(
     val enabled: Boolean = true,
 
     // ---- floor (waterfall) control ----
+    /**
+     * true (default): all [units] are used as floors (high floor first). false: no floors, ONE request to a single
+     * unit, the LAST of [units] (the lowest floor, normally the one that always fills).
+     */
+    val flooring: Boolean = true,
     /** One-by-one (default) or all at once. */
     val waterfall: WaterfallMode = WaterfallMode.SEQUENTIAL,
     /** Per-unit timeout override, in ms. Units not listed use [tierTimeoutMs]. */

@@ -43,6 +43,28 @@ object AdsUi {
         })
     }
 
+    /** Splash banner (always LARGE_BANNER, 320x100) into [container], with a shimmer while it loads. */
+    @JvmStatic
+    @JvmOverloads
+    fun bannerForSplash(container: FrameLayout, listener: BannerListener? = null) {
+        if (container.childCount == 0 && container.findViewWithTag<android.view.View>(SHIMMER_TAG) == null) {
+            val dp = container.resources.displayMetrics.density
+            val shimmer = ShimmerView(container.context).apply { tag = SHIMMER_TAG }
+            container.addView(shimmer, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (100 * dp).toInt()))
+        }
+        GamechiefAds.bannerForSplash(container, object : BannerListener {
+            override fun onLoaded() {
+                removeShimmer(container)
+                listener?.onLoaded()
+            }
+
+            override fun onFailed(reason: String) {
+                removeShimmer(container)
+                listener?.onFailed(reason)
+            }
+        })
+    }
+
     private fun removeShimmer(container: FrameLayout) {
         container.findViewWithTag<android.view.View>(SHIMMER_TAG)?.let { container.removeView(it) }
     }

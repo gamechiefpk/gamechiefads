@@ -330,3 +330,46 @@ are tried). Everything is also a Remote Config field:
 Debug builds replace your ids with Google test ids, so floors cannot be seen in debug unless you call
 `.testIdsInDebug(false)` on the config (release builds always use your ids). The trace shows every unit:
 `[pipeline] after_save: SEQUENTIAL waterfall, 2/3 unit(s)` (a unit was skipped) and `[waterfall] tier ...: miss`.
+
+## 22. Splash options: app open or interstitial, flooring, double, splash banner
+
+The splash ad is an **app-open ad by default**. Each option is a placement setting, so it also works from Remote Config.
+
+```java
+// default: app open, with floors, one ad
+.appOpen(Placements.SPLASH).units(HF, MF, NORMAL)
+
+// an interstitial instead of an app-open ad (use interstitial unit ids): same logic, same options
+.interstitial(Placements.SPLASH).units(HF, MF, NORMAL)
+
+// flooring off: ONE request, to the LAST unit (the lowest floor, the one that normally always fills)
+.appOpen(Placements.SPLASH).units(HF, MF, NORMAL).flooring(false)
+
+// double: two ads requested together, shown back to back (no gap), onDone runs once after the last
+.appOpen(Placements.SPLASH).units(HF, MF, NORMAL).doubleAd(true)
+```
+
+Every combination works (app open or interstitial, flooring on or off, double on or off). The splash code does not change:
+`prepareSplash` then `ads.show(this, onDone)`. The older `splash_second` placement still works if you want the second ad
+to use different units.
+
+Remote Config (units must match the format, so send them with `type`):
+
+```json
+{"placements":{"splash":{"type":"interstitial","units":["ca-app-pub-.../inter_hf","ca-app-pub-.../inter_normal"],"flooring":false,"double":true}}}
+```
+
+`flooring` works on every placement, not only the splash.
+
+**Splash banner.** A `LARGE_BANNER` (320x100) for the splash screen, loaded while the splash ad loads:
+
+```java
+// config:  .banner(AdPlacement.SPLASH_BANNER).units(...)
+GamechiefAds.bannerForSplash(findViewById(R.id.splashBanner));   // core: a FrameLayout, you add nothing
+AdsUi.bannerForSplash(findViewById(R.id.splashBanner));          // ui module: same, plus a shimmer while it loads
+```
+
+The size is fixed to LARGE_BANNER whatever the placement says. Premium, flooring, units, timeouts and Remote Config work as
+for any banner; the container is hidden when there is no ad, and the banner is destroyed when the screen closes.
+
+The sample app has a **Splash lab** screen to try every combination.
