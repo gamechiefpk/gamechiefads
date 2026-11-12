@@ -24,7 +24,7 @@ public class InterstitialActivity extends DemoActivity {
 
         button("Preview the loading overlay (4 s)", () -> {
             com.gcl.gamechiefads.ui.DefaultLoaderDialog d = com.gcl.gamechiefads.ui.DefaultLoaderDialog.builder()
-                    .title("Preparing your design").message("A short ad keeps this app free")
+                    .title("Ad is loading").message("Please wait…")
                     .tips("Tip: ads help keep this app free", "Tip: premium removes all ads").build();
             d.show(this, new com.gcl.gamechiefads.LoaderInfo("preview", null, null));
             content.postDelayed(d::dismiss, 4000);

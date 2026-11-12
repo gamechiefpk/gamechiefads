@@ -33,7 +33,7 @@ public class SampleApp extends Application {
 
                 // called by name from the app. loaderText = personalised text of the loading overlay.
                 .interstitial(AdIds.MANUAL).unitsRes(this, R.string.unit_interstitial).tierTimeoutMs(10000)
-                .loaderText("Preparing your design", "A short ad keeps this app free")
+                .loaderText("Ad is loading", "Please wait, it will open in a moment")
                 .interstitial(AdIds.PRELOADED).unitsRes(this, R.string.unit_interstitial).tierTimeoutMs(10000)
                 // two ads back to back, like one ad break (also switchable by Remote Config: "double": true)
                 .interstitial(AdIds.DOUBLE_INTERSTITIAL).unitsRes(this, R.string.unit_interstitial).tierTimeoutMs(10000)
@@ -77,8 +77,8 @@ public class SampleApp extends Application {
 
         GamechiefAds.init(this, config);
         GamechiefAds.setLoaderUi(DefaultLoaderDialog.builder()
-                .title("Just a moment")
-                .message("Getting things ready for you")
+                .title("Ad is loading")
+                .message("Please wait…")
                 .tips("Tip: ads help keep this app free", "Tip: premium removes all ads")
                 .build());
     }

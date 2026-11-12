@@ -278,13 +278,13 @@ open, and it resets the gap and screen counter. For your own full-screen design 
 
 ```java
 GamechiefAds.setLoaderUi(DefaultLoaderDialog.builder()
-    .title("Designing your room").message("A short ad keeps this app free")
+    .title("Ad is loading").message("Please wait...")
     .tips("Tip: swipe to compare", "Tip: try night mode")      // optional, fade through
     .accentColor(0xFF6C4CF1).cornerRadiusDp(28).build());
 ```
 
 Dimmed and blurred background (Android 12+), rounded card, spinner, texts that follow light and dark mode. Texts per
-placement win over the global ones: `.interstitial(AdIds.AFTER_SAVE).loaderText("Saving...", "One short ad")` or Remote
+placement win over the global ones: `.interstitial(AdIds.AFTER_SAVE).loaderText("Ad is loading", "Please wait, saving after the ad")` or Remote
 Config `loaderTitle` / `loaderMessage`.
 
 ## 19. No ads on back presses

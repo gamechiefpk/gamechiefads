@@ -3,8 +3,8 @@
     <!-- Required "Ad" attribution on native ads. Translate per locale. -->
     <string name="gads_ad_badge">Ad</string>
     <string name="gads_loading_ad">Loading ad…</string>
-    <string name="gads_loader_title">Just a moment</string>
-    <string name="gads_loader_message">Getting things ready for you</string>
+    <string name="gads_loader_title">Ad is loading</string>
+    <string name="gads_loader_message">Please wait…</string>
     <string name="gads_close_in">Close in %1$d</string>
     <string name="gads_close">Close</string>
 </resources>

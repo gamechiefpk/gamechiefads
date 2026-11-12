@@ -26,8 +26,8 @@ import com.gcl.gamechiefads.ui.R
  *
  * ```java
  * GamechiefAds.setLoaderUi(DefaultLoaderDialog.builder()
- *     .title("Designing your room")
- *     .message("A short ad keeps this app free")
+ *     .title("Ad is loading")
+ *     .message("Please wait...")
  *     .tips("Tip: try the night mode", "Tip: swipe to compare")
  *     .accentColor(0xFF6C4CF1).build());
  * ```
