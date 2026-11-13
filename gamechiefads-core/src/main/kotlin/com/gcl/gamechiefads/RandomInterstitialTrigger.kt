@@ -29,7 +29,7 @@ internal class RandomInterstitialTrigger(
             if (!state.autoRandom.value) { AdLog.d("random") { "automatic ads are switched off" }; return@launch }
             val p = config().placement(Placements.RANDOM)?.takeIf { it.everyNScreens > 0 && it.autoShow && config().enabled } ?: return@launch // automatic only when everyNScreens > 0 and auto is on
             if (!screens.isUsable(activity)) return@launch
-            val ctx = state.context(clock(), activity.javaClass.name)
+            val ctx = state.context(clock(), activity.javaClass.name, config().quietSecondsAfterAppOpen * 1000L)
             val decision = AdPolicy.evaluate(p, ctx)
             AdLog.d("random") { "${activity.javaClass.simpleName}: $decision (screens=${ctx.screensSinceAd}/${p.everyNScreens}, lastShown=${ctx.lastShownAtMs?.let { "${(ctx.nowMs - it) / 1000}s ago" } ?: "never"}, gap=${p.minGapSeconds}s)" }
             if (decision != Decision.ALLOW) return@launch

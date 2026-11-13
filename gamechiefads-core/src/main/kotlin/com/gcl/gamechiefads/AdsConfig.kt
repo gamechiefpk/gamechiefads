@@ -41,12 +41,15 @@ data class AdsConfig(
     val noAdMessage: String? = DEFAULT_NO_AD_MESSAGE,
     /** How long the "no ad available" message stays in the loading dialog before the app moves on. */
     val noAdMessageMs: Long = DEFAULT_NO_AD_MESSAGE_MS,
+    /** After an app-open ad is CLOSED, interstitials stay quiet this many seconds (default 30). 0 = no quiet time. */
+    val quietSecondsAfterAppOpen: Int = DEFAULT_QUIET_AFTER_APP_OPEN_SECONDS,
 ) {
     fun placement(name: String): PlacementConfig? = placements[name]
 
     companion object {
         const val DEFAULT_REMOTE_KEY = "gamechief_ads_config"
         const val DEFAULT_NO_FILL_RETRY_SECONDS = 5
+        const val DEFAULT_QUIET_AFTER_APP_OPEN_SECONDS = 30
         /** The random interstitial is automatic: every 3rd NEW screen (activity transition), at least 30 s after the last ad. */
         const val DEFAULT_RANDOM_EVERY_N_SCREENS = 3
         const val DEFAULT_RANDOM_GAP_SECONDS = 30
@@ -74,6 +77,7 @@ data class AdsConfig(
         private var noFillRetrySeconds = DEFAULT_NO_FILL_RETRY_SECONDS
         private var noAdMessage: String? = DEFAULT_NO_AD_MESSAGE
         private var noAdMessageMs = DEFAULT_NO_AD_MESSAGE_MS
+        private var quietSecondsAfterAppOpen = DEFAULT_QUIET_AFTER_APP_OPEN_SECONDS
         private var fallbackToLoad = false
         private var autoRefill = false
         private var overallBudgetMs = DEFAULT_OVERALL_BUDGET_MS
@@ -184,6 +188,8 @@ data class AdsConfig(
         /** After a pass with no ad, the same placement waits this many seconds before a new pass (default 5). Stops request loops. */
         /** How long (ms) the message stays in the loading dialog (default 1800). */
         fun noAdMessageMs(ms: Long) = apply { noAdMessageMs = ms.coerceIn(0, 10_000) }
+        /** After an app-open ad is closed, no interstitial (random, custom, splash excluded) for this many seconds (default 30). */
+        fun quietSecondsAfterAppOpen(seconds: Int) = apply { quietSecondsAfterAppOpen = seconds.coerceAtLeast(0) }
         fun noFillRetrySeconds(seconds: Int) = apply { noFillRetrySeconds = seconds.coerceAtLeast(0) }
 
         fun appId(id: String?) = apply { appId = id }
@@ -220,6 +226,7 @@ data class AdsConfig(
                 loaderTitle = loaderTitle, loaderMessage = loaderMessage,
                 remoteDefaults = remoteDefaults.toMap(), remoteFetchIntervalSeconds = remoteFetchIntervalSeconds, remoteSource = remoteSource,
                 noFillRetrySeconds = noFillRetrySeconds, noAdMessage = noAdMessage, noAdMessageMs = noAdMessageMs,
+                quietSecondsAfterAppOpen = quietSecondsAfterAppOpen,
             )
         }
 

@@ -10,6 +10,9 @@ internal class SplashAdsImpl(
     private val state: AdState,
     private val shower: FullScreenShower,
     private val screens: ScreenHost,
+    /** True when the splash ad is an app-open ad: its close then starts the quiet time for interstitials. */
+    private val appOpen: Boolean = false,
+    private val clock: () -> Long = { 0L },
 ) : SplashAds {
     @Volatile var first: FullScreenAd? = null
     @Volatile var second: FullScreenAd? = null
@@ -34,6 +37,7 @@ internal class SplashAdsImpl(
         shower.showAll(activity, listOfNotNull(a, b), object : FullScreenShower.Events {
             override fun onShown() {}
             override fun onFinished(shown: Boolean, reason: String?) {
+                if (shown && appOpen) state.markAppOpenClosed(clock())
                 AdLog.d("splash") { "ad break finished (shown=$shown); onDone" }
                 done.run()
             }

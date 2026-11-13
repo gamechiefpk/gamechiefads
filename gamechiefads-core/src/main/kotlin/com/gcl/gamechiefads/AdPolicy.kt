@@ -1,7 +1,7 @@
 package com.gcl.gamechiefads
 
 internal enum class Decision {
-    ALLOW, DENY_DISABLED, DENY_PREMIUM, DENY_AD_SHOWING, DENY_EXCLUDED_SCREEN, DENY_MIN_GAP, DENY_EVERY_N
+    ALLOW, DENY_DISABLED, DENY_PREMIUM, DENY_AD_SHOWING, DENY_EXCLUDED_SCREEN, DENY_MIN_GAP, DENY_EVERY_N, DENY_AFTER_APP_OPEN
 }
 
 /** PURE logic: "may I show now?". No Android, no state, no clock. */
@@ -34,6 +34,9 @@ internal object AdPolicy {
         !p.enabled -> Decision.DENY_DISABLED
         c.premium -> Decision.DENY_PREMIUM
         c.adShowing -> Decision.DENY_AD_SHOWING
+        // an interstitial never follows an app-open ad right away: quiet for a while after it was CLOSED
+        p.format == AdFormat.INTERSTITIAL && c.quietAfterAppOpenMs > 0 && c.lastAppOpenClosedAtMs != null &&
+            c.nowMs - c.lastAppOpenClosedAtMs < c.quietAfterAppOpenMs -> Decision.DENY_AFTER_APP_OPEN
         else -> Decision.ALLOW
     }
 }

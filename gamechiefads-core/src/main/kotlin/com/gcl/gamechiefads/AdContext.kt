@@ -8,4 +8,7 @@ internal data class AdContext(
     val screensSinceAd: Int,
     val nowMs: Long,
     val screenName: String?,
+    /** When the last app-open ad was closed (null = never). Interstitials stay quiet for [quietAfterAppOpenMs] after it. */
+    val lastAppOpenClosedAtMs: Long? = null,
+    val quietAfterAppOpenMs: Long = 0,
 )

@@ -224,3 +224,12 @@ A floors pass requests every unit once (HF, MF, NORMAL) and never repeats. When 
 
 Config: `.noAdMessage(text or null)`, `.noAdMessageMs(ms)`, `.noFillRetrySeconds(seconds)`. Remote Config root keys: `noAdMessage`, `noFillRetrySeconds`.
 Splash and banners are not delayed by this wait: the splash is one pass per launch, a banner is one pass per screen.
+
+## 13. Interstitial and app open: no overlap, quiet time
+
+All full-screen ads share one "ad showing" flag, claimed before loading starts: an interstitial (automatic, button, custom) is refused
+while an app-open ad is loading or on screen, and an app-open ad is not shown while an interstitial is loading or on screen
+(`DENY_AD_SHOWING`). After an app-open ad (splash or on return) is **closed**, interstitials are refused for
+`quietSecondsAfterAppOpen` seconds (default 30, `DENY_AFTER_APP_OPEN`): the automatic random ad skips quietly, a button call gets
+`onNotShown` + `onComplete(false)`. The time counts from the close of the app-open ad. Rewarded ads and a splash interstitial are
+not affected. Config: `.quietSecondsAfterAppOpen(s)`, Remote Config root key `quietSecondsAfterAppOpen`.

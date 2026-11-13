@@ -60,7 +60,10 @@ internal class AppOpenController(
                 AdLog.d("appopen") { "showing ${if (second != null) "2 ads (double)" else "1 ad"}" }
                 shower.showAll(activity, listOfNotNull(ad, second), object : FullScreenShower.Events {
                     override fun onShown() {}
-                    override fun onFinished(shown: Boolean, reason: String?) = fetch()
+                    override fun onFinished(shown: Boolean, reason: String?) {
+                        if (shown) state.markAppOpenClosed(clock()) // interstitials stay quiet for a while after this
+                        fetch()
+                    }
                 })
                 return
             }

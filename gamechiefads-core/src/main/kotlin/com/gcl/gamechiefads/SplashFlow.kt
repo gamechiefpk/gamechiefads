@@ -26,6 +26,7 @@ internal class SplashFlow(
     private val source: suspend (String) -> FullScreenAd?,
     /** Loads an interstitial, used for the splash_interstitial slot. */
     private val interstitialSource: suspend (String) -> FullScreenAd? = source,
+    private val clock: () -> Long = { System.currentTimeMillis() },
 ) {
     private suspend fun loadOne(p: PlacementConfig, activity: Activity): FullScreenAd? {
         val src = if (p.format == AdFormat.INTERSTITIAL) interstitialSource else source
@@ -34,7 +35,7 @@ internal class SplashFlow(
 
     /** [name] = which splash slot (splash or splash_interstitial). [double] = also load and show the second ad (its own units). */
     fun prepare(activity: Activity, callback: SplashCallback, name: String = Placements.SPLASH, double: Boolean = false) {
-        val ads = SplashAdsImpl(state, shower, screens)
+        val ads = SplashAdsImpl(state, shower, screens, config().placement(name)?.format == AdFormat.APP_OPEN, clock)
         scope.launch {
             AdLog.d("splash") { "prepare start $name double=$double (timeout ${config().splashTimeoutMs}ms, premium=${state.premium.value})" }
             try {

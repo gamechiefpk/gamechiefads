@@ -24,7 +24,8 @@ internal object RemoteOverrides {
         val message = if (root.has("loaderMessage")) root.optString("loaderMessage").takeIf { it.isNotBlank() } else base.loaderMessage
         val noAd = if (root.has("noAdMessage")) root.optString("noAdMessage").takeIf { it.isNotBlank() } else base.noAdMessage
         val retry = (root.opt("noFillRetrySeconds") as? Number)?.toInt()?.takeIf { it >= 0 } ?: base.noFillRetrySeconds
-        return base.copy(placements = merged, loaderTitle = title, loaderMessage = message, enabled = allEnabled, noAdMessage = noAd, noFillRetrySeconds = retry)
+        val quiet = (root.opt("quietSecondsAfterAppOpen") as? Number)?.toInt()?.takeIf { it >= 0 } ?: base.quietSecondsAfterAppOpen
+        return base.copy(placements = merged, loaderTitle = title, loaderMessage = message, enabled = allEnabled, noAdMessage = noAd, noFillRetrySeconds = retry, quietSecondsAfterAppOpen = quiet)
     }
 
     private fun patch(p: PlacementConfig, o: JSONObject): PlacementConfig {

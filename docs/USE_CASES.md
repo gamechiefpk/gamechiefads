@@ -307,3 +307,23 @@ Floors are **one pass**: high floor, then medium, then normal, each requested on
 Remote Config: `{"noAdMessage":"...","noFillRetrySeconds":10}`. This applies to the random interstitial, your own custom
 interstitials, rewarded ads and the app-open fetch. For rewarded ads you may show your own message in `onNotAvailable`
 instead: then use `.noAdMessage(null)`.
+
+---
+
+## Ads never overlap, and interstitials stay quiet after an app open
+
+### 18. What the library guarantees between interstitial and app open
+
+- **One full-screen ad at a time.** While an app-open ad (splash or on return) is loading or on screen, no interstitial (automatic,
+  button, custom) is requested or shown over it. While an interstitial is loading or on screen, no app-open ad is shown over it.
+  The app open waits for its next chance.
+- **30 seconds of quiet after an app open.** When the user closes an app-open ad, no interstitial appears for 30 seconds (counted
+  from the moment it was **closed**, not from when it appeared). This covers the automatic random interstitial, the random
+  interstitial on your buttons and your own custom interstitials. A button call during that time simply gets `onNotShown`
+  (`DENY_AFTER_APP_OPEN`) and `onComplete(false)`, so your app carries on. A splash app-open also starts the quiet time.
+- Rewarded ads are not held back: the user asked for them.
+
+```java
+.quietSecondsAfterAppOpen(45)        // your own time in seconds (default 30, 0 = no quiet time)
+// Remote Config: {"quietSecondsAfterAppOpen": 45}
+```

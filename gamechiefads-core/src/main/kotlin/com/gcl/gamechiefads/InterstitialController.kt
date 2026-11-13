@@ -72,7 +72,7 @@ internal class InterstitialController(
             return
         }
         callsSinceAd++
-        val decision = AdPolicy.evaluateClick(p, state.context(clock(), activity.javaClass.name), callsSinceAd)
+        val decision = AdPolicy.evaluateClick(p, state.context(clock(), activity.javaClass.name, config().quietSecondsAfterAppOpen * 1000L), callsSinceAd)
         AdLog.d("random") { "click on ${activity.javaClass.simpleName}: $decision (call $callsSinceAd/${p.everyNCalls}, gap=${p.minGapSeconds}s, double=$double)" }
         if (decision != Decision.ALLOW) {
             events.onFinished(false, decision.name)
@@ -166,7 +166,7 @@ internal class InterstitialController(
      */
     fun showPreloaded(activity: Activity, name: String, listener: InterstitialListener?): Boolean {
         val p = config().placement(name) ?: return false
-        val decision = AdPolicy.evaluateExplicit(p, state.context(clock(), activity.javaClass.name))
+        val decision = AdPolicy.evaluateExplicit(p, state.context(clock(), activity.javaClass.name, config().quietSecondsAfterAppOpen * 1000L))
         if (decision != Decision.ALLOW) {
             AdLog.d("interstitial") { "$name: showPreloaded denied: $decision" }
             return false
@@ -197,7 +197,7 @@ internal class InterstitialController(
             events.onFinished(false, "unknown placement: $name")
             return null
         }
-        val decision = AdPolicy.evaluateExplicit(p, state.context(clock(), activity.javaClass.name))
+        val decision = AdPolicy.evaluateExplicit(p, state.context(clock(), activity.javaClass.name, config().quietSecondsAfterAppOpen * 1000L))
         if (decision != Decision.ALLOW) {
             AdLog.d("interstitial") { "$name: denied: $decision" }
             events.onFinished(false, decision.name)

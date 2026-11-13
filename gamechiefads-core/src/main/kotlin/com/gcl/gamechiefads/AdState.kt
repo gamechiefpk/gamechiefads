@@ -11,6 +11,7 @@ internal class AdState {
     private val _lastShownAtMs = MutableStateFlow<Long?>(null)
     private val _screensSinceAd = MutableStateFlow(0)
     private val _autoRandom = MutableStateFlow(true)
+    private val _lastAppOpenClosedAtMs = MutableStateFlow<Long?>(null)
 
     val premium: StateFlow<Boolean> = _premium
     val adShowing: StateFlow<Boolean> = _adShowing
@@ -24,6 +25,11 @@ internal class AdState {
         _premium.value = value
     }
     fun setAdShowing(value: Boolean) { _adShowing.value = value }
+
+    /** An app-open ad (splash or on return) was closed: interstitials stay quiet for a while after this. */
+    fun markAppOpenClosed(nowMs: Long) {
+        _lastAppOpenClosedAtMs.value = nowMs
+    }
     fun setAutoRandom(value: Boolean) {
         if (_autoRandom.value != value) AdLog.d("state") { "autoRandom=$value" }
         _autoRandom.value = value
@@ -40,12 +46,14 @@ internal class AdState {
         _screensSinceAd.value = 0
     }
 
-    fun context(nowMs: Long, screenName: String?) = AdContext(
+    fun context(nowMs: Long, screenName: String?, quietAfterAppOpenMs: Long = 0) = AdContext(
         premium = _premium.value,
         adShowing = _adShowing.value,
         lastShownAtMs = _lastShownAtMs.value,
         screensSinceAd = _screensSinceAd.value,
         nowMs = nowMs,
         screenName = screenName,
+        lastAppOpenClosedAtMs = _lastAppOpenClosedAtMs.value,
+        quietAfterAppOpenMs = quietAfterAppOpenMs,
     )
 }
