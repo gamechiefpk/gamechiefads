@@ -34,6 +34,13 @@ public class InterstitialActivity extends DemoActivity {
             d.show(this, new com.gcl.gamechiefads.LoaderInfo("preview", null, null));
             content.postDelayed(d::dismiss, 4000);
         });
+        button("Preview the no-ad message in the dialog", () -> {
+            com.gcl.gamechiefads.ui.DefaultLoaderDialog d = com.gcl.gamechiefads.ui.DefaultLoaderDialog.builder().build();
+            com.gcl.gamechiefads.LoaderInfo info = new com.gcl.gamechiefads.LoaderInfo("preview", null, null);
+            d.show(this, info);
+            content.postDelayed(() -> d.showNoAd(this, info, "No ad available, please try again in a few seconds"), 1500);
+            content.postDelayed(d::dismiss, 3500);
+        });
 
         note("Your own extra spot (here \"manual\"): shows whenever you call it, no pacing.");
         button("loadInterstitialAd(MANUAL)", () -> GamechiefAds.loadInterstitialAd(this, AdIds.MANUAL, listener("manual")));

@@ -61,10 +61,8 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
     private val clock: () -> Long = { SystemClock.elapsedRealtime() }
     /** After a pass with no ad the same placement waits a few seconds: taps or foregrounds cannot make a request loop. */
     private val noFill = NoFillCooldown(clock) { config.noFillRetrySeconds }
-    /** "No ad available, please try again in a few seconds" as a toast (config.noAdMessage, null = nothing). */
-    private val noAd: () -> Unit = {
-        config.noAdMessage?.let { msg -> runCatching { Toast.makeText(app, msg, Toast.LENGTH_SHORT).show() } }
-    }
+    /** "No ad available, please try again in a few seconds", shown inside the loading dialog (a toast only if the dialog cannot). */
+    private val noAd = NoAdNotice({ config }, { loaderUi ?: defaultLoader }) { msg -> Toast.makeText(app, msg, Toast.LENGTH_SHORT).show() }
     private val scope = CoroutineScope(
         SupervisorJob() + Dispatchers.Main.immediate +
             CoroutineExceptionHandler { _, t -> Log.w(TAG, "ad flow error (ignored)", t) },

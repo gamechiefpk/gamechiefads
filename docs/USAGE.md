@@ -213,11 +213,11 @@ types: String, Boolean, Int, Long, Double. `applyRemoteConfig(json)` from sectio
 A floors pass requests every unit once (HF, MF, NORMAL) and never repeats. When nothing fills for an ad that loads at runtime
 (random interstitial, custom interstitial, rewarded):
 
-1. The loading dialog closes and a toast shows `noAdMessage` (default "No ad available, please try again in a few seconds").
-2. The listener runs right away (`onNotShown` then `onComplete(false)`; rewarded: `onNotAvailable("no fill")`): the app moves on.
+1. The loading dialog turns into the message `noAdMessage` (default "No ad available, please try again in a few seconds"; no spinner) and stays `noAdMessageMs` (default 1800 ms), then closes. A custom `AdLoaderUi` that does not implement `showNoAd(...)` gets a toast instead.
+2. Then the listener runs (`onNotShown` then `onComplete(false)`; rewarded: `onNotAvailable("no fill")`): the app moves on.
 3. That placement is **not requested again** for `noFillRetrySeconds` (default 5). A tap inside that time gets the message and
    `onNotShown("no ad available, retry in Ns")` with no requests; a tap after it starts one new pass. A success clears the wait.
 4. The app-open prefetch follows the same wait, so returning to the app again and again cannot send repeated requests.
 
-Config: `.noAdMessage(text or null)`, `.noFillRetrySeconds(seconds)`. Remote Config root keys: `noAdMessage`, `noFillRetrySeconds`.
+Config: `.noAdMessage(text or null)`, `.noAdMessageMs(ms)`, `.noFillRetrySeconds(seconds)`. Remote Config root keys: `noAdMessage`, `noFillRetrySeconds`.
 Splash and banners are not delayed by this wait: the splash is one pass per launch, a banner is one pass per screen.

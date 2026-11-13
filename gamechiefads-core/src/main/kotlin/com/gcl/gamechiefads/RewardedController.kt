@@ -21,7 +21,7 @@ internal class RewardedController(
     private val loaderUi: () -> AdLoaderUi?,
     private val source: suspend (String) -> FullScreenAd?,
     private val cooldown: NoFillCooldown? = null,
-    private val noAd: () -> Unit = {},
+    private val noAd: NoAdNotice? = null,
 ) {
     private class Result(private val l: RewardListener?) {
         var earned = false
@@ -70,11 +70,15 @@ internal class RewardedController(
             result.finish(decision.name)
             return
         }
+        val info = LoaderInfo(name, p.loaderTitle ?: config().loaderTitle, p.loaderMessage ?: config().loaderMessage)
         val wait = cooldown?.remainingMs(name) ?: 0L
         if (wait > 0) {
             AdLog.d("rewarded") { "$name: no fill a moment ago, not requesting again for ${wait}ms" }
-            noAd()
-            result.finish("no ad available, retry in ${(wait + 999) / 1000}s")
+            state.setAdShowing(true) // the message is on screen: no other ad meanwhile
+            scope.launch {
+                try { noAd?.show(activity, info) } finally { state.setAdShowing(false) }
+                result.finish("no ad available, retry in ${(wait + 999) / 1000}s")
+            }
             return
         }
         state.setAdShowing(true) // claim the slot before loading: a second tap is refused
@@ -82,16 +86,18 @@ internal class RewardedController(
             var handedOver = false
             val ui = loaderUi()
             try {
-                runCatching { ui?.show(activity, LoaderInfo(name, p.loaderTitle ?: config().loaderTitle, p.loaderMessage ?: config().loaderMessage)) }
+                runCatching { ui?.show(activity, info) }
                 val ad = try {
                     pipeline.load(p, activity, source) { it.destroy() }
-                } finally {
+                } catch (t: Throwable) {
                     runCatching { ui?.dismiss() }
+                    throw t
                 }
+                if (ad != null) runCatching { ui?.dismiss() }
                 when {
                     ad == null -> {
                         cooldown?.recordFail(name)
-                        noAd()
+                        if (noAd != null) noAd.show(activity, info) else runCatching { ui?.dismiss() }
                         result.finish("no fill")
                     }
                     state.premium.value -> { ad.destroy(); result.earned(1, "premium"); result.finish(null) }

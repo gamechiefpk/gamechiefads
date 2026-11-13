@@ -23,8 +23,8 @@ internal class InterstitialController(
     private val source: suspend (String) -> FullScreenAd?,
     /** After a pass with no fill the placement waits a few seconds (no request loops). Null = no wait. */
     private val cooldown: NoFillCooldown? = null,
-    /** Tells the user "no ad available" (a toast). Called once per failed or refused load. */
-    private val noAd: () -> Unit = {},
+    /** Tells the user "no ad available" inside the loading dialog (toast if the dialog cannot). Null = no message. */
+    private val noAd: NoAdNotice? = null,
 ) {
 
     /** Default path: load now, then show. [listener] may be null. */
@@ -65,11 +65,15 @@ internal class InterstitialController(
     }
 
     private fun runOnDemand(activity: Activity, name: String, p: PlacementConfig, events: ListenerDispatcher) {
+        val info = LoaderInfo(name, p.loaderTitle ?: config().loaderTitle, p.loaderMessage ?: config().loaderMessage)
         val wait = cooldown?.remainingMs(name) ?: 0L
         if (wait > 0) {
             AdLog.d("interstitial") { "$name: no fill a moment ago, not requesting again for ${wait}ms" }
-            noAd()
-            events.onFinished(false, "no ad available, retry in ${(wait + 999) / 1000}s")
+            state.setAdShowing(true) // the message is on screen: no other ad meanwhile
+            scope.launch {
+                try { noAd?.show(activity, info) } finally { state.setAdShowing(false) }
+                events.onFinished(false, "no ad available, retry in ${(wait + 999) / 1000}s")
+            }
             return
         }
         state.setAdShowing(true) // claim the slot before loading
@@ -77,17 +81,19 @@ internal class InterstitialController(
             var handedOver = false
             val ui = loaderUi()
             try {
-                runCatching { ui?.show(activity, LoaderInfo(name, p.loaderTitle ?: config().loaderTitle, p.loaderMessage ?: config().loaderMessage)) }
+                runCatching { ui?.show(activity, info) }
                 val ads: List<FullScreenAd> = try {
                     loadAds(p, activity)
-                } finally {
+                } catch (t: Throwable) {
                     runCatching { ui?.dismiss() }
+                    throw t
                 }
+                if (ads.isNotEmpty()) runCatching { ui?.dismiss() }
                 when {
                     ads.isEmpty() -> {
                         AdLog.d("interstitial") { "$name: no fill -> not shown, no new pass for a few seconds" }
                         cooldown?.recordFail(name)
-                        noAd()
+                        if (noAd != null) noAd.show(activity, info) else runCatching { ui?.dismiss() }
                         events.onFinished(false, "no fill")
                     }
                     state.premium.value -> { AdLog.d("interstitial") { "$name: became premium while loading -> dropped" }; ads.forEach { it.destroy() }; events.onFinished(false, "premium") }

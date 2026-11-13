@@ -1,7 +1,6 @@
 package com.gcl.gamechiefads.sample;
 
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.gcl.gamechiefads.GamechiefAds;
 import com.gcl.gamechiefads.RewardListener;
@@ -35,7 +34,6 @@ public class RewardedActivity extends DemoActivity {
                     @Override
                     public void onNotAvailable(String reason) {
                         say("no ad: " + reason);
-                        Toast.makeText(RewardedActivity.this, "No ad available, try again later", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override

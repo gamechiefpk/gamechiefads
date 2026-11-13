@@ -37,8 +37,10 @@ data class AdsConfig(
     val remoteSource: RemoteConfigSource? = null,
     /** After a pass found no ad, the same placement is not requested again for this many seconds (default 5). 0 = no wait. */
     val noFillRetrySeconds: Int = DEFAULT_NO_FILL_RETRY_SECONDS,
-    /** Short message shown (a toast) when no ad could be loaded for a runtime load. Null = show nothing. */
+    /** Message shown INSIDE the loading dialog when no ad could be loaded for a runtime load. Null = no message. */
     val noAdMessage: String? = DEFAULT_NO_AD_MESSAGE,
+    /** How long the "no ad available" message stays in the loading dialog before the app moves on. */
+    val noAdMessageMs: Long = DEFAULT_NO_AD_MESSAGE_MS,
 ) {
     fun placement(name: String): PlacementConfig? = placements[name]
 
@@ -46,6 +48,7 @@ data class AdsConfig(
         const val DEFAULT_REMOTE_KEY = "gamechief_ads_config"
         const val DEFAULT_NO_FILL_RETRY_SECONDS = 5
         const val DEFAULT_NO_AD_MESSAGE = "No ad available, please try again in a few seconds"
+        const val DEFAULT_NO_AD_MESSAGE_MS = 1_800L
         const val DEFAULT_REMOTE_INTERVAL_SECONDS = 3_600L
         const val DEFAULT_OVERALL_BUDGET_MS = 8_000L
         const val DEFAULT_SPLASH_TIMEOUT_MS = 10_000L
@@ -67,6 +70,7 @@ data class AdsConfig(
         private var remoteSource: RemoteConfigSource? = null
         private var noFillRetrySeconds = DEFAULT_NO_FILL_RETRY_SECONDS
         private var noAdMessage: String? = DEFAULT_NO_AD_MESSAGE
+        private var noAdMessageMs = DEFAULT_NO_AD_MESSAGE_MS
         private var fallbackToLoad = false
         private var autoRefill = false
         private var overallBudgetMs = DEFAULT_OVERALL_BUDGET_MS
@@ -164,9 +168,11 @@ data class AdsConfig(
         /** Loading overlay texts for ALL placements (a placement's own loaderText wins). Can also change at runtime. */
         fun defaultLoaderText(title: String?, message: String?) = apply { loaderTitle = title; loaderMessage = message }
 
-        /** The message (a toast) shown when an ad loaded at runtime finds no fill. Null = no message. Your own text/language here. */
+        /** The message shown in the loading dialog when an ad loaded at runtime finds no fill. Null = no message. Your own text/language here. */
         fun noAdMessage(text: String?) = apply { noAdMessage = text?.takeIf { it.isNotBlank() } }
         /** After a pass with no ad, the same placement waits this many seconds before a new pass (default 5). Stops request loops. */
+        /** How long (ms) the message stays in the loading dialog (default 1800). */
+        fun noAdMessageMs(ms: Long) = apply { noAdMessageMs = ms.coerceIn(0, 10_000) }
         fun noFillRetrySeconds(seconds: Int) = apply { noFillRetrySeconds = seconds.coerceAtLeast(0) }
 
         fun appId(id: String?) = apply { appId = id }
@@ -202,7 +208,7 @@ data class AdsConfig(
                 initTimeoutMs = initTimeoutMs, doubleSecondWaitMs = doubleSecondWaitMs, testIdsInDebug = testIdsInDebug,
                 loaderTitle = loaderTitle, loaderMessage = loaderMessage,
                 remoteDefaults = remoteDefaults.toMap(), remoteFetchIntervalSeconds = remoteFetchIntervalSeconds, remoteSource = remoteSource,
-                noFillRetrySeconds = noFillRetrySeconds, noAdMessage = noAdMessage,
+                noFillRetrySeconds = noFillRetrySeconds, noAdMessage = noAdMessage, noAdMessageMs = noAdMessageMs,
             )
         }
 

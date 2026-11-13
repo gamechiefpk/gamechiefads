@@ -168,11 +168,11 @@ AdsUi.loadFullScreenNativeAd(this, new InterstitialListener() {  // covers the s
 ```java
 GamechiefAds.loadRewardedAd(this, new RewardListener() {
     @Override public void onRewardEarned(int amount, String type) { addCoins(10); }       // give the reward ONLY here
-    @Override public void onNotAvailable(String reason) { toast("No ad available, try again later"); }
+    @Override public void onNotAvailable(String reason) { /* the dialog already told the user "No ad available" */ }
 });
 ```
 
-Closing the ad early gives no reward. A premium user gets `onRewardEarned` with no ad (`.premiumGetsReward(false)` to stop that).
+When no ad is available the dialog already shows "No ad available" (`onNotAvailable` is still called). Closing the ad early gives no reward. A premium user gets `onRewardEarned` with no ad (`.premiumGetsReward(false)` to stop that).
 
 ---
 
@@ -262,13 +262,14 @@ lowers the fetch interval while testing (default 3600).
 
 Floors are **one pass**: high floor, then medium, then normal, each requested once. If the normal one fails too:
 
-- the loading dialog closes and the user sees a short message: **"No ad available, please try again in a few seconds"**,
-- your listener runs at once (`onNotShown` + `onComplete(false)`), so you open your next screen. The user is never stuck,
+- the loading dialog turns into a short message (no spinner): **"No ad available, please try again in a few seconds"**, and closes after about 2 seconds,
+- then your listener runs (`onNotShown` + `onComplete(false)`), so you open your next screen. The wait is short and bounded: the user is never stuck,
 - **nothing is requested again by itself**. And if the user taps again within 5 seconds, no new requests are sent (the message
   shows again). After 5 seconds a tap starts one new pass.
 
 ```java
 .noAdMessage("Ad nahi mila, thori der baad try karein")    // your own text or language (null = no message at all)
+.noAdMessageMs(1500)                                          // how long the message stays in the dialog (default 1800)
 .noFillRetrySeconds(10)                                      // wait before a new pass after "no ad" (default 5, 0 = no wait)
 ```
 

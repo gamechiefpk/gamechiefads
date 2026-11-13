@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.FrameLayout
@@ -82,6 +83,10 @@ class DefaultLoaderDialog private constructor(private val o: Options) : AdLoader
     private var dialog: Dialog? = null
     private val handler = Handler(Looper.getMainLooper())
     private var tipRunnable: Runnable? = null
+    private var spinnerView: View? = null
+    private var titleView: TextView? = null
+    private var messageView: TextView? = null
+    private var tipTextView: TextView? = null
 
     override fun show(activity: Activity) = show(activity, LoaderInfo("", null, null))
 
@@ -109,7 +114,34 @@ class DefaultLoaderDialog private constructor(private val o: Options) : AdLoader
         }
     }
 
+    /** Turns the dialog into the "no ad available" message: no spinner, no tips, just [message]. */
+    override fun showNoAd(activity: Activity, info: LoaderInfo, message: String): Boolean {
+        return try {
+            if (dialog == null) show(activity, info)
+            if (dialog == null) return false
+            tipRunnable?.let { handler.removeCallbacks(it) }
+            tipRunnable = null
+            spinnerView?.visibility = View.GONE
+            messageView?.visibility = View.GONE
+            tipTextView?.visibility = View.GONE
+            titleView?.apply {
+                text = message
+                textSize = 16f
+                setPadding(0, 0, 0, 0)
+            }
+            AdLog.d("loader") { "switched to the no-ad message" }
+            true
+        } catch (t: Throwable) {
+            AdLog.d("loader") { "no-ad message failed (toast is used): $t" }
+            false
+        }
+    }
+
     override fun dismiss() {
+        spinnerView = null
+        titleView = null
+        messageView = null
+        tipTextView = null
         tipRunnable?.let { handler.removeCallbacks(it) }
         tipRunnable = null
         val d = dialog
@@ -142,9 +174,12 @@ class DefaultLoaderDialog private constructor(private val o: Options) : AdLoader
             }
             elevation = 24 * dp
         }
-        card.addView(ArcSpinner(activity, accent), LinearLayout.LayoutParams((52 * dp).toInt(), (52 * dp).toInt()))
+        val spinner = ArcSpinner(activity, accent)
+        spinnerView = spinner
+        card.addView(spinner, LinearLayout.LayoutParams((52 * dp).toInt(), (52 * dp).toInt()))
         card.addView(
             TextView(activity).apply {
+                titleView = this
                 text = title
                 setTextColor(primary)
                 textSize = 18f
@@ -155,6 +190,7 @@ class DefaultLoaderDialog private constructor(private val o: Options) : AdLoader
         )
         card.addView(
             TextView(activity).apply {
+                messageView = this
                 text = message
                 setTextColor(secondary)
                 textSize = 14f
@@ -164,7 +200,7 @@ class DefaultLoaderDialog private constructor(private val o: Options) : AdLoader
                 setPadding(0, (6 * dp).toInt(), 0, 0)
             },
         )
-        if (o.tips.isNotEmpty()) card.addView(tipView(activity, dp, accent))
+        if (o.tips.isNotEmpty()) card.addView(tipView(activity, dp, accent).also { tipTextView = it })
 
         return FrameLayout(activity).apply {
             setBackgroundColor(Color.TRANSPARENT)

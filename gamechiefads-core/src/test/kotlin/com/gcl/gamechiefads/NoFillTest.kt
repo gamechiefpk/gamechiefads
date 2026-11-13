@@ -95,3 +95,79 @@ class NoFillTest {
         assertEquals(null, AdsConfig.builder().noAdMessage(null).build().noAdMessage)
     }
 }
+
+/** The message goes INSIDE the loading dialog; the toast is only the fallback. */
+@OptIn(ExperimentalCoroutinesApi::class)
+class NoAdMessageInDialogTest {
+    private class DialogSpy(val canShowNoAd: Boolean = true) : AdLoaderUi {
+        val events = mutableListOf<String>()
+        override fun show(activity: android.app.Activity) { events += "show" }
+        override fun showNoAd(activity: android.app.Activity, info: LoaderInfo, message: String): Boolean {
+            events += "noad:$message"; return canShowNoAd
+        }
+        override fun dismiss() { events += "dismiss" }
+    }
+
+    private class Spy : InterstitialListener {
+        val calls = mutableListOf<String>()
+        override fun onNotShown(reason: String) { calls += "not:$reason" }
+        override fun onComplete(wasShown: Boolean) { calls += "complete:$wasShown" }
+    }
+
+    private fun TestScope.rig() = Rig(this, AdsConfig.builder().randomInterstitialUnits("hf", "normal").build())
+
+    @Test fun noFillTurnsTheDialogIntoTheMessageThenClosesThenTheAppMovesOn() = runTest {
+        val r = rig(); val ui = DialogSpy(); r.loaderUi = ui; r.loadBehavior = { null }; val s = Spy()
+        r.interstitial.showRandom(r.activity, s, false)
+        advanceTimeBy(1_000)
+        assertTrue(r.state.adShowing.value)                                // still holding: the message is on screen
+        assertTrue(s.calls.isEmpty())                                      // the app is not told yet
+        advanceUntilIdle()
+        assertEquals(listOf("show", "noad:${AdsConfig.DEFAULT_NO_AD_MESSAGE}", "dismiss"), ui.events)
+        assertTrue(r.noAdToasts.isEmpty())                                 // no toast: the dialog showed it
+        assertEquals(listOf("not:no fill", "complete:false"), s.calls)
+        assertFalse(r.state.adShowing.value)
+        assertTrue(currentTime < 2_000 + 3_000 * 2)                        // bounded: tier timeouts + the message time
+    }
+
+    @Test fun aDialogThatCannotShowTheMessageFallsBackToAToast() = runTest {
+        val r = rig(); val ui = DialogSpy(canShowNoAd = false); r.loaderUi = ui; r.loadBehavior = { null }
+        r.interstitial.showRandom(r.activity, null, false); advanceUntilIdle()
+        assertEquals(1, r.noAdToasts.size); assertEquals("dismiss", ui.events.last())
+    }
+
+    @Test fun tappingInsideTheWaitShowsTheMessageWithoutAnyRequest() = runTest {
+        val r = rig(); val ui = DialogSpy(); r.loaderUi = ui; r.loadBehavior = { null }
+        r.interstitial.showRandom(r.activity, null, false); advanceUntilIdle()
+        val loads = r.loads.size; ui.events.clear(); val s = Spy()
+        r.interstitial.showRandom(r.activity, s, false); advanceUntilIdle()
+        assertEquals(loads, r.loads.size)
+        assertEquals(listOf("noad:${AdsConfig.DEFAULT_NO_AD_MESSAGE}", "dismiss"), ui.events) // the dialog opens straight into the message
+        assertTrue(s.calls[0].startsWith("not:no ad available, retry in")); assertFalse(r.state.adShowing.value)
+    }
+
+    @Test fun noMessageConfiguredJustClosesTheDialogAtOnce() = runTest {
+        val r = Rig(this, AdsConfig.builder().randomInterstitialUnits("a").noAdMessage(null).build())
+        val ui = DialogSpy(); r.loaderUi = ui; r.loadBehavior = { null }; val s = Spy()
+        r.interstitial.showRandom(r.activity, s, false); advanceUntilIdle()
+        assertEquals(listOf("show", "dismiss"), ui.events); assertTrue(r.noAdToasts.isEmpty()); assertEquals(2, s.calls.size)
+    }
+
+    @Test fun rewardedAlsoShowsTheMessageInTheDialog() = runTest {
+        val r = Rig(this, AdsConfig.builder().rewardedUnits("hf").build()); val ui = DialogSpy(); r.loaderUi = ui; r.loadBehavior = { null }
+        val got = mutableListOf<String>()
+        r.rewarded.show(r.activity, "rewarded", object : RewardListener {
+            override fun onNotAvailable(reason: String) { got += "na:$reason" }
+            override fun onComplete(rewarded: Boolean) { got += "complete:$rewarded" }
+        })
+        advanceUntilIdle()
+        assertEquals(listOf("show", "noad:${AdsConfig.DEFAULT_NO_AD_MESSAGE}", "dismiss"), ui.events)
+        assertEquals(listOf("na:no fill", "complete:false"), got)
+    }
+
+    @Test fun theMessageTimeCanBeSetAndNeverBlocksForever() {
+        assertEquals(1_800L, AdsConfig.builder().build().noAdMessageMs)
+        assertEquals(500L, AdsConfig.builder().noAdMessageMs(500).build().noAdMessageMs)
+        assertEquals(10_000L, AdsConfig.builder().noAdMessageMs(999_999).build().noAdMessageMs)
+    }
+}

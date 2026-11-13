@@ -12,6 +12,13 @@ interface AdLoaderUi {
      */
     fun show(activity: Activity, info: LoaderInfo) = show(activity)
 
+    /**
+     * Switch the overlay (shown, or shown now if it was not) into a "no ad available" message: no spinner, just [message].
+     * Return true if you did it. The library keeps it on screen a moment, then calls [dismiss]. The default returns false
+     * (the library then shows a toast), so existing implementations keep working.
+     */
+    fun showNoAd(activity: Activity, info: LoaderInfo, message: String): Boolean = false
+
     fun dismiss()
 }
 
