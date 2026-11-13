@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Application
 import android.os.SystemClock
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.gcl.gamechiefads.sdk.AppOpenSource
 import com.gcl.gamechiefads.sdk.BannerSource
@@ -58,6 +59,12 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
         AdLog.d("init") { "GamechiefAds ready: placements=${baseConfig.placements.keys}, appId=${baseConfig.appId ?: "(test)"}, test ids=$debuggable" }
     }
     private val clock: () -> Long = { SystemClock.elapsedRealtime() }
+    /** After a pass with no ad the same placement waits a few seconds: taps or foregrounds cannot make a request loop. */
+    private val noFill = NoFillCooldown(clock) { config.noFillRetrySeconds }
+    /** "No ad available, please try again in a few seconds" as a toast (config.noAdMessage, null = nothing). */
+    private val noAd: () -> Unit = {
+        config.noAdMessage?.let { msg -> runCatching { Toast.makeText(app, msg, Toast.LENGTH_SHORT).show() } }
+    }
     private val scope = CoroutineScope(
         SupervisorJob() + Dispatchers.Main.immediate +
             CoroutineExceptionHandler { _, t -> Log.w(TAG, "ad flow error (ignored)", t) },
@@ -74,15 +81,15 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
     private val pipeline = AdLoadPipeline({ config }, gate::ready, AdUnits.isDebuggable(app), FloorPolicy(clock))
     private val shower = FullScreenShower(state, clock, scope)
 
-    val rewarded = RewardedController(state, { config }, pipeline, shower, tracker, scope, clock, { loaderUi ?: defaultLoader }, RewardedSource::load)
+    val rewarded = RewardedController(state, { config }, pipeline, shower, tracker, scope, clock, { loaderUi ?: defaultLoader }, RewardedSource::load, noFill, noAd)
 
     val interstitial = InterstitialController(
         state, { config }, AdPool(clock = clock), pipeline, shower, tracker, scope, clock,
-        { loaderUi ?: defaultLoader }, InterstitialSource::load,
+        { loaderUi ?: defaultLoader }, InterstitialSource::load, noFill, noAd,
     )
     private val appOpen = AppOpenController(
         state, { config }, AdPool(ttlMs = APP_OPEN_TTL_MS, clock = clock), pipeline, shower, tracker, scope, clock,
-        AppOpenSource::load,
+        AppOpenSource::load, noFill,
     )
     private val random = RandomInterstitialTrigger(state, { config }, tracker, interstitial, scope, clock)
     val splash = SplashFlow(state, { config }, pipeline, shower, tracker, scope, AppOpenSource::load, InterstitialSource::load)

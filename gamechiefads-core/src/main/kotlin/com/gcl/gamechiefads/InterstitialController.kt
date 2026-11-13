@@ -21,6 +21,10 @@ internal class InterstitialController(
     private val clock: () -> Long,
     private val loaderUi: () -> AdLoaderUi?,
     private val source: suspend (String) -> FullScreenAd?,
+    /** After a pass with no fill the placement waits a few seconds (no request loops). Null = no wait. */
+    private val cooldown: NoFillCooldown? = null,
+    /** Tells the user "no ad available" (a toast). Called once per failed or refused load. */
+    private val noAd: () -> Unit = {},
 ) {
 
     /** Default path: load now, then show. [listener] may be null. */
@@ -61,6 +65,13 @@ internal class InterstitialController(
     }
 
     private fun runOnDemand(activity: Activity, name: String, p: PlacementConfig, events: ListenerDispatcher) {
+        val wait = cooldown?.remainingMs(name) ?: 0L
+        if (wait > 0) {
+            AdLog.d("interstitial") { "$name: no fill a moment ago, not requesting again for ${wait}ms" }
+            noAd()
+            events.onFinished(false, "no ad available, retry in ${(wait + 999) / 1000}s")
+            return
+        }
         state.setAdShowing(true) // claim the slot before loading
         scope.launch {
             var handedOver = false
@@ -73,11 +84,17 @@ internal class InterstitialController(
                     runCatching { ui?.dismiss() }
                 }
                 when {
-                    ads.isEmpty() -> { AdLog.d("interstitial") { "$name: no fill -> not shown" }; events.onFinished(false, "no fill") }
+                    ads.isEmpty() -> {
+                        AdLog.d("interstitial") { "$name: no fill -> not shown, no new pass for a few seconds" }
+                        cooldown?.recordFail(name)
+                        noAd()
+                        events.onFinished(false, "no fill")
+                    }
                     state.premium.value -> { AdLog.d("interstitial") { "$name: became premium while loading -> dropped" }; ads.forEach { it.destroy() }; events.onFinished(false, "premium") }
                     !screens.isUsable(activity) -> { AdLog.d("interstitial") { "$name: screen gone while loading -> dropped" }; ads.forEach { it.destroy() }; events.onFinished(false, "screen gone") }
                     else -> {
                         AdLog.d("interstitial") { "$name: showing ${ads.size} ad(s)" }
+                        cooldown?.recordOk(name)
                         handedOver = true
                         shower.showAll(activity, ads, refillAfter(name, events))
                     }

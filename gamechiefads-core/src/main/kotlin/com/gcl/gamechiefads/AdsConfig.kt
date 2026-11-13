@@ -35,11 +35,17 @@ data class AdsConfig(
     val remoteFetchIntervalSeconds: Long = DEFAULT_REMOTE_INTERVAL_SECONDS,
     /** Your own source of remote values. Null (default) = Firebase Remote Config when the remoteconfig module is in the app. */
     val remoteSource: RemoteConfigSource? = null,
+    /** After a pass found no ad, the same placement is not requested again for this many seconds (default 5). 0 = no wait. */
+    val noFillRetrySeconds: Int = DEFAULT_NO_FILL_RETRY_SECONDS,
+    /** Short message shown (a toast) when no ad could be loaded for a runtime load. Null = show nothing. */
+    val noAdMessage: String? = DEFAULT_NO_AD_MESSAGE,
 ) {
     fun placement(name: String): PlacementConfig? = placements[name]
 
     companion object {
         const val DEFAULT_REMOTE_KEY = "gamechief_ads_config"
+        const val DEFAULT_NO_FILL_RETRY_SECONDS = 5
+        const val DEFAULT_NO_AD_MESSAGE = "No ad available, please try again in a few seconds"
         const val DEFAULT_REMOTE_INTERVAL_SECONDS = 3_600L
         const val DEFAULT_OVERALL_BUDGET_MS = 8_000L
         const val DEFAULT_SPLASH_TIMEOUT_MS = 10_000L
@@ -59,6 +65,8 @@ data class AdsConfig(
         private val remoteDefaults = LinkedHashMap<String, Any>()
         private var remoteFetchIntervalSeconds = DEFAULT_REMOTE_INTERVAL_SECONDS
         private var remoteSource: RemoteConfigSource? = null
+        private var noFillRetrySeconds = DEFAULT_NO_FILL_RETRY_SECONDS
+        private var noAdMessage: String? = DEFAULT_NO_AD_MESSAGE
         private var fallbackToLoad = false
         private var autoRefill = false
         private var overallBudgetMs = DEFAULT_OVERALL_BUDGET_MS
@@ -156,6 +164,11 @@ data class AdsConfig(
         /** Loading overlay texts for ALL placements (a placement's own loaderText wins). Can also change at runtime. */
         fun defaultLoaderText(title: String?, message: String?) = apply { loaderTitle = title; loaderMessage = message }
 
+        /** The message (a toast) shown when an ad loaded at runtime finds no fill. Null = no message. Your own text/language here. */
+        fun noAdMessage(text: String?) = apply { noAdMessage = text?.takeIf { it.isNotBlank() } }
+        /** After a pass with no ad, the same placement waits this many seconds before a new pass (default 5). Stops request loops. */
+        fun noFillRetrySeconds(seconds: Int) = apply { noFillRetrySeconds = seconds.coerceAtLeast(0) }
+
         fun appId(id: String?) = apply { appId = id }
         /** The Remote Config key that holds the ads JSON (default "gamechief_ads_config"). Null = do not read ads rules remotely. */
         fun remoteConfigKey(key: String?) = apply { remoteConfigKey = key }
@@ -189,6 +202,7 @@ data class AdsConfig(
                 initTimeoutMs = initTimeoutMs, doubleSecondWaitMs = doubleSecondWaitMs, testIdsInDebug = testIdsInDebug,
                 loaderTitle = loaderTitle, loaderMessage = loaderMessage,
                 remoteDefaults = remoteDefaults.toMap(), remoteFetchIntervalSeconds = remoteFetchIntervalSeconds, remoteSource = remoteSource,
+                noFillRetrySeconds = noFillRetrySeconds, noAdMessage = noAdMessage,
             )
         }
 

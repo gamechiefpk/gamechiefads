@@ -16,16 +16,19 @@ internal class Rig(scope: CoroutineScope, var config: AdsConfig, var gateReady: 
     val interstitialLoads = mutableListOf<String>()
     private val interstitialSource: suspend (String) -> FullScreenAd? = { unit -> interstitialLoads += unit; loadBehavior(unit) }
 
+    var noAdCalls = 0
+    val cooldown = NoFillCooldown({ now }, { config.noFillRetrySeconds })
+
     val pool = AdPool(clock = { now })
     val appOpenPool = AdPool(clock = { now })
     private val pipeline = AdLoadPipeline({ config }, { gateReady }, debug = false)
     private val shower = FullScreenShower(state, { now }, scope)
 
     val interstitial = InterstitialController(
-        state, { config }, pool, pipeline, shower, screens, scope, { now }, { loaderUi }, source,
+        state, { config }, pool, pipeline, shower, screens, scope, { now }, { loaderUi }, source, cooldown, { noAdCalls++ },
     )
-    val rewarded = RewardedController(state, { config }, pipeline, shower, screens, scope, { now }, { loaderUi }, source)
+    val rewarded = RewardedController(state, { config }, pipeline, shower, screens, scope, { now }, { loaderUi }, source, cooldown, { noAdCalls++ })
     val random = RandomInterstitialTrigger(state, { config }, screens, interstitial, scope, { now })
     val splash = SplashFlow(state, { config }, pipeline, shower, screens, scope, source, interstitialSource)
-    val appOpen = AppOpenController(state, { config }, appOpenPool, pipeline, shower, screens, scope, { now }, source)
+    val appOpen = AppOpenController(state, { config }, appOpenPool, pipeline, shower, screens, scope, { now }, source, cooldown)
 }

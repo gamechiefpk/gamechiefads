@@ -22,6 +22,7 @@ internal class AppOpenController(
     private val scope: CoroutineScope,
     private val clock: () -> Long,
     private val source: suspend (String) -> FullScreenAd?,
+    private val cooldown: NoFillCooldown? = null,
 ) {
     @Volatile private var pausedOnce = false
     private var prefetchStarted = false
@@ -72,6 +73,10 @@ internal class AppOpenController(
 
     private fun fetch() {
         val p = enabledPlacement() ?: return
+        if ((cooldown?.remainingMs(Placements.APP_OPEN) ?: 0L) > 0) {
+            AdLog.d("appopen") { "fetch skipped: no fill a moment ago" }
+            return
+        }
         if (p.doubleAd) {
             scope.launch {
                 try {
@@ -83,7 +88,11 @@ internal class AppOpenController(
         }
         scope.launch {
             try {
-                val ready = pool.fill(Placements.APP_OPEN) { pipeline.load(p, screens.current, source) { it.destroy() } }
+                val ready = pool.fill(Placements.APP_OPEN) {
+                    pipeline.load(p, screens.current, source) { it.destroy() }.also { ad ->
+                        if (ad == null) cooldown?.recordFail(Placements.APP_OPEN) else cooldown?.recordOk(Placements.APP_OPEN)
+                    }
+                }
                 AdLog.d("appopen") { "fetch finished, ready=$ready" }
             } catch (e: CancellationException) {
                 throw e

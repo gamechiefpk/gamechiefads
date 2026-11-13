@@ -253,3 +253,25 @@ The second argument is the fallback if the key has no value anywhere. Use it to 
 More: `GamechiefAds.addRemoteDefaults(map)` adds keys later, `GamechiefAds.fetchRemoteConfig(ok -> ...)` fetches now,
 `GamechiefAds.setRemoteConfigListener(() -> ...)` runs after every update so you can re-read, `.remoteFetchIntervalSeconds(60)`
 lowers the fetch interval while testing (default 3600).
+
+---
+
+## When no ad is available
+
+### 17. What happens when every floor fails
+
+Floors are **one pass**: high floor, then medium, then normal, each requested once. If the normal one fails too:
+
+- the loading dialog closes and the user sees a short message: **"No ad available, please try again in a few seconds"**,
+- your listener runs at once (`onNotShown` + `onComplete(false)`), so you open your next screen. The user is never stuck,
+- **nothing is requested again by itself**. And if the user taps again within 5 seconds, no new requests are sent (the message
+  shows again). After 5 seconds a tap starts one new pass.
+
+```java
+.noAdMessage("Ad nahi mila, thori der baad try karein")    // your own text or language (null = no message at all)
+.noFillRetrySeconds(10)                                      // wait before a new pass after "no ad" (default 5, 0 = no wait)
+```
+
+Remote Config: `{"noAdMessage":"...","noFillRetrySeconds":10}`. This applies to the random interstitial, your own custom
+interstitials, rewarded ads and the app-open fetch. For rewarded ads you may show your own message in `onNotAvailable`
+instead: then use `.noAdMessage(null)`.

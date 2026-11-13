@@ -20,6 +20,8 @@ internal class RewardedController(
     private val clock: () -> Long,
     private val loaderUi: () -> AdLoaderUi?,
     private val source: suspend (String) -> FullScreenAd?,
+    private val cooldown: NoFillCooldown? = null,
+    private val noAd: () -> Unit = {},
 ) {
     private class Result(private val l: RewardListener?) {
         var earned = false
@@ -68,6 +70,13 @@ internal class RewardedController(
             result.finish(decision.name)
             return
         }
+        val wait = cooldown?.remainingMs(name) ?: 0L
+        if (wait > 0) {
+            AdLog.d("rewarded") { "$name: no fill a moment ago, not requesting again for ${wait}ms" }
+            noAd()
+            result.finish("no ad available, retry in ${(wait + 999) / 1000}s")
+            return
+        }
         state.setAdShowing(true) // claim the slot before loading: a second tap is refused
         scope.launch {
             var handedOver = false
@@ -80,10 +89,15 @@ internal class RewardedController(
                     runCatching { ui?.dismiss() }
                 }
                 when {
-                    ad == null -> result.finish("no fill")
+                    ad == null -> {
+                        cooldown?.recordFail(name)
+                        noAd()
+                        result.finish("no fill")
+                    }
                     state.premium.value -> { ad.destroy(); result.earned(1, "premium"); result.finish(null) }
                     !screens.isUsable(activity) -> { ad.destroy(); result.finish("screen gone") }
                     else -> {
+                        cooldown?.recordOk(name)
                         handedOver = true
                         shower.show(activity, ad, object : FullScreenShower.Events {
                             override fun onShown() {}
