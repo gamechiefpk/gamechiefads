@@ -20,7 +20,7 @@ App `build.gradle` (replace `TAG` with the latest release tag, e.g. `v0.1.0`):
 
 ```groovy
 dependencies {
-    // one dependency: core + ui (native, banner, loader) + mediation (Pangle, Unity, Meta, Mintegral, AppLovin)
+    // one dependency: core + ui (native, banner, loader) + Remote Config (Firebase) + mediation (Pangle, Unity, Meta, Mintegral, AppLovin)
     implementation "com.github.gamechiefpk.gamechiefads:gamechiefads:TAG"
 }
 
@@ -42,6 +42,10 @@ maven { url = uri("https://dl-maven-android.mintegral.com/repository/mbridge_and
 ```xml
 <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-XXXX~YYYY" />
 ```
+
+Remote Config (Firebase) is included. It needs the normal Firebase setup once per app: put `google-services.json` in the
+`app` folder and add the plugin `com.google.gms.google-services` (project `build.gradle`: `id "com.google.gms.google-services" version "4.6.0" apply false`,
+app `build.gradle`: `id "com.google.gms.google-services"`). Without it the app still runs: remote values just use their defaults.
 
 Remove `com.google.android.gms:play-services-ads` from your app. Then see [docs/USAGE.md](docs/USAGE.md).
 

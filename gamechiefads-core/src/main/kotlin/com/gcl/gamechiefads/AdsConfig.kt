@@ -9,7 +9,7 @@ data class AdsConfig(
     /** AdMob app id ("ca-app-pub-...~..."), passed to the SDK init and UMP. Null = Google's test app id. */
     val appId: String? = null,
     /** Firebase Remote Config key holding the JSON read by [RemoteOverrides]. */
-    val remoteConfigKey: String? = null,
+    val remoteConfigKey: String? = DEFAULT_REMOTE_KEY,
     /** If a preloaded ad is not ready, load on demand instead of returning false. */
     val fallbackToLoad: Boolean = false,
     /** Request a new ad after a preloaded one was shown. Off: no requests the app did not ask for. */
@@ -29,10 +29,18 @@ data class AdsConfig(
     val loaderMessage: String? = null,
     /** false = every ad off (Remote Config {"enabled":false}). */
     val enabled: Boolean = true,
+    /** Your own Remote Config values and their defaults (read anywhere with GamechiefAds.getRemoteString/Boolean/Long/Double). */
+    val remoteDefaults: Map<String, Any> = emptyMap(),
+    /** How often the app may fetch Remote Config from the server. Lower it only while testing (the server throttles). */
+    val remoteFetchIntervalSeconds: Long = DEFAULT_REMOTE_INTERVAL_SECONDS,
+    /** Your own source of remote values. Null (default) = Firebase Remote Config when the remoteconfig module is in the app. */
+    val remoteSource: RemoteConfigSource? = null,
 ) {
     fun placement(name: String): PlacementConfig? = placements[name]
 
     companion object {
+        const val DEFAULT_REMOTE_KEY = "gamechief_ads_config"
+        const val DEFAULT_REMOTE_INTERVAL_SECONDS = 3_600L
         const val DEFAULT_OVERALL_BUDGET_MS = 8_000L
         const val DEFAULT_SPLASH_TIMEOUT_MS = 10_000L
         const val DEFAULT_INIT_TIMEOUT_MS = 8_000L
@@ -47,7 +55,10 @@ data class AdsConfig(
         private val done = LinkedHashMap<String, PlacementConfig>()
         private var current: PlacementConfig? = null
         private var appId: String? = null
-        private var remoteConfigKey: String? = null
+        private var remoteConfigKey: String? = DEFAULT_REMOTE_KEY
+        private val remoteDefaults = LinkedHashMap<String, Any>()
+        private var remoteFetchIntervalSeconds = DEFAULT_REMOTE_INTERVAL_SECONDS
+        private var remoteSource: RemoteConfigSource? = null
         private var fallbackToLoad = false
         private var autoRefill = false
         private var overallBudgetMs = DEFAULT_OVERALL_BUDGET_MS
@@ -146,7 +157,15 @@ data class AdsConfig(
         fun defaultLoaderText(title: String?, message: String?) = apply { loaderTitle = title; loaderMessage = message }
 
         fun appId(id: String?) = apply { appId = id }
+        /** The Remote Config key that holds the ads JSON (default "gamechief_ads_config"). Null = do not read ads rules remotely. */
         fun remoteConfigKey(key: String?) = apply { remoteConfigKey = key }
+        /** Adds one of YOUR OWN Remote Config values with its default (String, Boolean, Int, Long or Double). Read it with GamechiefAds.getRemoteXxx. */
+        fun remoteDefault(key: String, value: Any) = apply { if (key.isNotBlank() && (value is String || value is Boolean || value is Number)) remoteDefaults[key] = value }
+        /** Optional: use your own source of remote values instead of Firebase Remote Config. */
+        fun remoteConfigSource(source: RemoteConfigSource?) = apply { remoteSource = source }
+        fun remoteDefaults(values: Map<String, Any>) = apply { values.forEach { (k, v) -> remoteDefault(k, v) } }
+        /** Minimum seconds between server fetches (default 3600). Use a small value only while testing. */
+        fun remoteFetchIntervalSeconds(seconds: Long) = apply { remoteFetchIntervalSeconds = seconds.coerceAtLeast(0) }
         fun fallbackToLoad(value: Boolean) = apply { fallbackToLoad = value }
         fun autoRefill(value: Boolean) = apply { autoRefill = value }
         fun overallBudgetMs(ms: Long) = apply { overallBudgetMs = ms.coerceAtLeast(1) }
@@ -169,6 +188,7 @@ data class AdsConfig(
                 autoRefill = autoRefill, overallBudgetMs = overallBudgetMs, splashTimeoutMs = splashTimeoutMs,
                 initTimeoutMs = initTimeoutMs, doubleSecondWaitMs = doubleSecondWaitMs, testIdsInDebug = testIdsInDebug,
                 loaderTitle = loaderTitle, loaderMessage = loaderMessage,
+                remoteDefaults = remoteDefaults.toMap(), remoteFetchIntervalSeconds = remoteFetchIntervalSeconds, remoteSource = remoteSource,
             )
         }
 

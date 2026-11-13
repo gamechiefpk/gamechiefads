@@ -20,10 +20,11 @@ android {
     publishing { singleVariant("release") { withSourcesJar() } }
 }
 
-// No code: the one-line dependency. Pulls core + ui + mediation (Pangle, Unity, Meta, Mintegral, AppLovin).
+// No code: the one-line dependency. Pulls core + ui + Remote Config (Firebase) + mediation (Pangle, Unity, Meta, Mintegral, AppLovin).
 dependencies {
     api(project(":gamechiefads-core"))
     api(project(":gamechiefads-ui"))
+    api(project(":gamechiefads-remoteconfig"))
     api(project(":gamechiefads-mediation"))
 }
 
@@ -36,7 +37,7 @@ publishing {
             afterEvaluate { from(components["release"]) }
             pom {
                 name.set("GamechiefAds (all-in-one)")
-                description.set("Core, UI and mediation adapters in one dependency")
+                description.set("Core, UI, Remote Config and mediation adapters in one dependency")
             }
         }
     }

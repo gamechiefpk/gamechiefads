@@ -44,7 +44,7 @@ docs/USAGE.md, README.md (setup lines only)
 ## Public API (the entire surface; keep it this small and clearly named: every method is `load<What>Ad`)
 All ad units are given once to `GamechiefAds.init(app, config)` through slot methods (`splashAppOpenUnits(...)`, `bannerUnits(...)`,
 `randomInterstitialUnits(...)`, `randomInterstitialDoubleUnit(id)`, `exitBannerUnits(...)`, `appOpenUnit(id)`, `introNativeUnits(...)`,
-`fullScreenNativeUnit(id)`, `rewardedUnits(...)`...). Several ids = floors (first id first). `appOpenUnit` and `fullScreenNativeUnit`
+`fullScreenNativeUnit(id)`, `rewardedUnits(...)`...). Remote Config is built in (Firebase, module `gamechiefads-remoteconfig`, found by name): `remoteDefault(key, value)` in the config, `GamechiefAds.getRemoteString/Boolean/Long/Double(key, fallback)` anywhere; the ads rules come from key `gamechief_ads_config`. Several ids = floors (first id first). `appOpenUnit` and `fullScreenNativeUnit`
 take ONE unit, no floors. The second ad of a double is ONE unit, no floors (the same id as the first is fine).
 ```java
 GamechiefAds.init(app, config);   GamechiefAds.setPremium(boolean);   GamechiefAds.applyRemoteConfig(json);

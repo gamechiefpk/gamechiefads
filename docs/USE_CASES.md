@@ -207,3 +207,38 @@ adb logcat -s GamechiefAds
 ### 14. Mediation (Pangle, Unity, Meta, Mintegral, AppLovin)
 
 Nothing to code: add the partners to your ad units in the AdMob console and use those unit ids. Setup lines are in the README.
+
+---
+
+## Remote Config (built in)
+
+### 15. Change the ad rules from the Firebase console, no code
+
+Nothing to write. The library fetches Firebase Remote Config by itself and reads the key `gamechief_ads_config`
+(change the name with `.remoteConfigKey("my_key")`). Put the JSON of recipe 12 in that key and publish. It is applied on the next
+start and, with real-time updates, while the app runs.
+
+You only need `google-services.json` and the google-services plugin once per app (see the README).
+
+### 16. Your own values: add them, read them anywhere
+
+```java
+// 1. add them with a default, in the same config as the ad units
+.remoteDefault("welcome_text", "Welcome")
+.remoteDefault("show_promo", false)
+.remoteDefault("free_coins", 10)
+.remoteDefault("price_factor", 1.0)
+
+// 2. read them in any Activity, any time
+String text   = GamechiefAds.getRemoteString("welcome_text", "Welcome");
+boolean promo = GamechiefAds.getRemoteBoolean("show_promo", false);
+long coins    = GamechiefAds.getRemoteLong("free_coins", 10);
+double factor = GamechiefAds.getRemoteDouble("price_factor", 1.0);
+```
+
+The second argument is the fallback if the key has no value anywhere. Use it to choose single or double ads:
+`if (GamechiefAds.getRemoteBoolean("splash_double", false)) loadSplashAppOpenDoubleAd(...) else loadSplashAppOpenAd(...)`.
+
+More: `GamechiefAds.addRemoteDefaults(map)` adds keys later, `GamechiefAds.fetchRemoteConfig(ok -> ...)` fetches now,
+`GamechiefAds.setRemoteConfigListener(() -> ...)` runs after every update so you can re-read, `.remoteFetchIntervalSeconds(60)`
+lowers the fetch interval while testing (default 3600).

@@ -44,6 +44,13 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
         }.onFailure { AdLog.d("init") { "no default loading dialog (add the gamechiefads-ui module): $it" } }.getOrNull()
     }
 
+    /** Remote values for the app (your own keys) and the remote ads rules. Firebase comes from the remoteconfig module, found by name. */
+    val remote = RemoteValues(
+        baseConfig.remoteSource ?: runCatching {
+            Class.forName("com.gcl.gamechiefads.remoteconfig.FirebaseRemoteConfigSource").getConstructor().newInstance() as RemoteConfigSource
+        }.onFailure { AdLog.d("remote") { "no Firebase Remote Config (add the remoteconfig module and the google-services setup): $it" } }.getOrNull(),
+    )
+
     val state = AdState()
     private val debuggable = AdUnits.isDebuggable(app)
     init {
@@ -91,6 +98,17 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
         app.registerActivityLifecycleCallbacks(tracker)
         ProcessLifecycleOwner.get().lifecycle.addObserver(ProcessForegroundObserver(appOpen::onForeground))
         scope.launch { state.premium.drop(1).filter { it }.collect { banner.hideAll() } }
+
+        // remote values: defaults, last known values right away, then a fetch; the ads rules (one JSON key) are re-applied each time
+        remote.addDefaults(baseConfig.remoteDefaults)
+        applyRemoteRules()
+        remote.start(baseConfig.remoteFetchIntervalSeconds) { applyRemoteRules() }
+    }
+
+    fun applyRemoteRules() {
+        val key = base.remoteConfigKey ?: return
+        val json = remote.string(key, "")
+        if (json.isNotBlank()) applyRemote(json)
     }
 
     fun applyRemote(json: String?) {

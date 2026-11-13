@@ -59,6 +59,13 @@ public class SampleApp extends Application {
                 .interstitial(AdIds.PRELOADED).units(interstitial).tierTimeoutMs(10000)
                 .nativeAd(AdIds.NATIVE_MAIN).units(nativeUnit).tierTimeoutMs(10000)
 
+                // ---- Remote Config: your own values and their defaults (read anywhere with GamechiefAds.getRemoteXxx) ----
+                .remoteDefault("welcome_text", "Welcome")
+                .remoteDefault("show_promo", false)
+                .remoteDefault("free_coins", 10)
+                .remoteDefault("price_factor", 1.0)
+                .remoteConfigSource(DemoRemoteSource.INSTANCE) // DEMO ONLY: delete this line in your app, Firebase is used automatically
+
                 .initTimeoutMs(15000)      // emulators can need 10 s+ for the first SDK init; phones need ~1-2 s
                 .splashTimeoutMs(25000)
                 .overallBudgetMs(15000)

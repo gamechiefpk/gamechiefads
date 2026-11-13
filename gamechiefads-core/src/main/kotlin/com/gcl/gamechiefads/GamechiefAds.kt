@@ -199,6 +199,52 @@ object GamechiefAds {
     }
 
     // =====================================================================================================
+    // REMOTE CONFIG (built in: Firebase Remote Config when the remoteconfig module is in the app, which the one-line
+    // dependency includes). The ads rules come from one key (default "gamechief_ads_config") by themselves. These
+    // methods are for YOUR OWN values: add them in the config with remoteDefault(...), read them anywhere.
+    // =====================================================================================================
+
+    /** A remote text value. [fallback] is returned if the key has no value anywhere (also before init). */
+    @JvmStatic
+    fun getRemoteString(key: String, fallback: String): String = runtime?.remote?.string(key, fallback) ?: fallback
+
+    @JvmStatic
+    fun getRemoteBoolean(key: String, fallback: Boolean): Boolean = runtime?.remote?.boolean(key, fallback) ?: fallback
+
+    @JvmStatic
+    fun getRemoteLong(key: String, fallback: Long): Long = runtime?.remote?.long(key, fallback) ?: fallback
+
+    @JvmStatic
+    fun getRemoteDouble(key: String, fallback: Double): Double = runtime?.remote?.double(key, fallback) ?: fallback
+
+    /** Adds your own keys and their defaults after init (String, Boolean, Int, Long or Double values). Same as remoteDefault(...) in the config. */
+    @JvmStatic
+    fun addRemoteDefaults(values: Map<String, Any>) {
+        runtime?.remote?.addDefaults(values)
+    }
+
+    /** Fetches fresh values now (the app also fetches by itself at start, at most every remoteFetchIntervalSeconds). [listener] may be null. */
+    @JvmStatic
+    fun fetchRemoteConfig(listener: RemoteFetchListener?) {
+        val r = runtime
+        if (r == null) listener?.onResult(false)
+        else r.remote.fetch { ok ->
+            if (ok) r.applyRemoteRules()
+            listener?.onResult(ok)
+        }
+    }
+
+    /** Called after every successful fetch or real-time update: re-read your values here. Null to remove. */
+    @JvmStatic
+    fun setRemoteConfigListener(listener: Runnable?) {
+        runtime?.remote?.setListener(listener)
+    }
+
+    /** True if a Remote Config source (Firebase) is running. False = getters only return your defaults and fallbacks. */
+    @JvmStatic
+    fun isRemoteConfigAvailable(): Boolean = runtime?.remote?.available ?: false
+
+    // =====================================================================================================
     // CUSTOM SPOTS (optional). For extra interstitials you name yourself, e.g. "after_save".
     // Declare them in the config with AdsConfig.Builder.interstitial(...).
     // =====================================================================================================

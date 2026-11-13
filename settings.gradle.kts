@@ -18,6 +18,7 @@ dependencyResolutionManagement {
 rootProject.name = "gamechiefads"
 include(":gamechiefads-core")
 include(":gamechiefads-ui")
+include(":gamechiefads-remoteconfig")
 include(":gamechiefads-mediation")
 include(":gamechiefads-all")
 include(":sample")

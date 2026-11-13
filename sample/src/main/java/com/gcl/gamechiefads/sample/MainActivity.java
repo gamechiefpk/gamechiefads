@@ -22,6 +22,7 @@ public class MainActivity extends DemoActivity {
         button("Random click interstitial (single and double)", () -> open(SecondActivity.class));
         button("Interstitials: random, custom spot, preload", () -> open(InterstitialActivity.class));
         button("Rewarded ad (coins)", () -> open(RewardedActivity.class));
+        button("Remote Config: your own values", () -> open(RemoteConfigActivity.class));
         button("Banners: ready-made and custom", () -> open(BannerActivity.class));
         button("Native: intro, full screen, 6 sizes", () -> open(NativeActivity.class));
         button("App-open (leave and return)", () -> open(AppOpenActivity.class));

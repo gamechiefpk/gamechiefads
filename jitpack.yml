@@ -1,4 +1,4 @@
 jdk:
   - openjdk17
 install:
-  - ./gradlew --no-daemon :gamechiefads-core:publishReleasePublicationToMavenLocal :gamechiefads-ui:publishReleasePublicationToMavenLocal :gamechiefads-mediation:publishReleasePublicationToMavenLocal :gamechiefads-all:publishReleasePublicationToMavenLocal
+  - ./gradlew --no-daemon :gamechiefads-core:publishReleasePublicationToMavenLocal :gamechiefads-ui:publishReleasePublicationToMavenLocal :gamechiefads-remoteconfig:publishReleasePublicationToMavenLocal :gamechiefads-mediation:publishReleasePublicationToMavenLocal :gamechiefads-all:publishReleasePublicationToMavenLocal
