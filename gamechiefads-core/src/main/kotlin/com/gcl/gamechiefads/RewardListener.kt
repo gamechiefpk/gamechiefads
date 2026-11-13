@@ -1,7 +1,7 @@
 package com.gcl.gamechiefads
 
 /**
- * Result of [GamechiefAds.showRewarded]. Every method is optional (empty default, also from Java).
+ * Result of [GamechiefAds.loadRewardedAd]. Every method is optional (empty default, also from Java).
  * All callbacks run on the main thread.
  *
  * Give the reward ONLY in [onRewardEarned]. Closing the ad early gives [onComplete] with false and no reward.

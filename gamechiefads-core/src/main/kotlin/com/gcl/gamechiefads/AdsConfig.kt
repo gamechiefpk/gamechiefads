@@ -16,7 +16,7 @@ data class AdsConfig(
     val autoRefill: Boolean = false,
     /** Upper bound for one whole waterfall, whatever the tier count. */
     val overallBudgetMs: Long = DEFAULT_OVERALL_BUDGET_MS,
-    /** Hard limit for prepareSplash: consent + init + waterfall together. */
+    /** Hard limit for the splash loads (loadSplash...Ad): consent + init + waterfall together. */
     val splashTimeoutMs: Long = DEFAULT_SPLASH_TIMEOUT_MS,
     /** How long one ad request waits for the SDK to finish its (one-time) init. A late init is kept, not restarted. */
     val initTimeoutMs: Long = DEFAULT_INIT_TIMEOUT_MS,

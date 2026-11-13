@@ -7,7 +7,7 @@ fun interface SplashCallback {
     fun onReady(ads: SplashAds)
 }
 
-/** What [GamechiefAds.prepareSplash] resolved. Safe to use when [hasAd] is false. */
+/** What the GamechiefAds.loadSplash...Ad methods resolved. Safe to use when [hasAd] is false. */
 interface SplashAds {
     fun hasAd(): Boolean
 

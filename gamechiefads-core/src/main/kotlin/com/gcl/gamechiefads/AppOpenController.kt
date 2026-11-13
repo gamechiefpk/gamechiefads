@@ -45,7 +45,7 @@ internal class AppOpenController(
         val p = enabledPlacement() ?: return
         if (pausedOnce) {
             pausedOnce = false
-            AdLog.d("appopen") { "foreground: skipped (pauseAppOpenOnce)" }
+            AdLog.d("appopen") { "foreground: skipped (skipNextAppOpenAd)" }
             return
         }
         val activity = screens.current ?: run { AdLog.d("appopen") { "foreground: no current screen" }; return }
