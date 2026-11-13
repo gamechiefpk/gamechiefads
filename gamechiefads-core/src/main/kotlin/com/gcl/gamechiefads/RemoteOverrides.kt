@@ -28,7 +28,7 @@ internal object RemoteOverrides {
     private fun patch(p: PlacementConfig, o: JSONObject): PlacementConfig {
         var r = p
         stringList(o.optJSONArray("units"))?.let { if (it.isNotEmpty()) r = r.copy(units = it) }
-        stringList(o.optJSONArray("secondUnits"))?.let { if (it.isNotEmpty()) r = r.copy(secondUnits = it) }
+        o.optString("secondUnit", "").takeIf { it.isNotBlank() }?.let { r = r.copy(secondUnit = it) }
         (o.opt("everyNCalls") as? Number)?.toInt()?.takeIf { it >= 1 }?.let { r = r.copy(everyNCalls = it) }
         nonNegativeInt(o, "every")?.let { r = r.copy(everyNScreens = it) }
         nonNegativeInt(o, "gap")?.let { r = r.copy(minGapSeconds = it) }

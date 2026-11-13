@@ -77,7 +77,7 @@ object GamechiefAds {
     fun loadSplashAppOpenAd(activity: Activity, callback: SplashCallback) =
         splash(activity, callback, Placements.SPLASH, false)
 
-    /** Two splash app-open ads shown together (second ad from splashAppOpenDoubleUnits, or the same units). */
+    /** Two splash app-open ads shown together (second ad: one request to splashAppOpenDoubleUnit, no floors). */
     @JvmStatic
     fun loadSplashAppOpenDoubleAd(activity: Activity, callback: SplashCallback) =
         splash(activity, callback, Placements.SPLASH, true)
@@ -87,7 +87,7 @@ object GamechiefAds {
     fun loadSplashInterstitialAd(activity: Activity, callback: SplashCallback) =
         splash(activity, callback, Placements.SPLASH_INTERSTITIAL, false)
 
-    /** Two splash interstitials shown together (second from splashInterstitialDoubleUnits, or the same units). */
+    /** Two splash interstitials shown together (second: one request to splashInterstitialDoubleUnit, no floors). */
     @JvmStatic
     fun loadSplashInterstitialDoubleAd(activity: Activity, callback: SplashCallback) =
         splash(activity, callback, Placements.SPLASH_INTERSTITIAL, true)
@@ -166,7 +166,7 @@ object GamechiefAds {
         else r.interstitial.showRandom(activity, listener, false)
     }
 
-    /** Two interstitials shown together (second from randomInterstitialDoubleUnits, or the same units). */
+    /** Two interstitials shown together (second: one request to randomInterstitialDoubleUnit, no floors). */
     @JvmStatic
     fun loadRandomInterstitialDoubleAd(activity: Activity, listener: InterstitialListener?) {
         val r = runtime

@@ -30,9 +30,9 @@ public class SampleApp extends Application {
 
                 // ---- splash ----
                 .splashAppOpenUnits(NO_FILL_UNIT, appOpen, appOpen).tierTimeoutMs(10000).unitTimeoutMs(NO_FILL_UNIT, 1500)
-                .splashAppOpenDoubleUnits(NO_FILL_UNIT, appOpen)          // units of the SECOND ad of a double splash
+                .splashAppOpenDoubleUnit(appOpen)                     // the SECOND ad of a double: ONE unit, no floors
                 .splashInterstitialUnits(NO_FILL_UNIT, interstitial, interstitial).tierTimeoutMs(10000).unitTimeoutMs(NO_FILL_UNIT, 1500)
-                .splashInterstitialDoubleUnits(NO_FILL_UNIT, interstitial)
+                .splashInterstitialDoubleUnit(interstitial)
                 .splashBannerUnits(banner).tierTimeoutMs(10000)           // always a 320x100 large banner
 
                 // ---- app open when the user returns to the app: ONE unit, no floors ----
@@ -45,7 +45,7 @@ public class SampleApp extends Application {
                 // ---- interstitial on random clicks (with floors), double has its own units ----
                 .randomInterstitialUnits(NO_FILL_UNIT, interstitial, interstitial).tierTimeoutMs(10000).unitTimeoutMs(NO_FILL_UNIT, 1500)
                     .minGapSeconds(15).everyNCalls(2)
-                .randomInterstitialDoubleUnits(NO_FILL_UNIT, interstitial)
+                .randomInterstitialDoubleUnit(interstitial)
 
                 // ---- native ----
                 .introNativeUnits(NO_FILL_UNIT, nativeUnit, nativeUnit).tierTimeoutMs(10000).unitTimeoutMs(NO_FILL_UNIT, 1500) // small, floors

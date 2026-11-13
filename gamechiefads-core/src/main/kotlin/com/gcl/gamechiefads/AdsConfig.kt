@@ -57,7 +57,7 @@ data class AdsConfig(
         private var testIdsInDebug = true
         private var loaderTitle: String? = null
         private var loaderMessage: String? = null
-        private val pendingSecond = LinkedHashMap<String, List<String>>()
+        private val pendingSecond = LinkedHashMap<String, String>()
 
         // ======== THE SIMPLE WAY: give every ad unit here, one method per slot ========
         // "Units" with several ids = floors: the first id is tried first (high floor), then the next, then the next.
@@ -65,11 +65,11 @@ data class AdsConfig(
 
         /** Splash app-open ad (call GamechiefAds.loadSplashAppOpenAd). Floors: HF, MF, NORMAL. */
         fun splashAppOpenUnits(vararg ids: String) = slot(Placements.SPLASH, AdFormat.APP_OPEN, ids)
-        /** Units of the SECOND splash app-open ad (GamechiefAds.loadSplashAppOpenDoubleAd). Not given = the first units are used twice. */
-        fun splashAppOpenDoubleUnits(vararg ids: String) = second(Placements.SPLASH, ids)
+        /** The ONE unit of the SECOND splash app-open ad (loadSplashAppOpenDoubleAd): one request, no floors. Paste the same id as the first ad if you like. Not given = the last first-ad unit. */
+        fun splashAppOpenDoubleUnit(id: String) = second(Placements.SPLASH, id)
         /** Splash interstitial ad, for apps that show an interstitial on the splash (GamechiefAds.loadSplashInterstitialAd). */
         fun splashInterstitialUnits(vararg ids: String) = slot(Placements.SPLASH_INTERSTITIAL, AdFormat.INTERSTITIAL, ids)
-        fun splashInterstitialDoubleUnits(vararg ids: String) = second(Placements.SPLASH_INTERSTITIAL, ids)
+        fun splashInterstitialDoubleUnit(id: String) = second(Placements.SPLASH_INTERSTITIAL, id)
         /** Large banner on the splash screen (GamechiefAds.loadSplashBannerAd). */
         fun splashBannerUnits(vararg ids: String) = slot(Placements.SPLASH_BANNER, AdFormat.BANNER, ids).bannerType(BannerType.LARGE_BANNER)
         /** App-open ad when the user returns to the app: ONE unit, no floors. Automatic, nothing to call. */
@@ -80,8 +80,8 @@ data class AdsConfig(
         fun exitBannerUnits(vararg ids: String) = slot(Placements.EXIT_BANNER, AdFormat.BANNER, ids).bannerType(BannerType.MEDIUM_RECTANGLE)
         /** Interstitial for random clicks (GamechiefAds.loadRandomInterstitialAd). Chain .minGapSeconds(30).everyNCalls(3) to pace it. */
         fun randomInterstitialUnits(vararg ids: String) = slot(Placements.RANDOM, AdFormat.INTERSTITIAL, ids)
-        /** Units of the SECOND random interstitial (GamechiefAds.loadRandomInterstitialDoubleAd). */
-        fun randomInterstitialDoubleUnits(vararg ids: String) = second(Placements.RANDOM, ids)
+        /** The ONE unit of the SECOND random interstitial (loadRandomInterstitialDoubleAd): one request, no floors. */
+        fun randomInterstitialDoubleUnit(id: String) = second(Placements.RANDOM, id)
         /** Small native ad at the bottom of the intro screens (AdsUi.loadIntroNativeAd). Floors. */
         fun introNativeUnits(vararg ids: String) = slot(Placements.INTRO_NATIVE, AdFormat.NATIVE, ids)
         /** Full-screen native ad like an interstitial (AdsUi.loadFullScreenNativeAd): ONE unit, no floors. */
@@ -160,9 +160,9 @@ data class AdsConfig(
 
         fun build(): AdsConfig {
             commit()
-            pendingSecond.forEach { (name, ids) ->
+            pendingSecond.forEach { (name, id) ->
                 val p = done[name] ?: throw IllegalStateException("Double units for \"$name\" need the normal units of that slot too")
-                done[name] = p.copy(secondUnits = ids)
+                done[name] = p.copy(secondUnit = id)
             }
             return AdsConfig(
                 placements = done.toMap(), appId = appId, remoteConfigKey = remoteConfigKey, fallbackToLoad = fallbackToLoad,
@@ -175,8 +175,8 @@ data class AdsConfig(
         private fun slot(name: String, format: AdFormat, ids: Array<out String>) =
             start(name, format).units(*ids)
 
-        private fun second(name: String, ids: Array<out String>) = apply {
-            pendingSecond[name] = ids.filter(String::isNotBlank)
+        private fun second(name: String, id: String) = apply {
+            pendingSecond[name] = id
         }
 
         private fun start(name: String, format: AdFormat) = apply {

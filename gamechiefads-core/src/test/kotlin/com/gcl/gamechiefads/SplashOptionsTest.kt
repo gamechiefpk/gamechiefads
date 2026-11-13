@@ -32,7 +32,7 @@ class SplashOptionsTest {
         if (interstitial) b.splashInterstitialUnits("hf", "mf", "normal") else b.splashAppOpenUnits("hf", "mf", "normal")
         b.flooring(flooring)
         if (secondUnits) {
-            if (interstitial) b.splashInterstitialDoubleUnits("hf2", "normal2") else b.splashAppOpenDoubleUnits("hf2", "normal2")
+            if (interstitial) b.splashInterstitialDoubleUnit("second2") else b.splashAppOpenDoubleUnit("second2")
         }
         return Case(Rig(this, b.build()), interstitial, double)
     }
@@ -68,9 +68,9 @@ class SplashOptionsTest {
     @Test fun doubleLoadsTheSecondAdFromItsOwnUnitsAndShowsBothTogether() = runTest {
         val c = case(false, true, true, secondUnits = true)
         val first = FakeAd.manual(); val second = FakeAd.manual()
-        c.rig.loadBehavior = { if (it.endsWith("2")) second else first }
+        c.rig.loadBehavior = { if (it == "second2") second else first }
         c.run(); advanceUntilIdle()
-        assertEquals(listOf("hf", "hf2"), c.rig.loads.sorted().let { listOf(it[0], it[1]) }.sortedBy { it.length }) // one per unit set
+        assertEquals(setOf("hf", "second2"), c.rig.loads.toSet()) // first: its floors; second: one request to its own unit
         var done = 0
         c.res.ads!!.show(c.rig.activity) { done++ }; runCurrent()
         assertEquals(1, first.shows); assertEquals(1, second.shows) // at the same time
@@ -80,9 +80,17 @@ class SplashOptionsTest {
         assertEquals(1, done); assertFalse(c.rig.state.adShowing.value)
     }
 
-    @Test fun doubleWithoutSecondUnitsUsesTheFirstUnitsTwice() = runTest {
+    @Test fun doubleWithoutASecondUnitUsesTheLastFirstUnit() = runTest {
         val c = case(false, false, true); c.run(); advanceUntilIdle()
         assertEquals(listOf("normal", "normal"), c.rig.loads)
+    }
+
+    @Test fun theSecondAdNeverWalksFloorsEvenWhenItMisses() = runTest {
+        val c = case(false, true, true, secondUnits = true)
+        c.rig.loadBehavior = { if (it == "second2") null else FakeAd(it) }
+        c.run(); advanceUntilIdle()
+        assertEquals(1, c.rig.loads.count { it == "second2" }); assertEquals(listOf("hf", "second2"), c.rig.loads.sorted())
+        assertTrue(c.res.ads!!.hasAd()) // the first ad is still shown alone
     }
 
     @Test fun singleCallNeverLoadsTheSecondAdEvenIfSecondUnitsExist() = runTest {
@@ -111,9 +119,9 @@ class SplashOptionsTest {
     @Test fun remoteConfigCanChangeFlooringAndTheSecondUnits() {
         val base = AdsConfig.builder().splashAppOpenUnits("a", "b").build()
         val p = RemoteOverrides.apply(
-            base, """{"placements":{"splash":{"flooring":false,"units":["x1","x2"],"secondUnits":["y1","y2"]}}}""",
+            base, """{"placements":{"splash":{"flooring":false,"units":["x1","x2"],"secondUnit":"y1"}}}""",
         ).placement(Placements.SPLASH)!!
-        assertFalse(p.flooring); assertEquals(listOf("y1", "y2"), p.secondUnits)
+        assertFalse(p.flooring); assertEquals("y1", p.secondUnit)
         assertEquals(listOf("x2"), AdUnits.resolve(p, debug = false))
     }
 
@@ -123,7 +131,7 @@ class SplashOptionsTest {
     }
 
     @Test fun doubleUnitsWithoutTheNormalUnitsFailAtBuildTime() {
-        val e = runCatching { AdsConfig.builder().splashAppOpenDoubleUnits("a").build() }.exceptionOrNull()
+        val e = runCatching { AdsConfig.builder().splashAppOpenDoubleUnit("a").build() }.exceptionOrNull()
         assertTrue(e is IllegalStateException)
     }
 

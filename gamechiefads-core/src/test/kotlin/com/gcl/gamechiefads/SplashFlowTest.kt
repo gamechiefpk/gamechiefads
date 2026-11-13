@@ -19,7 +19,7 @@ import org.junit.Test
 class SplashFlowTest {
     private fun TestScope.rig(second: Boolean = false, ready: Boolean = true): Rig {
         val b = AdsConfig.builder().splashAppOpenUnits("s1")
-        if (second) b.splashAppOpenDoubleUnits("s2")
+        if (second) b.splashAppOpenDoubleUnit("s2")
         return Rig(this, b.splashTimeoutMs(10_000).build(), ready)
     }
 

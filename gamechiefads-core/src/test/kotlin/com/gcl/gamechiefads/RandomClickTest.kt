@@ -64,10 +64,10 @@ class RandomClickTest {
     @Test fun singleLoadsOneAdAndDoubleLoadsTwoFromTheirOwnUnits() = runTest {
         val r = rig(); r.interstitial.showRandom(r.activity, null, false); advanceUntilIdle()
         assertEquals(listOf("hf"), r.loads)
-        val d = Rig(this, AdsConfig.builder().randomInterstitialUnits("hf", "n").randomInterstitialDoubleUnits("hf2", "n2").build())
+        val d = Rig(this, AdsConfig.builder().randomInterstitialUnits("hf", "n").randomInterstitialDoubleUnit("n2").build())
         val ads = mutableListOf<FakeAd>(); d.loadBehavior = { FakeAd.manual().also { ads += it } }
         d.interstitial.showRandom(d.activity, null, true); advanceUntilIdle()
-        assertEquals(setOf("hf", "hf2"), d.loads.toSet())
+        assertEquals(setOf("hf", "n2"), d.loads.toSet())
         assertEquals(2, ads.size); assertEquals(1, ads[0].shows); assertEquals(1, ads[1].shows) // together
     }
 
@@ -86,12 +86,12 @@ class RandomClickTest {
 
     @Test fun simpleBuilderSlotsAreNamedAndHaveTheRightFormats() {
         val c = AdsConfig.builder().appId("x")
-            .splashAppOpenUnits("a1", "a2").splashAppOpenDoubleUnits("b1")
+            .splashAppOpenUnits("a1", "a2").splashAppOpenDoubleUnit("b1")
             .splashInterstitialUnits("i1").splashBannerUnits("sb").appOpenUnit("ao")
             .bannerUnits("b1", "b2").exitBannerUnits("eb").randomInterstitialUnits("r1").everyNCalls(4).minGapSeconds(20)
             .introNativeUnits("n1", "n2").fullScreenNativeUnit("fn").rewardedUnits("rw").build()
         assertEquals(AdFormat.APP_OPEN, c.placement(Placements.SPLASH)!!.format)
-        assertEquals(listOf("b1"), c.placement(Placements.SPLASH)!!.secondUnits)
+        assertEquals("b1", c.placement(Placements.SPLASH)!!.secondUnit)
         assertEquals(AdFormat.INTERSTITIAL, c.placement(Placements.SPLASH_INTERSTITIAL)!!.format)
         assertEquals(BannerType.LARGE_BANNER, c.placement(Placements.SPLASH_BANNER)!!.bannerType)
         assertEquals(listOf("ao"), c.placement(Placements.APP_OPEN)!!.units)

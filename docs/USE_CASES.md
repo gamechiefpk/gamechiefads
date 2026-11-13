@@ -21,9 +21,9 @@ public class MyApp extends Application {
 
             // splash (several ids = floors: the first is tried first, then the next, then the next)
             .splashAppOpenUnits(HF, MF, NORMAL)
-            .splashAppOpenDoubleUnits(HF2, MF2, NORMAL2)      // units of the 2nd ad of a "double"
+            .splashAppOpenDoubleUnit(UNIT2)                    // the 2nd ad of a "double": ONE unit, no floors (same id as the first is fine)
             .splashInterstitialUnits(HF, MF, NORMAL)           // only if your splash shows an interstitial
-            .splashInterstitialDoubleUnits(HF2, MF2, NORMAL2)
+            .splashInterstitialDoubleUnit(UNIT2)
             .splashBannerUnits(HF, MF, NORMAL)
 
             // when the user comes back to the app: ONE unit, no floors
@@ -35,7 +35,7 @@ public class MyApp extends Application {
 
             // interstitial on random clicks, and the units of its "double"
             .randomInterstitialUnits(HF, MF, NORMAL).minGapSeconds(30).everyNCalls(3)
-            .randomInterstitialDoubleUnits(HF2, MF2, NORMAL2)
+            .randomInterstitialDoubleUnit(UNIT2)
 
             // native
             .introNativeUnits(HF, MF, NORMAL)                  // small native, intro screens, floors
@@ -71,8 +71,8 @@ it calls your code straight away. Open your next screen there, always.
 | Interstitial | `loadSplashInterstitialAd(this, callback)` |
 | Two interstitials together (double) | `loadSplashInterstitialDoubleAd(this, callback)` |
 
-Double = two ads loaded at the same time, from two separate sets of units, shown on top of each other. The user closes the
-first and the second is already there, so it looks like the same ad. No second units given? The first units are used twice.
+Double = two ads loaded at the same time and shown on top of each other. The first uses its floors; the second is one request to one unit (no floors; paste the same id if you like). The user closes the
+first and the second is already there, so it looks like the same ad. No second unit given? The last unit of the first set is used.
 
 No floors on the splash (one request only)? Add `.flooring(false)` after the units: it asks the **last** unit in the list.
 

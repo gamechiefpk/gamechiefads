@@ -41,11 +41,11 @@ internal class SplashFlow(
                 val cfg = config()
                 val firstP = cfg.placement(name)?.takeIf { it.enabled && cfg.enabled }
                 if (firstP != null && !state.premium.value) {
-                    val secondP = if (double) firstP.copy(units = firstP.secondUnits.ifEmpty { firstP.units }) else null
+                    val secondP = if (double) firstP.forSecondAd() else null
                     withTimeoutOrNull(cfg.splashTimeoutMs) {
                         coroutineScope {
                             val d1 = async { loadOne(firstP, activity) }
-                            // second ad (double): its own units with its own floors, requested at the same time
+                            // second ad (double): one request to its own unit, no floors, at the same time
                             val d2 = secondP?.let { sp -> async { loadOne(sp, activity) } }
                             val a = d1.await()
                             if (a != null) {

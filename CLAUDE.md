@@ -43,9 +43,9 @@ docs/USAGE.md, README.md (setup lines only)
 
 ## Public API (the entire surface; keep it this small and clearly named: every method is `load<What>Ad`)
 All ad units are given once to `GamechiefAds.init(app, config)` through slot methods (`splashAppOpenUnits(...)`, `bannerUnits(...)`,
-`randomInterstitialUnits(...)`, `randomInterstitialDoubleUnits(...)`, `exitBannerUnits(...)`, `appOpenUnit(id)`, `introNativeUnits(...)`,
+`randomInterstitialUnits(...)`, `randomInterstitialDoubleUnit(id)`, `exitBannerUnits(...)`, `appOpenUnit(id)`, `introNativeUnits(...)`,
 `fullScreenNativeUnit(id)`, `rewardedUnits(...)`...). Several ids = floors (first id first). `appOpenUnit` and `fullScreenNativeUnit`
-take ONE unit, no floors. Second ads of a double have their own units.
+take ONE unit, no floors. The second ad of a double is ONE unit, no floors (the same id as the first is fine).
 ```java
 GamechiefAds.init(app, config);   GamechiefAds.setPremium(boolean);   GamechiefAds.applyRemoteConfig(json);
 GamechiefAds.setLoadingDialog(ui); GamechiefAds.setLoadingText(title, message); GamechiefAds.skipNextAppOpenAd();

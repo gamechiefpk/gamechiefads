@@ -17,14 +17,14 @@ Modules: `gamechiefads-core` (all logic, no UI), `gamechiefads-ui` (shimmer, loa
 | Config method | Ad | Floors |
 |---|---|---|
 | `splashAppOpenUnits(...)` | Splash app open | yes |
-| `splashAppOpenDoubleUnits(...)` | 2nd splash app open of a double | yes |
-| `splashInterstitialUnits(...)` / `splashInterstitialDoubleUnits(...)` | Splash interstitial (and its double) | yes |
+| `splashAppOpenDoubleUnit(id)` | 2nd splash app open of a double | no, one unit |
+| `splashInterstitialUnits(...)` / `splashInterstitialDoubleUnit(id)` | Splash interstitial (and its double, one unit) | yes / no |
 | `splashBannerUnits(...)` | Splash banner, always LARGE_BANNER 320x100 | yes |
 | `appOpenUnit(id)` | App open when the user returns (automatic) | no, one unit |
 | `bannerUnits(...)` | Banner, all normal screens | yes |
 | `exitBannerUnits(...)` | Exit-screen banner (medium rectangle unless `.bannerType(...)`) | yes |
 | `randomInterstitialUnits(...)` | Interstitial on random clicks | yes |
-| `randomInterstitialDoubleUnits(...)` | 2nd interstitial of a double | yes |
+| `randomInterstitialDoubleUnit(id)` | 2nd interstitial of a double | no, one unit |
 | `introNativeUnits(...)` | Small native, intro screens | yes |
 | `fullScreenNativeUnit(id)` | Full-screen native like an interstitial | no, one unit |
 | `rewardedUnits(...)` | Rewarded | yes |
@@ -81,7 +81,7 @@ All listeners are optional (`null` is fine) and all callbacks run on the main th
 
 ## 4. How a double ad works
 
-Both ads are requested at the same time, each from its own set of units (with its own floors). When both are loaded (the
+Both ads are requested at the same time. The first uses its units with floors; the second is ONE request to its own single unit, **never floors** (paste the same id as the first ad, or another one; if you give none, the last unit of the first set is used). When both are loaded (the
 second one is waited for at most `doubleSecondWaitMs`; if it is missing, one ad is shown) they are shown **at the same time**,
 stacked. The user closes the top ad and the other is already underneath, so it feels like the first ad never closed. The
 "ad showing" flag is held until the last one closes, and your callback runs once, after the last ad.
@@ -94,7 +94,7 @@ dependency. Bad JSON is ignored. It can only change slots you declared, never ad
 ```json
 {"enabled": true,
  "loaderTitle": "Ad is loading", "loaderMessage": "Please wait...",
- "placements": {"random": {"units": ["a","b"], "secondUnits": ["c","d"], "everyNCalls": 3, "gap": 30,
+ "placements": {"random": {"units": ["a","b"], "secondUnit": "c", "everyNCalls": 3, "gap": 30,
                            "enabled": true, "tierTimeoutMs": 3000, "tierTimeouts": {"a": 1500},
                            "flooring": true, "waterfall": "parallel", "disabledUnits": ["b"],
                            "skipAfterFails": 3, "skipForSec": 120, "bannerType": "MEDIUM_RECTANGLE",
