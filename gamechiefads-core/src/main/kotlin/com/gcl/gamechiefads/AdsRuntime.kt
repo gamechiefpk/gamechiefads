@@ -19,9 +19,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Builds and wires every object once. Only wiring here, no logic. Must be created on the main thread. */
-internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
+internal class AdsRuntime(app: Application, private val baseConfig: AdsConfig) {
     @Volatile private var base = baseConfig
     @Volatile var config = baseConfig
         private set
@@ -105,20 +106,53 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
         scope.launch { state.premium.drop(1).filter { it }.collect { banner.hideAll() } }
 
         // remote values: defaults, last known values right away, then a fetch; the ads rules (one JSON key) are re-applied each time
+        startSharedFile(app)
         remote.addDefaults(baseConfig.remoteDefaults)
         applyRemoteRules()
         remote.start(baseConfig.remoteFetchIntervalSeconds) { applyRemoteRules() }
     }
 
+    // ---- remote rules in layers, lowest first: your config < shared file (https) < Firebase Remote Config < applyRemoteConfig(json)
+    @Volatile private var urlJson: String? = null
+    @Volatile private var firebaseJson: String? = null
+    @Volatile private var manualJson: String? = null
+
+    /** Firebase Remote Config: the rules key changed or was fetched. */
     fun applyRemoteRules() {
         val key = base.remoteConfigKey ?: return
-        val json = remote.string(key, "")
-        if (json.isNotBlank()) applyRemote(json)
+        firebaseJson = remote.string(key, "").takeIf { it.isNotBlank() }
+        recompute()
     }
 
+    /** Your own call: GamechiefAds.applyRemoteConfig(json). Null clears this layer only. */
     fun applyRemote(json: String?) {
-        config = RemoteOverrides.apply(base, json)
-        AdLog.d("remote") { "overrides applied (${json?.length ?: 0} chars)" }
+        manualJson = json?.takeIf { it.isNotBlank() }
+        recompute()
+    }
+
+    private fun recompute() {
+        var c = base
+        for (layer in listOf(urlJson, firebaseJson, manualJson)) c = RemoteOverrides.apply(c, layer)
+        config = c
+        AdLog.d("remote") { "rules applied (shared file=${urlJson != null}, firebase=${firebaseJson != null}, manual=${manualJson != null})" }
+    }
+
+    /** The shared rules file: last good copy at once, then a fetch in the background (never on the main thread). */
+    private fun startSharedFile(app: Application) {
+        val url = baseConfig.remoteConfigUrl ?: return
+        val file = RemoteUrlConfig(
+            url, baseConfig.remoteConfigUrlIntervalSeconds, { System.currentTimeMillis() },
+            RemoteUrlAndroid.store(app), RemoteUrlAndroid.http,
+        )
+        urlJson = file.cached()
+        if (urlJson != null) recompute()
+        scope.launch {
+            val fresh = withContext(Dispatchers.IO) { runCatching { file.refresh() }.getOrNull() }
+            if (fresh != null) {
+                urlJson = fresh
+                recompute()
+            }
+        }
     }
 
     /** Logging can only be on for debuggable apps. */
@@ -126,7 +160,7 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
     /** Changes the default loader texts now; survives later Remote Config overrides unless they set the same keys. */
     fun setLoaderText(title: String?, message: String?) {
         base = base.copy(loaderTitle = title, loaderMessage = message)
-        config = config.copy(loaderTitle = title, loaderMessage = message)
+        recompute()
     }
 
     fun pauseAppOpenOnce() = appOpen.pauseOnce()

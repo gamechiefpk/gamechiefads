@@ -233,3 +233,13 @@ while an app-open ad is loading or on screen, and an app-open ad is not shown wh
 `quietSecondsAfterAppOpen` seconds (default 30, `DENY_AFTER_APP_OPEN`): the automatic random ad skips quietly, a button call gets
 `onNotShown` + `onComplete(false)`. The time counts from the close of the app-open ad. Rewarded ads and a splash interstitial are
 not affected. Config: `.quietSecondsAfterAppOpen(s)`, Remote Config root key `quietSecondsAfterAppOpen`.
+
+## 14. Changing behaviour for every app without a release
+
+Library code cannot be updated inside an app that is already released (Google Play forbids downloading code). Behaviour can: every
+setting is remote. Layers, lowest first: your config in code, the **shared rules file** (`.remoteConfigUrl("https://...")`, one
+https JSON for all your apps, fetched hourly, last good copy kept on the device), Firebase Remote Config (key
+`gamechief_ads_config`), and `GamechiefAds.applyRemoteConfig(json)`. A later layer overrides an earlier one only for the keys it
+contains; `{"enabled": false}` anywhere is a kill switch that later layers that do not mention it cannot undo. Any failure (offline,
+bad JSON, wrong address) keeps the last good rules. The JSON keys are in USE_CASES recipe 21 and the example file
+`docs/ads_rules.example.json`. New library features should ship behind a setting whose default is the old behaviour.

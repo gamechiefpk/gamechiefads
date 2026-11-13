@@ -25,7 +25,19 @@ internal object RemoteOverrides {
         val noAd = if (root.has("noAdMessage")) root.optString("noAdMessage").takeIf { it.isNotBlank() } else base.noAdMessage
         val retry = (root.opt("noFillRetrySeconds") as? Number)?.toInt()?.takeIf { it >= 0 } ?: base.noFillRetrySeconds
         val quiet = (root.opt("quietSecondsAfterAppOpen") as? Number)?.toInt()?.takeIf { it >= 0 } ?: base.quietSecondsAfterAppOpen
-        return base.copy(placements = merged, loaderTitle = title, loaderMessage = message, enabled = allEnabled, noAdMessage = noAd, noFillRetrySeconds = retry, quietSecondsAfterAppOpen = quiet)
+        // global timings (ms): {"global":{"splashTimeoutMs":12000,"overallBudgetMs":8000,"initTimeoutMs":8000,"doubleSecondWaitMs":2500,"noAdMessageMs":1800}}
+        val g = root.optJSONObject("global")
+        fun ms(key: String, min: Long): Long? = (g?.opt(key) as? Number)?.toLong()?.takeIf { it >= min }
+        return base.copy(
+            placements = merged, loaderTitle = title, loaderMessage = message,
+            enabled = if (root.opt("enabled") is Boolean) allEnabled else base.enabled, // a layer without the key keeps the earlier answer
+            noAdMessage = noAd, noFillRetrySeconds = retry, quietSecondsAfterAppOpen = quiet,
+            splashTimeoutMs = ms("splashTimeoutMs", 1) ?: base.splashTimeoutMs,
+            overallBudgetMs = ms("overallBudgetMs", 1) ?: base.overallBudgetMs,
+            initTimeoutMs = ms("initTimeoutMs", 1) ?: base.initTimeoutMs,
+            doubleSecondWaitMs = ms("doubleSecondWaitMs", 0) ?: base.doubleSecondWaitMs,
+            noAdMessageMs = ms("noAdMessageMs", 0)?.coerceAtMost(10_000) ?: base.noAdMessageMs,
+        )
     }
 
     private fun patch(p: PlacementConfig, o: JSONObject): PlacementConfig {

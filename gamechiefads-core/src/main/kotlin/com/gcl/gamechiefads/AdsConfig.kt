@@ -43,6 +43,10 @@ data class AdsConfig(
     val noAdMessageMs: Long = DEFAULT_NO_AD_MESSAGE_MS,
     /** After an app-open ad is CLOSED, interstitials stay quiet this many seconds (default 30). 0 = no quiet time. */
     val quietSecondsAfterAppOpen: Int = DEFAULT_QUIET_AFTER_APP_OPEN_SECONDS,
+    /** https address of ONE shared rules file (same JSON as Remote Config) read by all your apps. Null = not used. */
+    val remoteConfigUrl: String? = null,
+    /** How often the shared file is fetched (default 3600 s). */
+    val remoteConfigUrlIntervalSeconds: Long = DEFAULT_REMOTE_INTERVAL_SECONDS,
 ) {
     fun placement(name: String): PlacementConfig? = placements[name]
 
@@ -78,6 +82,8 @@ data class AdsConfig(
         private var noAdMessage: String? = DEFAULT_NO_AD_MESSAGE
         private var noAdMessageMs = DEFAULT_NO_AD_MESSAGE_MS
         private var quietSecondsAfterAppOpen = DEFAULT_QUIET_AFTER_APP_OPEN_SECONDS
+        private var remoteConfigUrl: String? = null
+        private var remoteConfigUrlIntervalSeconds = DEFAULT_REMOTE_INTERVAL_SECONDS
         private var fallbackToLoad = false
         private var autoRefill = false
         private var overallBudgetMs = DEFAULT_OVERALL_BUDGET_MS
@@ -190,6 +196,15 @@ data class AdsConfig(
         fun noAdMessageMs(ms: Long) = apply { noAdMessageMs = ms.coerceIn(0, 10_000) }
         /** After an app-open ad is closed, no interstitial (random, custom, splash excluded) for this many seconds (default 30). */
         fun quietSecondsAfterAppOpen(seconds: Int) = apply { quietSecondsAfterAppOpen = seconds.coerceAtLeast(0) }
+        /**
+         * ONE shared rules file for ALL your apps (https only), for example a JSON file in your GitHub repo. Same JSON as Remote
+         * Config. Change the file and every app picks it up, with no app update. Layers, lowest first: your config, this file,
+         * Firebase Remote Config, applyRemoteConfig(json).
+         */
+        fun remoteConfigUrl(url: String?, intervalSeconds: Long = DEFAULT_REMOTE_INTERVAL_SECONDS) = apply {
+            remoteConfigUrl = url?.takeIf { it.isNotBlank() }
+            remoteConfigUrlIntervalSeconds = intervalSeconds.coerceAtLeast(60)
+        }
         fun noFillRetrySeconds(seconds: Int) = apply { noFillRetrySeconds = seconds.coerceAtLeast(0) }
 
         fun appId(id: String?) = apply { appId = id }
@@ -227,6 +242,7 @@ data class AdsConfig(
                 remoteDefaults = remoteDefaults.toMap(), remoteFetchIntervalSeconds = remoteFetchIntervalSeconds, remoteSource = remoteSource,
                 noFillRetrySeconds = noFillRetrySeconds, noAdMessage = noAdMessage, noAdMessageMs = noAdMessageMs,
                 quietSecondsAfterAppOpen = quietSecondsAfterAppOpen,
+                remoteConfigUrl = remoteConfigUrl, remoteConfigUrlIntervalSeconds = remoteConfigUrlIntervalSeconds,
             )
         }
 

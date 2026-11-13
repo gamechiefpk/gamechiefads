@@ -327,3 +327,60 @@ instead: then use `.noAdMessage(null)`.
 .quietSecondsAfterAppOpen(45)        // your own time in seconds (default 30, 0 = no quiet time)
 // Remote Config: {"quietSecondsAfterAppOpen": 45}
 ```
+
+---
+
+## Change things for every app without an update
+
+### 19. What can change with no app update, and what cannot
+
+**Cannot:** library **code**. Each app contains its own copy of the library when it is built, and Google Play does not allow an app to
+download new code. A bug fix in the Kotlin code reaches an app only when that app is rebuilt with the new library version and released.
+
+**Can, for every app, instantly:** everything the library does as a *setting*. Ad units, floors, timeouts, gaps, how often, which
+ads are on, double or single, the loading text and so on are all remote settings (see below). So the practice is: **new behaviour
+ships in the library behind a setting, and you switch it with the shared file or Remote Config.** Apps that already have the
+library version with the setting pick it up at once.
+
+### 20. One shared file for all your apps (no Firebase console needed)
+
+```java
+.remoteConfigUrl("https://raw.githubusercontent.com/<you>/<repo>/main/ads_rules.json")
+```
+
+Put the **same JSON** as in recipe 12 in that file (a copy is in [ads_rules.example.json](ads_rules.example.json)). Every app that
+uses this line reads it (once an hour by default, and at once from the saved copy next start), so a change to the file reaches all
+those apps with no release.
+
+- **https only.** Failure of any kind (no network, bad JSON, wrong address) changes nothing: the last good copy stays, also offline.
+- **Order of rules**, lowest first: your config in code, then this shared file, then Firebase Remote Config (per app, if you use it),
+  then `GamechiefAds.applyRemoteConfig(json)`. So one app can still be different through Firebase.
+- Protect the place where the file lives (a GitHub repo with two-factor login): whoever can edit it can change the ad units of every app.
+- No app or user data is sent when the file is fetched.
+
+### 21. Everything you can switch remotely
+
+```json
+{
+  "enabled": true,
+  "loaderTitle": "Ad is loading", "loaderMessage": "Please wait...",
+  "noAdMessage": "No ad available, please try again in a few seconds",
+  "noFillRetrySeconds": 5,
+  "quietSecondsAfterAppOpen": 30,
+  "global": { "splashTimeoutMs": 12000, "overallBudgetMs": 8000, "initTimeoutMs": 8000,
+              "doubleSecondWaitMs": 2500, "noAdMessageMs": 1800 },
+  "placements": {
+    "random": { "enabled": true, "units": ["hf","mf","normal"], "secondUnit": "x", "every": 3, "gap": 30,
+                "everyNCalls": 1, "auto": true, "flooring": true, "waterfall": "sequential",
+                "tierTimeoutMs": 3000, "tierTimeouts": {"hf": 1500}, "disabledUnits": [],
+                "skipAfterFails": 3, "skipForSec": 120, "double": false }
+  }
+}
+```
+
+Slots: `splash`, `splash_interstitial`, `splash_banner`, `app_open`, `banner`, `exit_banner`, `random`, `intro_native`,
+`fullscreen_native`, `rewarded`. `"enabled": false` at the top is a kill switch for every ad. A slot you did not declare in code
+cannot be added remotely.
+
+**A tip for fixes:** when you add a feature to the library, add a setting for it (default = old behaviour) and switch it on from the
+shared file once most apps have the new version. Something broken? Switch it off the same way, no release needed.

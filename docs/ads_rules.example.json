@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "noFillRetrySeconds": 5,
+  "quietSecondsAfterAppOpen": 30,
+  "global": {
+    "splashTimeoutMs": 12000,
+    "overallBudgetMs": 8000
+  },
+  "placements": {
+    "random": {
+      "every": 3,
+      "gap": 30,
+      "everyNCalls": 1,
+      "auto": true
+    },
+    "banner": {
+      "enabled": true
+    }
+  }
+}
