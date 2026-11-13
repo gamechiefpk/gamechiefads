@@ -24,7 +24,7 @@ internal class SplashFlow(
     private val scope: CoroutineScope,
     /** Loads an app-open ad (the splash default). */
     private val source: suspend (String) -> FullScreenAd?,
-    /** Loads an interstitial, used when the splash placement is declared with interstitial(...) or switched remotely. */
+    /** Loads an interstitial, used for the splash_interstitial slot. */
     private val interstitialSource: suspend (String) -> FullScreenAd? = source,
 ) {
     private suspend fun loadOne(p: PlacementConfig, activity: Activity): FullScreenAd? {
@@ -32,24 +32,21 @@ internal class SplashFlow(
         return pipeline.load(p, activity, src) { it.destroy() }
     }
 
-    fun prepare(activity: Activity, callback: SplashCallback) {
+    /** [name] = which splash slot (splash or splash_interstitial). [double] = also load and show the second ad (its own units). */
+    fun prepare(activity: Activity, callback: SplashCallback, name: String = Placements.SPLASH, double: Boolean = false) {
         val ads = SplashAdsImpl(state, shower, screens)
         scope.launch {
-            AdLog.d("splash") { "prepare start (timeout ${config().splashTimeoutMs}ms, premium=${state.premium.value})" }
+            AdLog.d("splash") { "prepare start $name double=$double (timeout ${config().splashTimeoutMs}ms, premium=${state.premium.value})" }
             try {
                 val cfg = config()
-                val firstP = cfg.placement(Placements.SPLASH)?.takeIf { it.enabled }
+                val firstP = cfg.placement(name)?.takeIf { it.enabled && cfg.enabled }
                 if (firstP != null && !state.premium.value) {
-                    val secondP = cfg.placement(Placements.SPLASH_SECOND)?.takeIf { it.enabled }
+                    val secondP = if (double) firstP.copy(units = firstP.secondUnits.ifEmpty { firstP.units }) else null
                     withTimeoutOrNull(cfg.splashTimeoutMs) {
                         coroutineScope {
                             val d1 = async { loadOne(firstP, activity) }
-                            // second ad: its own splash_second placement, else a second request to the same units when double
-                            val d2 = when {
-                                secondP != null -> async { loadOne(secondP, activity) }
-                                firstP.doubleAd -> async { loadOne(firstP, activity) }
-                                else -> null
-                            }
+                            // second ad (double): its own units with its own floors, requested at the same time
+                            val d2 = secondP?.let { sp -> async { loadOne(sp, activity) } }
                             val a = d1.await()
                             if (a != null) {
                                 ads.first = a

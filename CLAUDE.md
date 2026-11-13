@@ -41,31 +41,26 @@ sample/  app with Google TEST ad unit ids (debug builds must use test ids automa
 docs/USAGE.md, README.md (setup lines only)
 ```
 
-## Public API (the entire surface; keep it this small)
+## Public API (the entire surface; keep it this small and clearly named: every method is `load<What>Ad`)
+All ad units are given once to `GamechiefAds.init(app, config)` through slot methods (`splashAppOpenUnits(...)`, `bannerUnits(...)`,
+`randomInterstitialUnits(...)`, `randomInterstitialDoubleUnits(...)`, `exitBannerUnits(...)`, `appOpenUnit(id)`, `introNativeUnits(...)`,
+`fullScreenNativeUnit(id)`, `rewardedUnits(...)`...). Several ids = floors (first id first). `appOpenUnit` and `fullScreenNativeUnit`
+take ONE unit, no floors. Second ads of a double have their own units.
 ```java
-GamechiefAds.init(app, config);
-GamechiefAds.setPremium(boolean);
-GamechiefAds.prepareSplash(activity, callback);                              // consent -> init -> waterfall -> timeout
-GamechiefAds.showInterstitial(activity, "placement", listener);             // existing on-demand flow, listener OPTIONAL (null-safe)
-GamechiefAds.preloadInterstitial("placement");                              // opt-in
-GamechiefAds.isInterstitialReady("placement");
-GamechiefAds.showPreloadedInterstitial(activity, "placement", listener);    // returns false if nothing ready; optional fallbackToLoad(true) in config, default off
-GamechiefAds.banner(frameLayout, "placement");
-GamechiefAds.nativeAd(...);                                                  // ui module
+GamechiefAds.init(app, config);   GamechiefAds.setPremium(boolean);   GamechiefAds.applyRemoteConfig(json);
+GamechiefAds.setLoadingDialog(ui); GamechiefAds.setLoadingText(title, message); GamechiefAds.skipNextAppOpenAd();
+GamechiefAds.loadSplashAppOpenAd(activity, callback);         // + loadSplashAppOpenDoubleAd, loadSplashInterstitialAd, loadSplashInterstitialDoubleAd
+GamechiefAds.loadSplashBannerAd(frameLayout);                 // always LARGE_BANNER
+GamechiefAds.loadBannerAd(frameLayout);  GamechiefAds.loadExitBannerAd(frameLayout);
+GamechiefAds.loadCustomBannerAd(frameLayout, unitId, BannerType, listener);   // full control, one unit
+GamechiefAds.loadRandomInterstitialAd(activity, listener);    // click-driven; + loadRandomInterstitialDoubleAd
+GamechiefAds.loadRewardedAd(activity, listener);
+AdsUi.loadIntroNativeAd(frameLayout);  AdsUi.loadFullScreenNativeAd(activity, listener);   // ui module
 ```
-Random interstitial needs NO calls in activities: ScreenTracker triggers it after the screen is resumed (rule: every N screens, min gap seconds, excluded screens,
-not while another ad/paywall/purchase flow is showing, not premium). Placement mode default = on-demand; `mode: "preload"` per placement in config/Remote Config.
-Auto-refill after a preloaded show is OFF by default (no extra requests the owner did not ask for).
-
-Config sketch:
-```java
-AdsConfig.builder()
-  .interstitial("random").units(R.string.HF, R.string.MF, R.string.NORMAL).everyNScreens(3).minGapSeconds(30)
-      .excludeScreens(SplashActivity.class, IntroScreenActivity.class)
-  .appOpen("splash").units(...).tierTimeoutMs(3000)
-  .remoteConfigKey("ads_config")
-  .build();
-```
+Single vs double is chosen by the method called (the app can use its own Remote Config flag). Double = both ads requested together from
+their own unit sets and SHOWN AT THE SAME TIME (stacked), so closing the top one reveals the other at once. The random interstitial is paced
+by `minGapSeconds` and `everyNCalls`; when it loads at runtime the loading dialog is ALWAYS shown (default dialog built in, found by name from
+the ui module). Optional custom spots: `loadInterstitialAd(activity, AdPlacement, listener)` and the preload trio. Auto-refill is OFF.
 
 ## Bugs in the owner's current code that the new library must NOT reproduce
 (see `reference/` for the original code)

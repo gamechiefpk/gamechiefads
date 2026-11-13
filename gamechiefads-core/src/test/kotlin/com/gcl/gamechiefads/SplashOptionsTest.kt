@@ -10,7 +10,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Splash options: app open (default) or interstitial, flooring on/off, double on/off, and every combination. */
+/** Splash slots: app open or interstitial (separate units), flooring on/off, single or double (separate second units). */
 @OptIn(ExperimentalCoroutinesApi::class)
 class SplashOptionsTest {
     private class Result {
@@ -19,103 +19,117 @@ class SplashOptionsTest {
         val callback = SplashCallback { calls++; ads = it }
     }
 
-    private fun TestScope.rig(interstitial: Boolean, flooring: Boolean, double: Boolean): Rig {
+    private class Case(val rig: Rig, val interstitial: Boolean, val double: Boolean) {
+        val res = Result()
+        fun run() = rig.splash.prepare(
+            rig.activity, res.callback,
+            if (interstitial) Placements.SPLASH_INTERSTITIAL else Placements.SPLASH, double,
+        )
+    }
+
+    private fun TestScope.case(interstitial: Boolean, flooring: Boolean, double: Boolean, secondUnits: Boolean = false): Case {
         val b = AdsConfig.builder()
-        if (interstitial) b.interstitial(Placements.SPLASH) else b.appOpen(Placements.SPLASH)
-        b.units("hf", "mf", "normal").flooring(flooring).doubleAd(double)
-        return Rig(this, b.build())
+        if (interstitial) b.splashInterstitialUnits("hf", "mf", "normal") else b.splashAppOpenUnits("hf", "mf", "normal")
+        b.flooring(flooring)
+        if (secondUnits) {
+            if (interstitial) b.splashInterstitialDoubleUnits("hf2", "normal2") else b.splashAppOpenDoubleUnits("hf2", "normal2")
+        }
+        return Case(Rig(this, b.build()), interstitial, double)
     }
 
-    @Test fun appOpenIsTheDefaultSource() = runTest {
-        val r = rig(interstitial = false, flooring = true, double = false); val res = Result()
-        r.splash.prepare(r.activity, res.callback); advanceUntilIdle()
-        assertEquals(listOf("hf"), r.loads); assertTrue(r.interstitialLoads.isEmpty())
+    @Test fun appOpenSlotUsesTheAppOpenSource() = runTest {
+        val c = case(false, true, false); c.run(); advanceUntilIdle()
+        assertEquals(listOf("hf"), c.rig.loads); assertTrue(c.rig.interstitialLoads.isEmpty())
     }
 
-    @Test fun interstitialSplashUsesTheInterstitialSourceOnly() = runTest {
-        val r = rig(interstitial = true, flooring = true, double = false); val res = Result()
-        r.splash.prepare(r.activity, res.callback); advanceUntilIdle()
-        assertTrue(r.loads.isEmpty()); assertEquals(listOf("hf"), r.interstitialLoads)
-        assertTrue(res.ads!!.hasAd())
+    @Test fun interstitialSlotUsesTheInterstitialSourceOnly() = runTest {
+        val c = case(true, true, false); c.run(); advanceUntilIdle()
+        assertTrue(c.rig.loads.isEmpty()); assertEquals(listOf("hf"), c.rig.interstitialLoads)
+        assertTrue(c.res.ads!!.hasAd())
     }
 
     @Test fun flooringOnWalksEveryFloorUntilOneFills() = runTest {
-        val r = rig(interstitial = false, flooring = true, double = false); val res = Result()
-        r.loadBehavior = { if (it == "normal") FakeAd(it) else null }
-        r.splash.prepare(r.activity, res.callback); advanceUntilIdle()
-        assertEquals(listOf("hf", "mf", "normal"), r.loads); assertTrue(res.ads!!.hasAd())
+        val c = case(false, true, false); c.rig.loadBehavior = { if (it == "normal") FakeAd(it) else null }
+        c.run(); advanceUntilIdle()
+        assertEquals(listOf("hf", "mf", "normal"), c.rig.loads); assertTrue(c.res.ads!!.hasAd())
     }
 
     @Test fun flooringOffMakesOneRequestToTheLowestFloorOnly() = runTest {
-        val r = rig(interstitial = false, flooring = false, double = false); val res = Result()
-        r.splash.prepare(r.activity, res.callback); advanceUntilIdle()
-        assertEquals(listOf("normal"), r.loads)
+        val c = case(false, false, false); c.run(); advanceUntilIdle()
+        assertEquals(listOf("normal"), c.rig.loads)
     }
 
     @Test fun flooringOffWithNoFillDoesNotTryOtherUnits() = runTest {
-        val r = rig(interstitial = false, flooring = false, double = false); val res = Result()
-        r.loadBehavior = { null }
-        r.splash.prepare(r.activity, res.callback); advanceUntilIdle()
-        assertEquals(listOf("normal"), r.loads); assertFalse(res.ads!!.hasAd()); assertEquals(1, res.calls)
+        val c = case(false, false, false); c.rig.loadBehavior = { null }
+        c.run(); advanceUntilIdle()
+        assertEquals(listOf("normal"), c.rig.loads); assertFalse(c.res.ads!!.hasAd()); assertEquals(1, c.res.calls)
     }
 
-    @Test fun doubleLoadsTwoFromTheSameUnitsAndShowsBackToBackThenNavigatesOnce() = runTest {
-        val r = rig(interstitial = false, flooring = false, double = true); val res = Result()
-        val a = FakeAd.manual(); val b = FakeAd.manual(); var n = 0
-        r.loadBehavior = { if (n++ == 0) a else b }
-        r.splash.prepare(r.activity, res.callback); advanceUntilIdle()
-        assertEquals(2, r.loads.size)
+    @Test fun doubleLoadsTheSecondAdFromItsOwnUnitsAndShowsBothTogether() = runTest {
+        val c = case(false, true, true, secondUnits = true)
+        val first = FakeAd.manual(); val second = FakeAd.manual()
+        c.rig.loadBehavior = { if (it.endsWith("2")) second else first }
+        c.run(); advanceUntilIdle()
+        assertEquals(listOf("hf", "hf2"), c.rig.loads.sorted().let { listOf(it[0], it[1]) }.sortedBy { it.length }) // one per unit set
         var done = 0
-        res.ads!!.show(r.activity) { done++ }; runCurrent()
-        assertEquals(1, a.shows); assertEquals(1, b.shows) // both at the same time
-        b.listener!!.onDismissed()
-        assertTrue(r.state.adShowing.value); assertEquals(0, done)
-        a.listener!!.onDismissed()
-        assertEquals(1, done); assertFalse(r.state.adShowing.value)
+        c.res.ads!!.show(c.rig.activity) { done++ }; runCurrent()
+        assertEquals(1, first.shows); assertEquals(1, second.shows) // at the same time
+        second.listener!!.onDismissed()
+        assertTrue(c.rig.state.adShowing.value); assertEquals(0, done)
+        first.listener!!.onDismissed()
+        assertEquals(1, done); assertFalse(c.rig.state.adShowing.value)
     }
 
-    @Test fun doubleOffLoadsExactlyOne() = runTest {
-        val r = rig(interstitial = false, flooring = false, double = false); val res = Result()
-        r.splash.prepare(r.activity, res.callback); advanceUntilIdle()
-        assertEquals(1, r.loads.size)
+    @Test fun doubleWithoutSecondUnitsUsesTheFirstUnitsTwice() = runTest {
+        val c = case(false, false, true); c.run(); advanceUntilIdle()
+        assertEquals(listOf("normal", "normal"), c.rig.loads)
     }
 
-    @Test fun interstitialWithDoubleAndNoFlooringStillBehaves() = runTest {
-        val r = rig(interstitial = true, flooring = false, double = true); val res = Result()
-        r.splash.prepare(r.activity, res.callback); advanceUntilIdle()
-        assertEquals(listOf("normal", "normal"), r.interstitialLoads); assertTrue(r.loads.isEmpty())
+    @Test fun singleCallNeverLoadsTheSecondAdEvenIfSecondUnitsExist() = runTest {
+        val c = case(false, true, false, secondUnits = true); c.run(); advanceUntilIdle()
+        assertEquals(listOf("hf"), c.rig.loads)
+    }
+
+    @Test fun interstitialDoubleUsesTheInterstitialSourceForBoth() = runTest {
+        val c = case(true, false, true, secondUnits = true); c.run(); advanceUntilIdle()
+        assertTrue(c.rig.loads.isEmpty()); assertEquals(2, c.rig.interstitialLoads.size)
         var done = 0
-        res.ads!!.show(r.activity) { done++ }; advanceUntilIdle()
+        c.res.ads!!.show(c.rig.activity) { done++ }; advanceUntilIdle()
         assertEquals(1, done)
     }
 
     @Test fun missingSecondOfADoubleShowsOneAd() = runTest {
-        val r = rig(interstitial = true, flooring = true, double = true); val res = Result()
+        val c = case(true, true, true)
         var n = 0
-        r.loadBehavior = { if (n++ == 0) FakeAd(it) else null }
-        r.splash.prepare(r.activity, res.callback); advanceUntilIdle()
+        c.rig.loadBehavior = { if (n++ == 0) FakeAd(it) else null }
+        c.run(); advanceUntilIdle()
         var done = 0
-        res.ads!!.show(r.activity) { done++ }; advanceUntilIdle()
+        c.res.ads!!.show(c.rig.activity) { done++ }; advanceUntilIdle()
         assertEquals(1, done)
     }
 
-    @Test fun remoteConfigSwitchesTheSplashToInterstitialAndTurnsFlooringAndDoubleOff() {
-        val base = AdsConfig.builder().appOpen(Placements.SPLASH).units("a", "b").doubleAd(false).build()
+    @Test fun remoteConfigCanChangeFlooringAndTheSecondUnits() {
+        val base = AdsConfig.builder().splashAppOpenUnits("a", "b").build()
         val p = RemoteOverrides.apply(
-            base, """{"placements":{"splash":{"type":"interstitial","flooring":false,"double":true,"units":["i1","i2"]}}}""",
+            base, """{"placements":{"splash":{"flooring":false,"units":["x1","x2"],"secondUnits":["y1","y2"]}}}""",
         ).placement(Placements.SPLASH)!!
-        assertEquals(AdFormat.INTERSTITIAL, p.format); assertFalse(p.flooring); assertTrue(p.doubleAd)
-        assertEquals(listOf("i2"), AdUnits.resolve(p, debug = false))
-    }
-
-    @Test fun remoteTypeIsIgnoredOutsideTheSplash() {
-        val base = AdsConfig.builder().interstitial("random").units("a").build()
-        val p = RemoteOverrides.apply(base, """{"placements":{"random":{"type":"app_open"}}}""").placement("random")!!
-        assertEquals(AdFormat.INTERSTITIAL, p.format)
+        assertFalse(p.flooring); assertEquals(listOf("y1", "y2"), p.secondUnits)
+        assertEquals(listOf("x2"), AdUnits.resolve(p, debug = false))
     }
 
     @Test fun flooringKeepsOneUnitEvenWhenAllButOneAreDisabled() {
         val p = PlacementConfig("x", AdFormat.APP_OPEN, units = listOf("a", "b", "c"), flooring = false, disabledUnits = setOf("c"))
         assertEquals(listOf("b"), AdUnits.resolve(p, debug = false))
+    }
+
+    @Test fun doubleUnitsWithoutTheNormalUnitsFailAtBuildTime() {
+        val e = runCatching { AdsConfig.builder().splashAppOpenDoubleUnits("a").build() }.exceptionOrNull()
+        assertTrue(e is IllegalStateException)
+    }
+
+    @Test fun remoteEnabledFalseTurnsTheWholeConfigOff() {
+        val base = AdsConfig.builder().splashAppOpenUnits("a").build()
+        val c = RemoteOverrides.apply(base, """{"enabled":false}""")
+        assertFalse(c.enabled); assertFalse(c.placement(Placements.SPLASH)!!.enabled)
     }
 }

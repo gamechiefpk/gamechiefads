@@ -21,12 +21,25 @@ internal class BannerController(
     private val screens: ScreenHost,
     private val scope: CoroutineScope,
     private val load: suspend (android.content.Context, String, Int, BannerType) -> LoadedBanner?,
+    private val placeholder: () -> BannerPlaceholder? = { null },
 ) {
     private val live = ArrayList<WeakReference<FrameLayout>>()
 
     /** [forceType] ignores the placement's configured type (bannerForSplash always uses LARGE_BANNER). */
     fun attach(container: FrameLayout, name: String, listener: BannerListener? = null, forceType: BannerType? = null) {
-        val p = config().placement(name)?.let { if (forceType != null) it.copy(bannerType = forceType) else it }
+        val p = config().placement(name)?.takeIf { config().enabled }?.let { if (forceType != null) it.copy(bannerType = forceType) else it }
+        attachPlacement(container, name, p, listener)
+    }
+
+    /** One ad unit, one type, no floors, no config entry: full control from the call site. */
+    fun attachUnit(container: FrameLayout, unitId: String, type: BannerType, listener: BannerListener? = null) {
+        val p = if (config().enabled && unitId.isNotBlank()) {
+            PlacementConfig("custom_banner", AdFormat.BANNER, units = listOf(unitId), bannerType = type, tierTimeoutMs = 5_000L)
+        } else null
+        attachPlacement(container, "custom_banner", p, listener)
+    }
+
+    private fun attachPlacement(container: FrameLayout, name: String, p: PlacementConfig?, listener: BannerListener?) {
         if (p == null || !p.enabled || state.premium.value) {
             AdLog.d("banner") { "$name: not loaded (known=${p != null}, enabled=${p?.enabled}, premium=${state.premium.value})" }
             clear(container)
@@ -39,6 +52,7 @@ internal class BannerController(
             return // live banner already there or loading: reuse
         }
         AdLog.d("banner") { "$name: load start" }
+        runCatching { placeholder()?.show(container, p.bannerType) }
         val ctx = container.context
         val widthDp = widthDp(container)
         val job = scope.launch(start = CoroutineStart.LAZY) {
@@ -47,6 +61,7 @@ internal class BannerController(
                 if (banner == null || !container.isAttachedToWindow || state.premium.value) {
                     AdLog.d("banner") { "$name: dropped (loaded=${banner != null}, attached=${container.isAttachedToWindow}, premium=${state.premium.value})" }
                     banner?.destroy()
+                    runCatching { placeholder()?.remove(container) }
                     container.setTag(TAG, null)
                     container.visibility = View.GONE
                     listener?.onFailed("no fill")
@@ -63,6 +78,7 @@ internal class BannerController(
                 throw e
             } catch (t: Throwable) {
                 AdLog.d("banner") { "$name: error $t" }
+                runCatching { placeholder()?.remove(container) }
                 container.setTag(TAG, null)
                 container.visibility = View.GONE
                 listener?.onFailed(t.message ?: "error")

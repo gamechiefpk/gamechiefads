@@ -18,8 +18,8 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class SplashFlowTest {
     private fun TestScope.rig(second: Boolean = false, ready: Boolean = true): Rig {
-        val b = AdsConfig.builder().appOpen(Placements.SPLASH).units("s1")
-        if (second) b.appOpen(Placements.SPLASH_SECOND).units("s2")
+        val b = AdsConfig.builder().splashAppOpenUnits("s1")
+        if (second) b.splashAppOpenDoubleUnits("s2")
         return Rig(this, b.splashTimeoutMs(10_000).build(), ready)
     }
 
@@ -59,7 +59,7 @@ class SplashFlowTest {
         // tier and overall limits are loose here on purpose: the splash hard limit must still win
         val r = Rig(
             this,
-            AdsConfig.builder().appOpen(Placements.SPLASH).units("s1").tierTimeoutMs(60_000)
+            AdsConfig.builder().splashAppOpenUnits("s1").tierTimeoutMs(60_000)
                 .overallBudgetMs(60_000).splashTimeoutMs(10_000).build(),
         )
         val res = Result()
@@ -76,7 +76,7 @@ class SplashFlowTest {
         val r = rig(second = true); val res = Result()
         val first = FakeAd.manual(); val secondAd = FakeAd.manual()
         r.loadBehavior = { if (it == "s1") first else secondAd }
-        r.splash.prepare(r.activity, res.callback)
+        r.splash.prepare(r.activity, res.callback, double = true)
         advanceUntilIdle()
         var done = 0
         res.ads!!.show(r.activity) { done++ }
@@ -94,7 +94,7 @@ class SplashFlowTest {
     @Test fun secondSplashAdThatIsSlowIsDroppedAfterItsOwnTimeout() = runTest {
         val r = rig(second = true); val res = Result()
         r.loadBehavior = { if (it == "s1") FakeAd() else { delay(60_000); FakeAd(it) } }
-        r.splash.prepare(r.activity, res.callback)
+        r.splash.prepare(r.activity, res.callback, double = true)
         advanceUntilIdle()
         assertEquals(1, res.calls); assertTrue(res.ads!!.hasAd())
         assertTrue(currentTime <= 3_000L) // not held up beyond the second ad's own tier timeout
@@ -116,7 +116,7 @@ class SplashFlowTest {
     @Test fun missingSecondAdJustFinishesAfterTheFirst() = runTest {
         val r = rig(second = true); val res = Result()
         r.loadBehavior = { if (it == "s1") FakeAd() else null }
-        r.splash.prepare(r.activity, res.callback)
+        r.splash.prepare(r.activity, res.callback, double = true)
         advanceUntilIdle()
         var done = 0
         res.ads!!.show(r.activity) { done++ }

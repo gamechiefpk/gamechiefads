@@ -15,11 +15,6 @@
         <!-- true (default): the view becomes GONE when there is no ad -->
         <attr name="gads_hideOnFail" format="boolean" />
     </declare-styleable>
-    <declare-styleable name="BannerAdView">
-        <attr name="gads_placement" />
-        <attr name="gads_autoLoad" />
-        <attr name="gads_hideOnFail" />
-    </declare-styleable>
     <declare-styleable name="ShimmerView">
         <attr name="gads_cornerRadius" format="dimension" />
     </declare-styleable>

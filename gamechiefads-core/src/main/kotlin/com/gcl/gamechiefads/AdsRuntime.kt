@@ -26,6 +26,24 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
         private set
     @Volatile var loaderUi: AdLoaderUi? = null
 
+    /**
+     * The loading dialog is compulsory for every ad that loads at runtime. When the app set none, the ui module's
+     * default dialog is used (found by name, so the core module needs no UI code). Null only if the ui module is missing.
+     */
+    /** The ui module's shimmer for banners, found by name like the loading dialog. */
+    private val shimmer: BannerPlaceholder? by lazy {
+        runCatching {
+            Class.forName("com.gcl.gamechiefads.ui.ShimmerBannerPlaceholder").getConstructor().newInstance() as BannerPlaceholder
+        }.getOrNull()
+    }
+
+    private val defaultLoader: AdLoaderUi? by lazy {
+        runCatching {
+            Class.forName("com.gcl.gamechiefads.ui.DefaultLoaderDialog")
+                .getConstructor(CharSequence::class.java).newInstance(null as CharSequence?) as AdLoaderUi
+        }.onFailure { AdLog.d("init") { "no default loading dialog (add the gamechiefads-ui module): $it" } }.getOrNull()
+    }
+
     val state = AdState()
     private val debuggable = AdUnits.isDebuggable(app)
     init {
@@ -49,11 +67,11 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
     private val pipeline = AdLoadPipeline({ config }, gate::ready, AdUnits.isDebuggable(app), FloorPolicy(clock))
     private val shower = FullScreenShower(state, clock, scope)
 
-    val rewarded = RewardedController(state, { config }, pipeline, shower, tracker, scope, clock, { loaderUi }, RewardedSource::load)
+    val rewarded = RewardedController(state, { config }, pipeline, shower, tracker, scope, clock, { loaderUi ?: defaultLoader }, RewardedSource::load)
 
     val interstitial = InterstitialController(
         state, { config }, AdPool(clock = clock), pipeline, shower, tracker, scope, clock,
-        { loaderUi }, InterstitialSource::load,
+        { loaderUi ?: defaultLoader }, InterstitialSource::load,
     )
     private val appOpen = AppOpenController(
         state, { config }, AdPool(ttlMs = APP_OPEN_TTL_MS, clock = clock), pipeline, shower, tracker, scope, clock,
@@ -61,7 +79,7 @@ internal class AdsRuntime(app: Application, baseConfig: AdsConfig) {
     )
     private val random = RandomInterstitialTrigger(state, { config }, tracker, interstitial, scope, clock)
     val splash = SplashFlow(state, { config }, pipeline, shower, tracker, scope, AppOpenSource::load, InterstitialSource::load)
-    val banner = BannerController(state, { config }, pipeline, tracker, scope, BannerSource::load)
+    val banner = BannerController(state, { config }, pipeline, tracker, scope, BannerSource::load, { shimmer })
     val slots = FullScreenSlots(state, { config }, tracker, clock)
     val native = NativeController(state, { config }, pipeline, tracker, scope, NativeSource::load)
 

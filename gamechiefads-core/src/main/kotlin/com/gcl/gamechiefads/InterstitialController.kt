@@ -24,10 +24,43 @@ internal class InterstitialController(
 ) {
 
     /** Default path: load now, then show. [listener] may be null. */
-    fun showOnDemand(activity: Activity, name: String, listener: InterstitialListener?) {
+    fun showOnDemand(activity: Activity, name: String, listener: InterstitialListener?, double: Boolean? = null) {
         val events = ListenerDispatcher(listener)
-        AdLog.d("interstitial") { "$name: showOnDemand requested from ${activity.javaClass.simpleName}" }
-        val p = allowed(activity, name, events) ?: return
+        AdLog.d("interstitial") { "$name: showOnDemand requested from ${activity.javaClass.simpleName} (double=$double)" }
+        val p = allowed(activity, name, events)?.let { if (double != null) it.copy(doubleAd = double) else it } ?: return
+        runOnDemand(activity, name, p, events)
+    }
+
+    private var callsSinceAd = 0
+
+    /**
+     * "Random" interstitial for clicks: the app calls this on a click, the library decides (premium, ad showing, excluded
+     * screen, min gap, every N calls). Not allowed = nothing happens and the listener gets onNotShown + onComplete(false).
+     * Allowed = loader dialog, floors, show (one ad, or two for [double]). The counter restarts only when an ad was shown.
+     */
+    fun showRandom(activity: Activity, listener: InterstitialListener?, double: Boolean) {
+        val events = ListenerDispatcher(object : InterstitialListener {
+            override fun onShown() { callsSinceAd = 0; listener?.onShown() }
+            override fun onClosed() { listener?.onClosed() }
+            override fun onNotShown(reason: String) { listener?.onNotShown(reason) }
+            override fun onComplete(wasShown: Boolean) { listener?.onComplete(wasShown) }
+        })
+        val p = config().placement(Placements.RANDOM)?.takeIf { config().enabled }
+        if (p == null) {
+            events.onFinished(false, "random interstitial is not configured or ads are off")
+            return
+        }
+        callsSinceAd++
+        val decision = AdPolicy.evaluateClick(p, state.context(clock(), activity.javaClass.name), callsSinceAd)
+        AdLog.d("random") { "click on ${activity.javaClass.simpleName}: $decision (call $callsSinceAd/${p.everyNCalls}, gap=${p.minGapSeconds}s, double=$double)" }
+        if (decision != Decision.ALLOW) {
+            events.onFinished(false, decision.name)
+            return
+        }
+        runOnDemand(activity, Placements.RANDOM, p.copy(doubleAd = double), events)
+    }
+
+    private fun runOnDemand(activity: Activity, name: String, p: PlacementConfig, events: ListenerDispatcher) {
         state.setAdShowing(true) // claim the slot before loading
         scope.launch {
             var handedOver = false

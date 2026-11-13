@@ -30,7 +30,7 @@ import com.google.android.libraries.ads.mobile.sdk.nativead.NativeAd
  * users never see it, and it resets the gap and screen counter like any other ad).
  *
  * ```java
- * GamechiefAds.showInterstitial ... // same listener type:
+ * // same listener type as the interstitials:
  * FullScreenNativeAd.show(this, AdIds.EXIT_NATIVE, new InterstitialListener() {
  *     @Override public void onComplete(boolean wasShown) { finish(); }
  * });
@@ -51,7 +51,7 @@ object FullScreenNativeAd {
     @JvmOverloads
     fun show(activity: Activity, placement: AdPlacement, listener: InterstitialListener? = null, options: Options = Options()) {
         val events = Once(listener)
-        val slot = GamechiefAds.openFullScreenSlot(activity, placement)
+        val slot = GamechiefAds.openFullScreenSlot(activity, placement.name)
         if (slot == null) {
             events.notShown("not allowed now (premium, disabled or another ad is showing)")
             return
@@ -59,7 +59,7 @@ object FullScreenNativeAd {
         val loader = options.loader
         runCatching { loader?.show(activity) }
         GamechiefAds.loadNative(
-            activity, placement,
+            activity, placement.name,
             object : NativeLoadCallback {
                 override fun onLoaded(ad: NativeAd) {
                     runCatching { loader?.dismiss() }

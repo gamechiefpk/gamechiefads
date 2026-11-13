@@ -5,7 +5,7 @@ import android.widget.Button;
 
 import com.gcl.gamechiefads.GamechiefAds;
 
-/** Hub: one button per ad type, plus premium and remote-override switches. */
+/** Hub: one button per ad type, plus premium and Remote Config switches. */
 public class MainActivity extends DemoActivity {
     private boolean premium;
 
@@ -18,15 +18,15 @@ public class MainActivity extends DemoActivity {
     protected void build() {
         note("Google test ads only. Open a screen per ad type. The dark box below is the event log of every screen.");
 
-        button("Interstitials: on-demand, preload, double tap", () -> open(InterstitialActivity.class));
-        button("Rewarded ad (coins)", () -> open(RewardedActivity.class));
-        button("Banner", () -> open(BannerActivity.class));
-        button("Native: all 6 sizes + style", () -> open(NativeActivity.class));
-        button("App-open (leave and return)", () -> open(AppOpenActivity.class));
-        button("Random interstitial (screen counter)", () -> open(SecondActivity.class));
-        button("Library trace (logcat GamechiefAds)", () -> open(TraceActivity.class));
         button("Splash lab: app open / interstitial, flooring, double", () -> open(SplashLabActivity.class));
-        button("Run the splash again", () -> open(SplashActivity.class));
+        button("Random click interstitial (single and double)", () -> open(SecondActivity.class));
+        button("Interstitials: random, custom spot, preload", () -> open(InterstitialActivity.class));
+        button("Rewarded ad (coins)", () -> open(RewardedActivity.class));
+        button("Banners: ready-made and custom", () -> open(BannerActivity.class));
+        button("Native: intro, full screen, 6 sizes", () -> open(NativeActivity.class));
+        button("App-open (leave and return)", () -> open(AppOpenActivity.class));
+        button("Library trace (logcat GamechiefAds)", () -> open(TraceActivity.class));
+        button("Run the real splash again", () -> open(SplashActivity.class));
 
         note("Switches");
         Button p = button("Premium: OFF (tap to turn on)", () -> { });
@@ -37,36 +37,33 @@ public class MainActivity extends DemoActivity {
             say("premium=" + premium);
         });
 
-        button("Remote override: random every screen, no gap", () -> {
-            GamechiefAds.applyRemoteOverrides("{\"placements\":{\"random\":{\"every\":1,\"gap\":0}}}");
-            say("remote: random every=1 gap=0");
+        note("Remote Config (what you would read from Firebase and pass to applyRemoteConfig)");
+        button("Random: every call, no gap", () -> {
+            GamechiefAds.applyRemoteConfig("{\"placements\":{\"random\":{\"everyNCalls\":1,\"gap\":0}}}");
+            say("remote: random everyNCalls=1 gap=0");
         });
-        button("Remote override: random every 3 screens, gap 30 s", () -> {
-            GamechiefAds.applyRemoteOverrides("{\"placements\":{\"random\":{\"every\":3,\"gap\":30}}}");
-            say("remote: random every=3 gap=30");
+        button("Random: every 3rd call, gap 30 s", () -> {
+            GamechiefAds.applyRemoteConfig("{\"placements\":{\"random\":{\"everyNCalls\":3,\"gap\":30}}}");
+            say("remote: random everyNCalls=3 gap=30");
         });
-        button("Remote override: double ON (manual + app-open)", () -> {
-            GamechiefAds.applyRemoteOverrides("{\"placements\":{\"manual\":{\"double\":true},\"app_open\":{\"double\":true}}}");
-            say("remote: manual + app_open double=true");
+        button("Random: floors in PARALLEL", () -> {
+            GamechiefAds.applyRemoteConfig("{\"placements\":{\"random\":{\"waterfall\":\"parallel\"}}}");
+            say("remote: random waterfall=parallel");
         });
-        button("Remote override: random DOUBLE, every screen, no gap", () -> {
-            GamechiefAds.applyRemoteOverrides("{\"placements\":{\"random\":{\"every\":1,\"gap\":0,\"double\":true}}}");
-            say("remote: random double=true every=1 gap=0 (open Second screen)");
+        button("Banner slot as medium rectangle", () -> {
+            GamechiefAds.applyRemoteConfig("{\"placements\":{\"banner\":{\"bannerType\":\"MEDIUM_RECTANGLE\"}}}");
+            say("remote: banner -> MEDIUM_RECTANGLE (open Banners again)");
         });
-        button("Remote override: floors run in PARALLEL", () -> {
-            GamechiefAds.applyRemoteOverrides("{\"placements\":{\"floors\":{\"waterfall\":\"parallel\"}}}");
-            say("remote: floors waterfall=parallel");
+        button("Loading text from Remote Config", () -> {
+            GamechiefAds.applyRemoteConfig("{\"loaderTitle\":\"Loading ad\",\"loaderMessage\":\"Almost there, please wait\"}");
+            say("remote: loader text changed");
         });
-        button("Remote override: banners as medium rectangle", () -> {
-            GamechiefAds.applyRemoteOverrides("{\"placements\":{\"banner_adaptive\":{\"bannerType\":\"MEDIUM_RECTANGLE\"}}}");
-            say("remote: banner_adaptive -> MEDIUM_RECTANGLE (open Banners again)");
-        });
-        button("Remote override: ALL ads off", () -> {
-            GamechiefAds.applyRemoteOverrides("{\"enabled\":false}");
+        button("ALL ads off", () -> {
+            GamechiefAds.applyRemoteConfig("{\"enabled\":false}");
             say("remote: enabled=false");
         });
-        button("Remote override: back to app defaults", () -> {
-            GamechiefAds.applyRemoteOverrides(null);
+        button("Back to app defaults", () -> {
+            GamechiefAds.applyRemoteConfig(null);
             say("remote: cleared");
         });
         button("Clear log", () -> {

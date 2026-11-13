@@ -10,19 +10,24 @@ public class InterstitialActivity extends DemoActivity {
 
     @Override
     protected void build() {
-        note("On-demand (default): loader overlay, waterfall, load, then show.");
-        button("Show (on-demand)", () -> GamechiefAds.showInterstitial(this, AdIds.MANUAL, listener("on-demand")));
-        button("Show with a null listener (must not crash)", () -> {
-            GamechiefAds.showInterstitial(this, AdIds.MANUAL, null);
+        note("Random click interstitial: call it on any click. The library decides (min gap 15 s, every 2nd call). "
+                + "When due, the \"Ad is loading, please wait\" dialog shows while the ad loads. The first floor never fills.");
+        button("loadRandomInterstitialAd()", () ->
+                GamechiefAds.loadRandomInterstitialAd(this, listener("random")));
+        button("loadRandomInterstitialDoubleAd()  (two ads together)", () ->
+                GamechiefAds.loadRandomInterstitialDoubleAd(this, listener("random double")));
+        button("Null listener (must not crash)", () -> {
+            GamechiefAds.loadRandomInterstitialAd(this, null);
             say("null-listener call made");
         });
-        button("Double tap test: two calls at once", () -> {
+        button("Two calls at once (the second is refused)", () -> {
             say("calling twice; the second must be refused (DENY_AD_SHOWING)");
-            GamechiefAds.showInterstitial(this, AdIds.MANUAL, listener("call 1"));
-            GamechiefAds.showInterstitial(this, AdIds.MANUAL, listener("call 2"));
+            GamechiefAds.loadRandomInterstitialAd(this, listener("call 1"));
+            GamechiefAds.loadRandomInterstitialAd(this, listener("call 2"));
         });
 
-        button("Preview the loading overlay (4 s)", () -> {
+        note("Loading dialog preview (4 s). It is always shown when an ad loads at runtime.");
+        button("Preview the loading dialog", () -> {
             com.gcl.gamechiefads.ui.DefaultLoaderDialog d = com.gcl.gamechiefads.ui.DefaultLoaderDialog.builder()
                     .title("Ad is loading").message("Please wait…")
                     .tips("Tip: ads help keep this app free", "Tip: premium removes all ads").build();
@@ -30,13 +35,8 @@ public class InterstitialActivity extends DemoActivity {
             content.postDelayed(d::dismiss, 4000);
         });
 
-        note("Double: two ads load together and play back to back, like one ad break. "
-                + "Remote Config can switch this on or off per placement (see the hub).");
-        button("Show double interstitial", () -> GamechiefAds.showInterstitial(this, AdIds.DOUBLE_INTERSTITIAL, listener("double")));
-
-        note("Floors: the high floor never fills (own 1.5 s timeout), is skipped after 2 misses for 60 s, then retried. "
-                + "Tap 3 times and watch the Library trace.");
-        button("Load with floors (HF, MF, NORMAL)", () -> GamechiefAds.showInterstitial(this, AdIds.FLOORS, listener("floors")));
+        note("Your own extra spot (here \"manual\"): shows whenever you call it, no pacing.");
+        button("loadInterstitialAd(MANUAL)", () -> GamechiefAds.loadInterstitialAd(this, AdIds.MANUAL, listener("manual")));
 
         note("Preloaded (opt-in): nothing is requested until you ask, and nothing refills by itself.");
         button("1. Preload", () -> {

@@ -2,82 +2,72 @@ package com.gcl.gamechiefads.sample;
 
 import android.app.Application;
 
-import com.gcl.gamechiefads.AdPlacement;
 import com.gcl.gamechiefads.AdsConfig;
-import com.gcl.gamechiefads.BannerType;
 import com.gcl.gamechiefads.GamechiefAds;
-import com.gcl.gamechiefads.Placements;
 import com.gcl.gamechiefads.ui.DefaultLoaderDialog;
 
+/**
+ * ALL ad units of the app, in one place. Here every id is a Google TEST id; in your app use your own ids.
+ * "Units" with several ids are floors: the first id is tried first (high floor), then the next, then the next.
+ */
 public class SampleApp extends Application {
-    /** An id that never fills: stands in for a high floor that misses. */
+    /** An id that never fills: stands in for a high floor that misses, so you can see the floors in the trace. */
     static final String NO_FILL_UNIT = "ca-app-pub-3940256099942544/0000000000";
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        // An id that never fills: stands in for a "high floor" that misses, to show the floor controls.
-        final String HIGH_FLOOR_NO_FILL = NO_FILL_UNIT;
+        final String interstitial = getString(R.string.unit_interstitial);
+        final String appOpen = getString(R.string.unit_app_open);
+        final String banner = getString(R.string.unit_banner);
+        final String nativeUnit = getString(R.string.unit_native);
 
-        // 3000 ms per tier is fine on real devices; the emulator is slow, so the sample uses 10000
+        // 3000 ms per unit is fine on real devices; an emulator is slow, so the sample uses 10000.
         AdsConfig config = AdsConfig.builder()
                 .appId(getString(R.string.admob_app_id))
-                .testIdsInDebug(false) // lets the FLOORS demo use its own ids in debug (all ids here are Google test ids)
+                .testIdsInDebug(false) // lets this sample show its own (test) ids and the floors, even in a debug build
 
-                // shown automatically every 2 screens, at most every 15 s, never on the splash, never on back presses.
-                .interstitial(Placements.RANDOM)
-                .unitsRes(this, R.string.unit_interstitial).tierTimeoutMs(10000)
-                .everyNScreens(2).minGapSeconds(15)
-                .excludeScreens(SplashActivity.class)
+                // ---- splash ----
+                .splashAppOpenUnits(NO_FILL_UNIT, appOpen, appOpen).tierTimeoutMs(10000).unitTimeoutMs(NO_FILL_UNIT, 1500)
+                .splashAppOpenDoubleUnits(NO_FILL_UNIT, appOpen)          // units of the SECOND ad of a double splash
+                .splashInterstitialUnits(NO_FILL_UNIT, interstitial, interstitial).tierTimeoutMs(10000).unitTimeoutMs(NO_FILL_UNIT, 1500)
+                .splashInterstitialDoubleUnits(NO_FILL_UNIT, interstitial)
+                .splashBannerUnits(banner).tierTimeoutMs(10000)           // always a 320x100 large banner
 
-                // called by name from the app. loaderText = personalised text of the loading overlay.
-                .interstitial(AdIds.MANUAL).unitsRes(this, R.string.unit_interstitial).tierTimeoutMs(10000)
-                .loaderText("Ad is loading", "Please wait, it will open in a moment")
-                .interstitial(AdIds.PRELOADED).unitsRes(this, R.string.unit_interstitial).tierTimeoutMs(10000)
-                // two ads back to back, like one ad break (also switchable by Remote Config: "double": true)
-                .interstitial(AdIds.DOUBLE_INTERSTITIAL).unitsRes(this, R.string.unit_interstitial).tierTimeoutMs(10000)
-                .doubleAd(true)
-                // floors: HF never fills, gets a short own timeout and is skipped after 2 misses for 60 s
-                .interstitial(AdIds.FLOORS)
-                .units(HIGH_FLOOR_NO_FILL, getString(R.string.unit_interstitial), getString(R.string.unit_interstitial))
-                .tierTimeoutMs(10000).unitTimeoutMs(HIGH_FLOOR_NO_FILL, 1500).skipUnitAfterFails(2, 60)
+                // ---- app open when the user returns to the app: ONE unit, no floors ----
+                .appOpenUnit(appOpen).minGapSeconds(10).excludeScreens(SplashActivity.class)
 
-                // splash: an app-open ad by default (use .interstitial(Placements.SPLASH) for an interstitial instead).
-                // Floors: the first unit never fills, so flooring ON shows a miss before the hit; flooring OFF asks only the last unit.
-                .appOpen(Placements.SPLASH)
-                .units(HIGH_FLOOR_NO_FILL, getString(R.string.unit_app_open), getString(R.string.unit_app_open))
-                .tierTimeoutMs(10000).unitTimeoutMs(HIGH_FLOOR_NO_FILL, 1500)
-                .flooring(true).doubleAd(true)
-                // large banner shown on the splash screen with GamechiefAds.bannerForSplash / AdsUi.bannerForSplash
-                .banner(AdPlacement.SPLASH_BANNER).unitsRes(this, R.string.unit_banner).tierTimeoutMs(10000)
-                .appOpen(Placements.APP_OPEN).unitsRes(this, R.string.unit_app_open).tierTimeoutMs(10000)
-                .minGapSeconds(10).excludeScreens(SplashActivity.class)
+                // ---- banners ----
+                .bannerUnits(banner).tierTimeoutMs(10000)                  // all normal screens
+                .exitBannerUnits(banner).tierTimeoutMs(10000)              // exit screen (a medium rectangle by default)
 
-                // one banner placement per banner type
-                .banner(AdIds.BANNER_ADAPTIVE).unitsRes(this, R.string.unit_banner).tierTimeoutMs(10000)
-                .bannerType(BannerType.ADAPTIVE)
-                .banner(AdIds.BANNER_COLLAPSIBLE).unitsRes(this, R.string.unit_banner).tierTimeoutMs(10000)
-                .bannerType(BannerType.COLLAPSIBLE_BOTTOM)
-                .banner(AdIds.BANNER_RECT).unitsRes(this, R.string.unit_banner).tierTimeoutMs(10000)
-                .bannerType(BannerType.MEDIUM_RECTANGLE)
-                .banner(AdIds.BANNER_LARGE).unitsRes(this, R.string.unit_banner).tierTimeoutMs(10000)
-                .bannerType(BannerType.LARGE_BANNER)
-                .banner(AdIds.BANNER_STANDARD).unitsRes(this, R.string.unit_banner).tierTimeoutMs(10000)
-                .bannerType(BannerType.BANNER)
-                .banner(AdIds.BANNER_INLINE).unitsRes(this, R.string.unit_banner).tierTimeoutMs(10000)
-                .bannerType(BannerType.INLINE_ADAPTIVE)
+                // ---- interstitial on random clicks (with floors), double has its own units ----
+                .randomInterstitialUnits(NO_FILL_UNIT, interstitial, interstitial).tierTimeoutMs(10000).unitTimeoutMs(NO_FILL_UNIT, 1500)
+                    .minGapSeconds(15).everyNCalls(2)
+                .randomInterstitialDoubleUnits(NO_FILL_UNIT, interstitial)
 
-                .rewarded(AdIds.REWARDED).unitsRes(this, R.string.unit_rewarded).tierTimeoutMs(10000)
-                .nativeAd(AdIds.NATIVE_MAIN).unitsRes(this, R.string.unit_native).tierTimeoutMs(10000)
-                .nativeAd(AdIds.NATIVE_FULLSCREEN).unitsRes(this, R.string.unit_native).tierTimeoutMs(10000)
+                // ---- native ----
+                .introNativeUnits(NO_FILL_UNIT, nativeUnit, nativeUnit).tierTimeoutMs(10000).unitTimeoutMs(NO_FILL_UNIT, 1500) // small, floors
+                .fullScreenNativeUnit(nativeUnit)                          // one unit, no floors
+
+                // ---- rewarded ----
+                .rewardedUnits(getString(R.string.unit_rewarded)).tierTimeoutMs(10000)
+
+                // ---- optional extra spots you name yourself (here: the demo screens) ----
+                .interstitial(AdIds.MANUAL).units(interstitial).tierTimeoutMs(10000)
+                .interstitial(AdIds.PRELOADED).units(interstitial).tierTimeoutMs(10000)
+                .nativeAd(AdIds.NATIVE_MAIN).units(nativeUnit).tierTimeoutMs(10000)
+
                 .initTimeoutMs(15000)      // emulators can need 10 s+ for the first SDK init; phones need ~1-2 s
                 .splashTimeoutMs(25000)
                 .overallBudgetMs(15000)
                 .build();
 
         GamechiefAds.init(this, config);
-        GamechiefAds.setLoaderUi(DefaultLoaderDialog.builder()
+
+        // Optional: the "Ad is loading, please wait" dialog is built in. This only changes its look and tips.
+        GamechiefAds.setLoadingDialog(DefaultLoaderDialog.builder()
                 .title("Ad is loading")
                 .message("Please wait…")
                 .tips("Tip: ads help keep this app free", "Tip: premium removes all ads")

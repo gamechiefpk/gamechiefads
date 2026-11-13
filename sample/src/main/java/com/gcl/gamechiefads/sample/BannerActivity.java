@@ -3,18 +3,17 @@ package com.gcl.gamechiefads.sample;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
-import com.gcl.gamechiefads.AdPlacement;
 import com.gcl.gamechiefads.BannerListener;
-import com.gcl.gamechiefads.ui.AdsUi;
+import com.gcl.gamechiefads.BannerType;
+import com.gcl.gamechiefads.GamechiefAds;
 
 /**
- * No XML for the banners: the app only has a FrameLayout, and AdsUi.banner(frame, placement) loads into it.
- * The banner TYPE is not chosen here but in the placement config (see SampleApp). One banner at a time, so a slow
- * emulator is not asked for six ads at once.
+ * No XML for banners: the app only has a FrameLayout and the library fills it. A shimmer shows while it loads (when the
+ * ui module is in the app). One banner at a time, so a slow emulator is not asked for six ads at once.
  */
 public class BannerActivity extends DemoActivity {
-    private LinearLayout host; // where the normal banners go
-    private FrameLayout current;
+    private static final String UNIT = "ca-app-pub-3940256099942544/9214589741"; // Google test banner
+    private LinearLayout host;
 
     @Override
     protected String screenTitle() {
@@ -23,35 +22,45 @@ public class BannerActivity extends DemoActivity {
 
     @Override
     protected void build() {
-        note("Pick a type. Each one is a FrameLayout loaded from code; the type comes from the placement config.");
-        button("Adaptive (anchored)", () -> inline(AdIds.BANNER_ADAPTIVE, "adaptive"));
-        button("Medium rectangle 300x250", () -> inline(AdIds.BANNER_RECT, "medium rectangle"));
-        button("Large banner 320x100", () -> inline(AdIds.BANNER_LARGE, "large banner"));
-        button("Standard banner 320x50", () -> inline(AdIds.BANNER_STANDARD, "standard"));
-        button("Inline adaptive", () -> inline(AdIds.BANNER_INLINE, "inline adaptive"));
-        button("Collapsible (pinned to the bottom)", this::collapsible);
+        note("Ready-made slots (units come from the config):");
+        button("loadBannerAd()  (all screens)", () -> show("banner", f -> GamechiefAds.loadBannerAd(f, bannerListener("banner"))));
+        button("loadExitBannerAd()  (medium rectangle)", () -> show("exit banner", f -> GamechiefAds.loadExitBannerAd(f, bannerListener("exit banner"))));
+        button("loadSplashBannerAd()  (large banner)", () -> show("splash banner", f -> GamechiefAds.loadSplashBannerAd(f, bannerListener("splash banner"))));
+
+        note("Full control: your own ad unit, size and type, one call:");
+        button("Custom: adaptive", () -> custom(BannerType.ADAPTIVE));
+        button("Custom: medium rectangle 300x250", () -> custom(BannerType.MEDIUM_RECTANGLE));
+        button("Custom: large banner 320x100", () -> custom(BannerType.LARGE_BANNER));
+        button("Custom: standard banner 320x50", () -> custom(BannerType.BANNER));
+        button("Custom: inline adaptive", () -> custom(BannerType.INLINE_ADAPTIVE));
+        button("Custom: collapsible (pinned to the bottom)", () -> {
+            clear();
+            FrameLayout f = new FrameLayout(this);
+            bottomBar().addView(f, new FrameLayout.LayoutParams(-1, -2));
+            say("custom collapsible: loading at the bottom");
+            GamechiefAds.loadCustomBannerAd(f, UNIT, BannerType.COLLAPSIBLE_BOTTOM, bannerListener("collapsible"));
+        });
 
         host = new LinearLayout(this);
         host.setOrientation(LinearLayout.VERTICAL);
         content.addView(host, new LinearLayout.LayoutParams(-1, -2));
-        note("Collapsible: tap the arrow on the banner to expand it. It works with Google demand only; mediated ads "
-                + "show as a normal banner. Turn Premium on in the hub and come back: every banner must be gone.");
+        note("Collapsible: tap the arrow to expand it (Google demand only). Turn Premium on in the hub and come back: every banner must be gone.");
     }
 
-    private void inline(AdPlacement placement, String name) {
-        clear();
-        current = new FrameLayout(this);
-        host.addView(current, new LinearLayout.LayoutParams(-1, -2));
-        say("banner " + name + ": loading");
-        AdsUi.banner(current, placement, bannerListener(name));
+    private void custom(BannerType type) {
+        show("custom " + type, f -> GamechiefAds.loadCustomBannerAd(f, UNIT, type, bannerListener("custom " + type)));
     }
 
-    private void collapsible() {
+    private interface Loader {
+        void load(FrameLayout frame);
+    }
+
+    private void show(String name, Loader loader) {
         clear();
-        current = new FrameLayout(this);
-        bottomBar().addView(current, new FrameLayout.LayoutParams(-1, -2));
-        say("banner collapsible: loading at the bottom");
-        AdsUi.banner(current, AdIds.BANNER_COLLAPSIBLE, bannerListener("collapsible"));
+        FrameLayout f = new FrameLayout(this);
+        host.addView(f, new LinearLayout.LayoutParams(-1, -2));
+        say(name + ": loading");
+        loader.load(f);
     }
 
     /** Dropping the old container is all it takes: the library destroys the banner when its view leaves the window. */
@@ -64,12 +73,12 @@ public class BannerActivity extends DemoActivity {
         return new BannerListener() {
             @Override
             public void onLoaded() {
-                say("banner " + name + ": loaded");
+                say(name + ": loaded");
             }
 
             @Override
             public void onFailed(String reason) {
-                say("banner " + name + ": failed (" + reason + ")");
+                say(name + ": failed (" + reason + ")");
             }
         };
     }

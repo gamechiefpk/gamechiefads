@@ -1,8 +1,9 @@
 package com.gcl.gamechiefads.sample;
 
 import android.graphics.Color;
+import android.widget.FrameLayout;
 
-import com.gcl.gamechiefads.ui.FullScreenNativeAd;
+import com.gcl.gamechiefads.ui.AdsUi;
 import com.gcl.gamechiefads.ui.NativeAdTemplateView;
 import com.gcl.gamechiefads.ui.NativeStyle;
 
@@ -44,8 +45,17 @@ public class NativeActivity extends DemoActivity {
             });
         }
         loadFrom(0);
-        button("Full-screen native (like an interstitial)", () ->
-                FullScreenNativeAd.show(this, AdIds.NATIVE_FULLSCREEN, listener("native-fs")));
+        FrameLayout intro = new FrameLayout(this);
+        content.addView(intro, new android.widget.LinearLayout.LayoutParams(-1, -2));
+        button("AdsUi.loadIntroNativeAd()  (small, with floors)", () -> {
+            say("intro native: loading");
+            AdsUi.loadIntroNativeAd(intro, new NativeAdTemplateView.Listener() {
+                @Override public void onLoaded() { say("intro native: loaded"); }
+                @Override public void onFailed(String reason) { say("intro native: failed (" + reason + ")"); }
+            });
+        });
+        button("AdsUi.loadFullScreenNativeAd()  (like an interstitial, 1 unit)", () ->
+                AdsUi.loadFullScreenNativeAd(this, listener("native-fs")));
         button("Reload all (one after another)", () -> {
             say("native: reload all");
             loadFrom(0);

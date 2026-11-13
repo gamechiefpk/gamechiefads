@@ -59,7 +59,9 @@ internal class AdLoadPipeline(
         discard: (T) -> Unit,
     ): Pair<T, T?>? = coroutineScope {
         val d1 = async { load(p, activity, source, discard) }
-        val d2 = async { load(p, activity, source, discard) }
+        // the second ad uses its own units (own floors) when the placement has secondUnits
+        val p2 = p.copy(units = p.secondUnits.ifEmpty { p.units })
+        val d2 = async { load(p2, activity, source, discard) }
         val a = d1.await()
         if (a == null) {
             val only = d2.await() ?: return@coroutineScope null

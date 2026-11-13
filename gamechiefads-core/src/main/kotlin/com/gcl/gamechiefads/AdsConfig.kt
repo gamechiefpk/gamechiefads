@@ -27,6 +27,8 @@ data class AdsConfig(
     /** Default texts of the loading overlay for every placement without its own. Null = the loader's own text. */
     val loaderTitle: String? = null,
     val loaderMessage: String? = null,
+    /** false = every ad off (Remote Config {"enabled":false}). */
+    val enabled: Boolean = true,
 ) {
     fun placement(name: String): PlacementConfig? = placements[name]
 
@@ -55,6 +57,42 @@ data class AdsConfig(
         private var testIdsInDebug = true
         private var loaderTitle: String? = null
         private var loaderMessage: String? = null
+        private val pendingSecond = LinkedHashMap<String, List<String>>()
+
+        // ======== THE SIMPLE WAY: give every ad unit here, one method per slot ========
+        // "Units" with several ids = floors: the first id is tried first (high floor), then the next, then the next.
+        // After a slot method you can chain options for that slot, e.g. .bannerUnits(A, B).bannerType(BannerType.ADAPTIVE).
+
+        /** Splash app-open ad (call GamechiefAds.loadSplashAppOpenAd). Floors: HF, MF, NORMAL. */
+        fun splashAppOpenUnits(vararg ids: String) = slot(Placements.SPLASH, AdFormat.APP_OPEN, ids)
+        /** Units of the SECOND splash app-open ad (GamechiefAds.loadSplashAppOpenDoubleAd). Not given = the first units are used twice. */
+        fun splashAppOpenDoubleUnits(vararg ids: String) = second(Placements.SPLASH, ids)
+        /** Splash interstitial ad, for apps that show an interstitial on the splash (GamechiefAds.loadSplashInterstitialAd). */
+        fun splashInterstitialUnits(vararg ids: String) = slot(Placements.SPLASH_INTERSTITIAL, AdFormat.INTERSTITIAL, ids)
+        fun splashInterstitialDoubleUnits(vararg ids: String) = second(Placements.SPLASH_INTERSTITIAL, ids)
+        /** Large banner on the splash screen (GamechiefAds.loadSplashBannerAd). */
+        fun splashBannerUnits(vararg ids: String) = slot(Placements.SPLASH_BANNER, AdFormat.BANNER, ids).bannerType(BannerType.LARGE_BANNER)
+        /** App-open ad when the user returns to the app: ONE unit, no floors. Automatic, nothing to call. */
+        fun appOpenUnit(id: String) = slot(Placements.APP_OPEN, AdFormat.APP_OPEN, arrayOf(id))
+        /** Banner for all normal screens (GamechiefAds.loadBannerAd). */
+        fun bannerUnits(vararg ids: String) = slot(Placements.BANNER, AdFormat.BANNER, ids)
+        /** Banner for the exit screen (GamechiefAds.loadExitBannerAd). A medium rectangle unless you chain .bannerType(...). */
+        fun exitBannerUnits(vararg ids: String) = slot(Placements.EXIT_BANNER, AdFormat.BANNER, ids).bannerType(BannerType.MEDIUM_RECTANGLE)
+        /** Interstitial for random clicks (GamechiefAds.loadRandomInterstitialAd). Chain .minGapSeconds(30).everyNCalls(3) to pace it. */
+        fun randomInterstitialUnits(vararg ids: String) = slot(Placements.RANDOM, AdFormat.INTERSTITIAL, ids)
+        /** Units of the SECOND random interstitial (GamechiefAds.loadRandomInterstitialDoubleAd). */
+        fun randomInterstitialDoubleUnits(vararg ids: String) = second(Placements.RANDOM, ids)
+        /** Small native ad at the bottom of the intro screens (AdsUi.loadIntroNativeAd). Floors. */
+        fun introNativeUnits(vararg ids: String) = slot(Placements.INTRO_NATIVE, AdFormat.NATIVE, ids)
+        /** Full-screen native ad like an interstitial (AdsUi.loadFullScreenNativeAd): ONE unit, no floors. */
+        fun fullScreenNativeUnit(id: String) = slot(Placements.FULLSCREEN_NATIVE, AdFormat.NATIVE, arrayOf(id))
+        /** Rewarded ad (GamechiefAds.loadRewardedAd). Floors. */
+        fun rewardedUnits(vararg ids: String) = slot(Placements.REWARDED, AdFormat.REWARDED, ids)
+
+        /** Random interstitial: show only on every N-th call (default 1 = every call that passes the min gap). */
+        fun everyNCalls(n: Int) = edit { it.copy(everyNCalls = n.coerceAtLeast(1)) }
+
+        // ======== ADVANCED: your own extra spots, called by name ========
 
         fun interstitial(name: String) = start(name, AdFormat.INTERSTITIAL)
         fun appOpen(name: String) = start(name, AdFormat.APP_OPEN)
@@ -122,7 +160,23 @@ data class AdsConfig(
 
         fun build(): AdsConfig {
             commit()
-            return AdsConfig(done.toMap(), appId, remoteConfigKey, fallbackToLoad, autoRefill, overallBudgetMs, splashTimeoutMs, initTimeoutMs, doubleSecondWaitMs, testIdsInDebug, loaderTitle, loaderMessage)
+            pendingSecond.forEach { (name, ids) ->
+                val p = done[name] ?: throw IllegalStateException("Double units for \"$name\" need the normal units of that slot too")
+                done[name] = p.copy(secondUnits = ids)
+            }
+            return AdsConfig(
+                placements = done.toMap(), appId = appId, remoteConfigKey = remoteConfigKey, fallbackToLoad = fallbackToLoad,
+                autoRefill = autoRefill, overallBudgetMs = overallBudgetMs, splashTimeoutMs = splashTimeoutMs,
+                initTimeoutMs = initTimeoutMs, doubleSecondWaitMs = doubleSecondWaitMs, testIdsInDebug = testIdsInDebug,
+                loaderTitle = loaderTitle, loaderMessage = loaderMessage,
+            )
+        }
+
+        private fun slot(name: String, format: AdFormat, ids: Array<out String>) =
+            start(name, format).units(*ids)
+
+        private fun second(name: String, ids: Array<out String>) = apply {
+            pendingSecond[name] = ids.filter(String::isNotBlank)
         }
 
         private fun start(name: String, format: AdFormat) = apply {
@@ -133,7 +187,7 @@ data class AdsConfig(
         }
 
         private fun edit(change: (PlacementConfig) -> PlacementConfig) = apply {
-            val c = checkNotNull(current) { "Call interstitial()/appOpen()/banner()/nativeAd() before setting options" }
+            val c = checkNotNull(current) { "Call a slot method (bannerUnits(...), randomInterstitialUnits(...), ...) before setting options" }
             current = change(c)
         }
 

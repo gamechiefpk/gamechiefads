@@ -1,79 +1,48 @@
 package com.gcl.gamechiefads.ui
 
+import android.app.Activity
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import com.gcl.gamechiefads.AdPlacement
-import com.gcl.gamechiefads.BannerListener
-import com.gcl.gamechiefads.BannerType
-import com.gcl.gamechiefads.GamechiefAds
+import com.gcl.gamechiefads.InterstitialListener
+import com.gcl.gamechiefads.Placements
 
 /**
- * Code-only banner for apps that already have a FrameLayout where the banner goes (no XML needed):
+ * Native ads (they need the ui module). Banners, interstitials and rewarded ads are all in `GamechiefAds`.
  *
  * ```java
- * AdsUi.banner(findViewById(R.id.bannerContainer), AdIds.BANNER_HOME);
+ * AdsUi.loadIntroNativeAd(findViewById(R.id.nativeContainer));          // small native at the bottom, with floors
+ * AdsUi.loadFullScreenNativeAd(this, listener);                          // full-screen native, like an interstitial
  * ```
- * The banner type (adaptive, collapsible, medium rectangle...) comes from the placement's config. A shimmer fills the
- * container while loading and is removed on success AND on failure; the container is hidden when there is no ad
- * (also for premium); the banner is destroyed when the container leaves the window. Calling it again on the same
- * container reuses what is there.
  */
 object AdsUi {
-    private const val SHIMMER_TAG = "gads_banner_shimmer"
 
+    /**
+     * Small native ad for the intro screens: fills [container] (any FrameLayout, no XML needed). Units from
+     * `introNativeUnits(...)` with floors. A shimmer shows while it loads and the ad hides itself when there is none.
+     */
     @JvmStatic
     @JvmOverloads
-    fun banner(container: FrameLayout, placement: AdPlacement, listener: BannerListener? = null) {
-        val type = GamechiefAds.bannerTypeOf(placement)
-        if (container.childCount == 0 && container.findViewWithTag<android.view.View>(SHIMMER_TAG) == null) {
-            val dp = container.resources.displayMetrics.density
-            val shimmer = ShimmerView(container.context).apply { tag = SHIMMER_TAG }
-            container.addView(shimmer, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (placeholderDp(type) * dp).toInt()))
+    fun loadIntroNativeAd(container: FrameLayout, listener: NativeAdTemplateView.Listener? = null) {
+        container.removeAllViews()
+        val view = NativeAdTemplateView(container.context).apply {
+            size = NativeSize.SMALL
+            autoLoad = false
+            this.listener = listener
         }
-        GamechiefAds.banner(container, placement, object : BannerListener {
-            override fun onLoaded() {
-                removeShimmer(container)
-                listener?.onLoaded()
-            }
-
-            override fun onFailed(reason: String) {
-                removeShimmer(container) // also on failure: never leave a shimmer behind
-                listener?.onFailed(reason)
-            }
-        })
+        container.addView(view, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        view.load(Placements.INTRO_NATIVE)
     }
 
-    /** Splash banner (always LARGE_BANNER, 320x100) into [container], with a shimmer while it loads. */
+    /**
+     * Full-screen native ad that behaves like an interstitial (close button after a short countdown). Unit from
+     * `fullScreenNativeUnit(...)`, one request, no floors. [listener] may be null; onComplete runs once.
+     */
     @JvmStatic
     @JvmOverloads
-    fun bannerForSplash(container: FrameLayout, listener: BannerListener? = null) {
-        if (container.childCount == 0 && container.findViewWithTag<android.view.View>(SHIMMER_TAG) == null) {
-            val dp = container.resources.displayMetrics.density
-            val shimmer = ShimmerView(container.context).apply { tag = SHIMMER_TAG }
-            container.addView(shimmer, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (100 * dp).toInt()))
-        }
-        GamechiefAds.bannerForSplash(container, object : BannerListener {
-            override fun onLoaded() {
-                removeShimmer(container)
-                listener?.onLoaded()
-            }
-
-            override fun onFailed(reason: String) {
-                removeShimmer(container)
-                listener?.onFailed(reason)
-            }
-        })
-    }
-
-    private fun removeShimmer(container: FrameLayout) {
-        container.findViewWithTag<android.view.View>(SHIMMER_TAG)?.let { container.removeView(it) }
-    }
-
-    private fun placeholderDp(type: BannerType): Int = when (type) {
-        BannerType.MEDIUM_RECTANGLE -> 250
-        BannerType.LARGE_BANNER -> 100
-        BannerType.LEADERBOARD, BannerType.FULL_BANNER -> 60
-        BannerType.BANNER -> 50
-        else -> 60
-    }
+    fun loadFullScreenNativeAd(
+        activity: Activity,
+        listener: InterstitialListener? = null,
+        options: FullScreenNativeAd.Options = FullScreenNativeAd.Options(),
+    ) = FullScreenNativeAd.show(activity, AdPlacement.of(Placements.FULLSCREEN_NATIVE), listener, options)
 }

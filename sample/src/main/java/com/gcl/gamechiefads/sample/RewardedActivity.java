@@ -24,7 +24,7 @@ public class RewardedActivity extends DemoActivity {
         showCoins();
         note("Tap, watch the ad to the end and you get 10 coins. Close it early: no coins. Premium (hub): coins with no ad.");
         button("Watch an ad for 10 coins", () ->
-                GamechiefAds.showRewarded(this, AdIds.REWARDED, new RewardListener() {
+                GamechiefAds.loadRewardedAd(this, new RewardListener() {
                     @Override
                     public void onRewardEarned(int amount, String type) {
                         coins += 10; // give the reward here, and only here
@@ -45,8 +45,8 @@ public class RewardedActivity extends DemoActivity {
                 }));
         button("Double tap: two calls at once", () -> {
             say("calling twice; the second must be refused");
-            GamechiefAds.showRewarded(this, AdIds.REWARDED, null);
-            GamechiefAds.showRewarded(this, AdIds.REWARDED, new RewardListener() {
+            GamechiefAds.loadRewardedAd(this, null);
+            GamechiefAds.loadRewardedAd(this, new RewardListener() {
                 @Override
                 public void onNotAvailable(String reason) {
                     say("second call refused: " + reason);

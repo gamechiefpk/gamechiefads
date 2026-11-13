@@ -22,12 +22,14 @@ internal object RemoteOverrides {
         }
         val title = if (root.has("loaderTitle")) root.optString("loaderTitle").takeIf { it.isNotBlank() } else base.loaderTitle
         val message = if (root.has("loaderMessage")) root.optString("loaderMessage").takeIf { it.isNotBlank() } else base.loaderMessage
-        return base.copy(placements = merged, loaderTitle = title, loaderMessage = message)
+        return base.copy(placements = merged, loaderTitle = title, loaderMessage = message, enabled = allEnabled)
     }
 
     private fun patch(p: PlacementConfig, o: JSONObject): PlacementConfig {
         var r = p
         stringList(o.optJSONArray("units"))?.let { if (it.isNotEmpty()) r = r.copy(units = it) }
+        stringList(o.optJSONArray("secondUnits"))?.let { if (it.isNotEmpty()) r = r.copy(secondUnits = it) }
+        (o.opt("everyNCalls") as? Number)?.toInt()?.takeIf { it >= 1 }?.let { r = r.copy(everyNCalls = it) }
         nonNegativeInt(o, "every")?.let { r = r.copy(everyNScreens = it) }
         nonNegativeInt(o, "gap")?.let { r = r.copy(minGapSeconds = it) }
         if (o.opt("enabled") is Boolean) r = r.copy(enabled = o.getBoolean("enabled"))
@@ -38,13 +40,6 @@ internal object RemoteOverrides {
         if (o.opt("premiumGetsReward") is Boolean) r = r.copy(premiumGetsReward = o.getBoolean("premiumGetsReward"))
         parseEnum<BannerType>(o.optString("bannerType", ""))?.let { r = r.copy(bannerType = it) }
         if (o.opt("flooring") is Boolean) r = r.copy(flooring = o.getBoolean("flooring"))
-        if (p.name == Placements.SPLASH || p.name == Placements.SPLASH_SECOND) {
-            // splash can switch between an app-open and an interstitial ad (send matching "units" too)
-            when (o.optString("type", "").trim().lowercase().replace('-', '_')) {
-                "app_open", "appopen" -> r = r.copy(format = AdFormat.APP_OPEN)
-                "interstitial" -> r = r.copy(format = AdFormat.INTERSTITIAL)
-            }
-        }
         parseEnum<WaterfallMode>(o.optString("waterfall", ""))?.let { r = r.copy(waterfall = it) }
         o.optJSONObject("tierTimeouts")?.let { t ->
             val m = t.keys().asSequence().mapNotNull { k -> (t.opt(k) as? Number)?.toLong()?.takeIf { it > 0 }?.let { k to it } }.toMap()

@@ -48,6 +48,10 @@ data class PlacementConfig(
     val loaderMessage: String? = null,
     /** Rewarded only: a premium user is given the reward without seeing an ad (default). false = no reward, no ad. */
     val premiumGetsReward: Boolean = true,
+    /** Double ads: the units of the SECOND ad (its own floors). Empty = the second ad uses [units] too. */
+    val secondUnits: List<String> = emptyList(),
+    /** Click-driven random interstitial: show on every N-th call (1 = every call that passes the other rules). */
+    val everyNCalls: Int = 1,
 ) {
     companion object {
         const val DEFAULT_TIER_TIMEOUT_MS = 3_000L
