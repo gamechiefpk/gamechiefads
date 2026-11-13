@@ -33,13 +33,13 @@ public class SampleApp extends Application {
                 .splashAppOpenDoubleUnit(appOpen)                     // the SECOND ad of a double: ONE unit, no floors
                 .splashInterstitialUnits(NO_FILL_UNIT, interstitial, interstitial).tierTimeoutMs(10000).unitTimeoutMs(NO_FILL_UNIT, 1500)
                 .splashInterstitialDoubleUnit(interstitial)
-                .splashBannerUnits(banner).tierTimeoutMs(10000)           // always a 320x100 large banner
+                .splashBannerUnit(banner).tierTimeoutMs(10000)            // ONE unit, no floors, always a 320x100 large banner
 
                 // ---- app open when the user returns to the app: ONE unit, no floors ----
                 .appOpenUnit(appOpen).minGapSeconds(10).excludeScreens(SplashActivity.class)
 
                 // ---- banners ----
-                .bannerUnits(banner).tierTimeoutMs(10000)                  // all normal screens
+                .bannerUnits(NO_FILL_UNIT, banner, banner).tierTimeoutMs(10000).unitTimeoutMs(NO_FILL_UNIT, 1500) // all normal screens (floors)
                 .exitBannerUnits(banner).tierTimeoutMs(10000)              // exit screen (a medium rectangle by default)
 
                 // ---- interstitial on random clicks (with floors), double has its own units ----

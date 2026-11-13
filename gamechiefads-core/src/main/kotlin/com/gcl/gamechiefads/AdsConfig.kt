@@ -81,8 +81,8 @@ data class AdsConfig(
         /** Splash interstitial ad, for apps that show an interstitial on the splash (GamechiefAds.loadSplashInterstitialAd). */
         fun splashInterstitialUnits(vararg ids: String) = slot(Placements.SPLASH_INTERSTITIAL, AdFormat.INTERSTITIAL, ids)
         fun splashInterstitialDoubleUnit(id: String) = second(Placements.SPLASH_INTERSTITIAL, id)
-        /** Large banner on the splash screen (GamechiefAds.loadSplashBannerAd). */
-        fun splashBannerUnits(vararg ids: String) = slot(Placements.SPLASH_BANNER, AdFormat.BANNER, ids).bannerType(BannerType.LARGE_BANNER)
+        /** Large banner on the splash screen (GamechiefAds.loadSplashBannerAd): ONE unit, no floors. */
+        fun splashBannerUnit(id: String) = slot(Placements.SPLASH_BANNER, AdFormat.BANNER, arrayOf(id)).bannerType(BannerType.LARGE_BANNER)
         /** App-open ad when the user returns to the app: ONE unit, no floors. Automatic, nothing to call. */
         fun appOpenUnit(id: String) = slot(Placements.APP_OPEN, AdFormat.APP_OPEN, arrayOf(id))
         /** Banner for all normal screens (GamechiefAds.loadBannerAd). */

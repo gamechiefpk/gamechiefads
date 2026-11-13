@@ -99,25 +99,39 @@ object GamechiefAds {
 
     // =====================================================================================================
     // BANNERS. Give a FrameLayout, the library fills it. It hides itself when there is no ad.
+    // [isEnableFlooring] = true (default): walk the floors (HF, MF, NORMAL). false: ONE request, to the LAST unit, so the
+    // banner shows as fast as possible (use it on screens the user leaves quickly, e.g. one button click away).
     // =====================================================================================================
 
-    /** Large banner (320x100) for the splash screen (units from splashBannerUnits). */
+    /** Large banner (320x100) for the splash screen. One unit (splashBannerUnit), never floors. */
     @JvmStatic
     @JvmOverloads
     fun loadSplashBannerAd(container: FrameLayout, listener: BannerListener? = null) =
-        banner(container, Placements.SPLASH_BANNER, listener)
+        banner(container, Placements.SPLASH_BANNER, listener, false)
 
-    /** Banner for all normal screens (units from bannerUnits). */
+    /** Banner for all normal screens (units from bannerUnits), with floors. */
     @JvmStatic
     @JvmOverloads
     fun loadBannerAd(container: FrameLayout, listener: BannerListener? = null) =
-        banner(container, Placements.BANNER, listener)
+        banner(container, Placements.BANNER, listener, true)
 
-    /** Banner for the exit screen (units from exitBannerUnits). */
+    /** Same, choosing floors on or off for this call. */
+    @JvmStatic
+    @JvmOverloads
+    fun loadBannerAd(container: FrameLayout, isEnableFlooring: Boolean, listener: BannerListener? = null) =
+        banner(container, Placements.BANNER, listener, isEnableFlooring)
+
+    /** Banner for the exit screen (units from exitBannerUnits), with floors. */
     @JvmStatic
     @JvmOverloads
     fun loadExitBannerAd(container: FrameLayout, listener: BannerListener? = null) =
-        banner(container, Placements.EXIT_BANNER, listener)
+        banner(container, Placements.EXIT_BANNER, listener, true)
+
+    /** Same, choosing floors on or off for this call. */
+    @JvmStatic
+    @JvmOverloads
+    fun loadExitBannerAd(container: FrameLayout, isEnableFlooring: Boolean, listener: BannerListener? = null) =
+        banner(container, Placements.EXIT_BANNER, listener, isEnableFlooring)
 
     /**
      * Full control: your own ad unit and [BannerType] (size and kind: ADAPTIVE, COLLAPSIBLE_BOTTOM, MEDIUM_RECTANGLE,
@@ -133,12 +147,12 @@ object GamechiefAds {
     /** A banner of one of your own custom placements (see [AdsConfig.Builder.banner]). */
     @JvmStatic
     fun loadBannerAd(container: FrameLayout, placement: AdPlacement, listener: BannerListener?) =
-        banner(container, placement.name, listener)
+        banner(container, placement.name, listener, true)
 
-    private fun banner(container: FrameLayout, name: String, listener: BannerListener?) {
+    private fun banner(container: FrameLayout, name: String, listener: BannerListener?, flooring: Boolean) {
         val r = runtime
         if (r == null) failBanner(container, listener)
-        else r.banner.attach(container, name, listener, if (name == Placements.SPLASH_BANNER) BannerType.LARGE_BANNER else null)
+        else r.banner.attach(container, name, listener, if (name == Placements.SPLASH_BANNER) BannerType.LARGE_BANNER else null, flooring)
     }
 
     private fun failBanner(container: FrameLayout, listener: BannerListener?) {

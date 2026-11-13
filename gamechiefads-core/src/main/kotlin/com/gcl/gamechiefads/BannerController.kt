@@ -26,8 +26,10 @@ internal class BannerController(
     private val live = ArrayList<WeakReference<FrameLayout>>()
 
     /** [forceType] ignores the placement's configured type (loadSplashBannerAd always uses LARGE_BANNER). */
-    fun attach(container: FrameLayout, name: String, listener: BannerListener? = null, forceType: BannerType? = null) {
-        val p = config().placement(name)?.takeIf { config().enabled }?.let { if (forceType != null) it.copy(bannerType = forceType) else it }
+    fun attach(container: FrameLayout, name: String, listener: BannerListener? = null, forceType: BannerType? = null, flooring: Boolean = true) {
+        val p = config().placement(name)?.takeIf { config().enabled }
+            ?.let { if (forceType != null) it.copy(bannerType = forceType) else it }
+            ?.let { if (!flooring) it.copy(flooring = false) else it } // no floors = one request, to the last unit
         attachPlacement(container, name, p, listener)
     }
 

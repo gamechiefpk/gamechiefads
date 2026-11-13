@@ -22,8 +22,9 @@ public class BannerActivity extends DemoActivity {
 
     @Override
     protected void build() {
-        note("Ready-made slots (units come from the config):");
+        note("Ready-made slots (units come from the config). The first floor of the banner slot never fills: with floors you see it miss first, without floors it is one request.");
         button("loadBannerAd()  (all screens)", () -> show("banner", f -> GamechiefAds.loadBannerAd(f, bannerListener("banner"))));
+        button("loadBannerAd(frame, false)  (NO floors: one request, faster)", () -> show("banner no floors", f -> GamechiefAds.loadBannerAd(f, false, bannerListener("banner no floors"))));
         button("loadExitBannerAd()  (medium rectangle)", () -> show("exit banner", f -> GamechiefAds.loadExitBannerAd(f, bannerListener("exit banner"))));
         button("loadSplashBannerAd()  (large banner)", () -> show("splash banner", f -> GamechiefAds.loadSplashBannerAd(f, bannerListener("splash banner"))));
 

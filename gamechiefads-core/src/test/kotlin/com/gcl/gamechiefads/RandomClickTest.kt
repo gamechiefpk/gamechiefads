@@ -87,7 +87,7 @@ class RandomClickTest {
     @Test fun simpleBuilderSlotsAreNamedAndHaveTheRightFormats() {
         val c = AdsConfig.builder().appId("x")
             .splashAppOpenUnits("a1", "a2").splashAppOpenDoubleUnit("b1")
-            .splashInterstitialUnits("i1").splashBannerUnits("sb").appOpenUnit("ao")
+            .splashInterstitialUnits("i1").splashBannerUnit("sb").appOpenUnit("ao")
             .bannerUnits("b1", "b2").exitBannerUnits("eb").randomInterstitialUnits("r1").everyNCalls(4).minGapSeconds(20)
             .introNativeUnits("n1", "n2").fullScreenNativeUnit("fn").rewardedUnits("rw").build()
         assertEquals(AdFormat.APP_OPEN, c.placement(Placements.SPLASH)!!.format)

@@ -24,7 +24,7 @@ public class MyApp extends Application {
             .splashAppOpenDoubleUnit(UNIT2)                    // the 2nd ad of a "double": ONE unit, no floors (same id as the first is fine)
             .splashInterstitialUnits(HF, MF, NORMAL)           // only if your splash shows an interstitial
             .splashInterstitialDoubleUnit(UNIT2)
-            .splashBannerUnits(HF, MF, NORMAL)
+            .splashBannerUnit(SPLASH_BANNER_UNIT)               // ONE unit, no floors
 
             // when the user comes back to the app: ONE unit, no floors
             .appOpenUnit(APP_OPEN_UNIT)
@@ -79,7 +79,7 @@ No floors on the splash (one request only)? Add `.flooring(false)` after the uni
 ### 3. A large banner on the splash
 
 ```java
-GamechiefAds.loadSplashBannerAd(findViewById(R.id.splashBanner));   // any FrameLayout, always a 320x100 large banner
+GamechiefAds.loadSplashBannerAd(findViewById(R.id.splashBanner));   // any FrameLayout, always a 320x100 large banner, one unit, no floors
 ```
 
 ---
@@ -89,12 +89,23 @@ GamechiefAds.loadSplashBannerAd(findViewById(R.id.splashBanner));   // any Frame
 ### 4. Banner on a normal screen, and on the exit screen
 
 ```java
-GamechiefAds.loadBannerAd(findViewById(R.id.bannerContainer));
+GamechiefAds.loadBannerAd(findViewById(R.id.bannerContainer));          // with floors (HF, MF, NORMAL)
 GamechiefAds.loadExitBannerAd(findViewById(R.id.exitContainer));
 ```
 
 A shimmer shows while it loads (when the ui module is in your app). The container hides itself if there is no ad.
 The banner type of a slot: `.bannerUnits(...).bannerType(BannerType.MEDIUM_RECTANGLE)`.
+
+**Banner on a screen the user leaves fast?** A banner needs a moment to load, so on a screen where the user just taps a button and
+moves on, the walk through the floors can be too slow and the banner never shows. Turn floors off for that call:
+
+```java
+GamechiefAds.loadBannerAd(findViewById(R.id.bannerContainer), false);       // isEnableFlooring = false
+GamechiefAds.loadExitBannerAd(findViewById(R.id.exitContainer), false);
+```
+
+With `false` there is ONE request, to the **last** unit of the list (the lowest floor, the one that fills most often), so the banner
+appears as fast as possible. `true` (the default) walks the floors. You choose per call, per screen. The splash banner never uses floors.
 
 ### 5. Full control: your own ad unit, size and type
 

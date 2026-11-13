@@ -19,7 +19,7 @@ Modules: `gamechiefads-core` (all logic, no UI), `gamechiefads-ui` (shimmer, loa
 | `splashAppOpenUnits(...)` | Splash app open | yes |
 | `splashAppOpenDoubleUnit(id)` | 2nd splash app open of a double | no, one unit |
 | `splashInterstitialUnits(...)` / `splashInterstitialDoubleUnit(id)` | Splash interstitial (and its double, one unit) | yes / no |
-| `splashBannerUnits(...)` | Splash banner, always LARGE_BANNER 320x100 | yes |
+| `splashBannerUnit(id)` | Splash banner, always LARGE_BANNER 320x100 | no, one unit |
 | `appOpenUnit(id)` | App open when the user returns (automatic) | no, one unit |
 | `bannerUnits(...)` | Banner, all normal screens | yes |
 | `exitBannerUnits(...)` | Exit-screen banner (medium rectangle unless `.bannerType(...)`) | yes |
@@ -68,8 +68,8 @@ Your own extra spots (optional): `.interstitial(AdPlacement)`, `.rewarded(...)`,
 | `loadSplashInterstitialAd(activity, callback)` | Same with an interstitial. |
 | `loadSplashInterstitialDoubleAd(activity, callback)` | Same, two interstitials together. |
 | `loadSplashBannerAd(frame[, listener])` | Large banner into a FrameLayout. |
-| `loadBannerAd(frame[, listener])` | Banner, all screens. |
-| `loadExitBannerAd(frame[, listener])` | Exit banner. |
+| `loadBannerAd(frame[, isEnableFlooring][, listener])` | Banner, all screens. `isEnableFlooring=false`: one request, to the last unit. |
+| `loadExitBannerAd(frame[, isEnableFlooring][, listener])` | Exit banner, same option. |
 | `loadCustomBannerAd(frame, unitId, type[, listener])` | Your own unit, size and type. |
 | `loadRandomInterstitialAd(activity, listener)` | Click-driven interstitial. |
 | `loadRandomInterstitialDoubleAd(activity, listener)` | Same, two ads together. |

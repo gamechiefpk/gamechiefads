@@ -50,8 +50,8 @@ take ONE unit, no floors. The second ad of a double is ONE unit, no floors (the 
 GamechiefAds.init(app, config);   GamechiefAds.setPremium(boolean);   GamechiefAds.applyRemoteConfig(json);
 GamechiefAds.setLoadingDialog(ui); GamechiefAds.setLoadingText(title, message); GamechiefAds.skipNextAppOpenAd();
 GamechiefAds.loadSplashAppOpenAd(activity, callback);         // + loadSplashAppOpenDoubleAd, loadSplashInterstitialAd, loadSplashInterstitialDoubleAd
-GamechiefAds.loadSplashBannerAd(frameLayout);                 // always LARGE_BANNER
-GamechiefAds.loadBannerAd(frameLayout);  GamechiefAds.loadExitBannerAd(frameLayout);
+GamechiefAds.loadSplashBannerAd(frameLayout);                 // always LARGE_BANNER, ONE unit (splashBannerUnit), no floors
+GamechiefAds.loadBannerAd(frameLayout[, isEnableFlooring]);  GamechiefAds.loadExitBannerAd(frameLayout[, isEnableFlooring]);   // false = one request, last unit
 GamechiefAds.loadCustomBannerAd(frameLayout, unitId, BannerType, listener);   // full control, one unit
 GamechiefAds.loadRandomInterstitialAd(activity, listener);    // click-driven; + loadRandomInterstitialDoubleAd
 GamechiefAds.loadRewardedAd(activity, listener);
