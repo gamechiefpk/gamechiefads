@@ -188,6 +188,19 @@ object GamechiefAds {
         else r.interstitial.showRandom(activity, listener, true)
     }
 
+    /**
+     * Switch the AUTOMATIC random interstitial (the one shown over activity transitions) on or off at any time, e.g. off while
+     * the user is in a purchase flow or a video and on again afterwards. Screens opened while it is off are not counted. Your
+     * button calls (loadRandomInterstitialAd) are not affected. On by default.
+     */
+    @JvmStatic
+    fun setAutoRandomInterstitialEnabled(enabled: Boolean) {
+        runtime?.state?.setAutoRandom(enabled)
+    }
+
+    @JvmStatic
+    fun isAutoRandomInterstitialEnabled(): Boolean = runtime?.state?.autoRandom?.value ?: false
+
     // =====================================================================================================
     // REWARDED
     // =====================================================================================================

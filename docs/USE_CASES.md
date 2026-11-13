@@ -153,6 +153,20 @@ button.setOnClickListener(v -> GamechiefAds.loadRandomInterstitialAd(this, new I
 - Pace the clicks: `.everyNCalls(3)` shows on every 3rd call. Pass `null` if you do not need the listener.
 - Two ads together: `GamechiefAds.loadRandomInterstitialDoubleAd(this, listener)`.
 
+### 6c. Switch the automatic ad on and off while the app runs
+
+```java
+GamechiefAds.setAutoRandomInterstitialEnabled(false);   // e.g. in a purchase flow, a video, a game round
+GamechiefAds.setAutoRandomInterstitialEnabled(true);    // back to normal
+boolean on = GamechiefAds.isAutoRandomInterstitialEnabled();
+```
+
+- Off: no ad appears over new screens. Screens opened while it is off are **not counted**, so when you switch it on the count
+  starts again from zero (the user does not get an ad on the very first screen after).
+- Your button calls (`loadRandomInterstitialAd`) are not affected by the switch.
+- It is on by default. Start with it off: `.randomInterstitialUnits(...).autoShow(false)` (buttons only).
+- From Remote Config, no app update: `{"placements":{"random":{"auto":false}}}`.
+
 ### 7. Change the loading dialog text
 
 ```java

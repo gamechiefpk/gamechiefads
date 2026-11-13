@@ -36,6 +36,7 @@ Options you can chain after a slot method (they apply to that slot):
     .minGapSeconds(30)              // at least 30 s since the last ad
     .everyNScreens(3)               // automatic: over every 3rd NEW screen (0 = no automatic ads, buttons only)
     .everyNCalls(3)                 // buttons: only on every 3rd call
+    .autoShow(false)                // no automatic ads (buttons only); runtime switch: GamechiefAds.setAutoRandomInterstitialEnabled(boolean)
     .excludeScreens(IntroActivity.class)   // never when called from these screens
     .tierTimeoutMs(3000)            // time for one unit (default 3 s)
     .unitTimeoutMs(HF, 1500)        // give one unit its own time (the high floor rarely fills)
@@ -73,6 +74,7 @@ Your own extra spots (optional): `.interstitial(AdPlacement)`, `.rewarded(...)`,
 | `loadExitBannerAd(frame[, isEnableFlooring][, listener])` | Exit banner, same option. |
 | `loadCustomBannerAd(frame, unitId, type[, listener])` | Your own unit, size and type. |
 | `loadRandomInterstitialAd(activity, listener)` | The random interstitial on YOUR button (the automatic one needs no call). |
+| `setAutoRandomInterstitialEnabled(boolean)` / `isAutoRandomInterstitialEnabled()` | Switch the automatic random interstitial on/off at runtime (off: screens are not counted). |
 | `loadRandomInterstitialDoubleAd(activity, listener)` | Same, two ads together. |
 | `loadRewardedAd(activity, listener)` | Rewarded. Reward only in `onRewardEarned`. |
 | `AdsUi.loadIntroNativeAd(frame[, listener])` | Small native (ui module). |

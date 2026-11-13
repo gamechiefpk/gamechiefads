@@ -52,6 +52,8 @@ data class PlacementConfig(
     val secondUnit: String? = null,
     /** Click-driven random interstitial: show on every N-th call (1 = every call that passes the other rules). */
     val everyNCalls: Int = 1,
+    /** Random interstitial: show automatically over new screens (true) or only on your button calls (false). */
+    val autoShow: Boolean = true,
 ) {
     /** This placement as the SECOND ad of a double: one request, no floors, to [secondUnit] (else the last unit). */
     fun forSecondAd(): PlacementConfig {

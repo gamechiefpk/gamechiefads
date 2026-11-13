@@ -123,6 +123,8 @@ data class AdsConfig(
 
         /** Random interstitial: show only on every N-th call (default 1 = every call that passes the min gap). */
         fun everyNCalls(n: Int) = edit { it.copy(everyNCalls = n.coerceAtLeast(1)) }
+        /** Random interstitial: false = no automatic ads over screens, only your button calls. Can also be switched at runtime. */
+        fun autoShow(enabled: Boolean) = edit { it.copy(autoShow = enabled) }
 
         // ======== ADVANCED: your own extra spots, called by name ========
 

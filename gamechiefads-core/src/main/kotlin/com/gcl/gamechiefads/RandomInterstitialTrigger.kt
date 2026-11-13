@@ -26,7 +26,8 @@ internal class RandomInterstitialTrigger(
         pending?.cancel()
         pending = scope.launch {
             delay(settleMs) // let the screen finish its transition before covering it
-            val p = config().placement(Placements.RANDOM)?.takeIf { it.everyNScreens > 0 && config().enabled } ?: return@launch // automatic only when everyNScreens is set
+            if (!state.autoRandom.value) { AdLog.d("random") { "automatic ads are switched off" }; return@launch }
+            val p = config().placement(Placements.RANDOM)?.takeIf { it.everyNScreens > 0 && it.autoShow && config().enabled } ?: return@launch // automatic only when everyNScreens > 0 and auto is on
             if (!screens.isUsable(activity)) return@launch
             val ctx = state.context(clock(), activity.javaClass.name)
             val decision = AdPolicy.evaluate(p, ctx)

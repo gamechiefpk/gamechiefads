@@ -10,20 +10,29 @@ internal class AdState {
     private val _adShowing = MutableStateFlow(false)
     private val _lastShownAtMs = MutableStateFlow<Long?>(null)
     private val _screensSinceAd = MutableStateFlow(0)
+    private val _autoRandom = MutableStateFlow(true)
 
     val premium: StateFlow<Boolean> = _premium
     val adShowing: StateFlow<Boolean> = _adShowing
     val lastShownAtMs: StateFlow<Long?> = _lastShownAtMs
     val screensSinceAd: StateFlow<Int> = _screensSinceAd
+    /** The automatic random interstitial on/off switch (GamechiefAds.setAutoRandomInterstitialEnabled). */
+    val autoRandom: StateFlow<Boolean> = _autoRandom
 
     fun setPremium(value: Boolean) {
         if (_premium.value != value) AdLog.d("state") { "premium=$value" }
         _premium.value = value
     }
     fun setAdShowing(value: Boolean) { _adShowing.value = value }
+    fun setAutoRandom(value: Boolean) {
+        if (_autoRandom.value != value) AdLog.d("state") { "autoRandom=$value" }
+        _autoRandom.value = value
+    }
 
     /** Counts one resumed (non-excluded) screen. */
-    fun onScreenResumed() { _screensSinceAd.update { it + 1 } }
+    fun onScreenResumed() {
+        if (_autoRandom.value) _screensSinceAd.update { it + 1 } // paused = screens opened meanwhile do not count
+    }
 
     /** Any ad (interstitial or app open) was shown: restarts the gap and the screen counter. */
     fun markShown(nowMs: Long) {

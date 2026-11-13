@@ -85,4 +85,38 @@ class AutoRandomTest {
         assertEquals(loads, r.loads.size); assertEquals(toasts, r.noAdToasts.size) // nothing new, no extra message
         assertFalse(r.state.adShowing.value)
     }
+
+    @Test fun theSwitchTurnsTheAutomaticAdOffAndOnWithoutCountingScreensMeanwhile() = runTest {
+        val r = rig()
+        r.state.setAutoRandom(false)
+        r.screens(10); r.random.onScreenResumed(r.activity); advanceUntilIdle()
+        assertTrue(r.loads.isEmpty()); assertEquals(0, r.state.screensSinceAd.value)   // nothing shown, nothing counted
+        r.state.setAutoRandom(true)
+        r.screens(2); r.random.onScreenResumed(r.activity); advanceUntilIdle()
+        assertTrue(r.loads.isEmpty())                                                  // counting starts again from zero
+        r.screens(1); r.random.onScreenResumed(r.activity); advanceUntilIdle()
+        assertEquals(1, r.loads.size)
+    }
+
+    @Test fun turningItOffWhileATriggerIsSettlingStopsThatAd() = runTest {
+        val r = rig(); r.screens(3)
+        r.random.onScreenResumed(r.activity)       // waits the settle time
+        r.state.setAutoRandom(false)
+        advanceUntilIdle()
+        assertTrue(r.loads.isEmpty())
+    }
+
+    @Test fun clicksStillWorkWhileTheAutomaticAdIsOff() = runTest {
+        val r = rig(); r.state.setAutoRandom(false)
+        r.interstitial.showRandom(r.activity, null, false); advanceUntilIdle()
+        assertEquals(listOf("hf"), r.loads)
+    }
+
+    @Test fun autoShowFalseInTheConfigOrRemoteConfigAlsoMeansButtonsOnly() = runTest {
+        val r = rig { autoShow(false) }; r.screens(5); r.random.onScreenResumed(r.activity); advanceUntilIdle()
+        assertTrue(r.loads.isEmpty())
+        val base = AdsConfig.builder().randomInterstitialUnits("a").build()
+        assertFalse(RemoteOverrides.apply(base, """{"placements":{"random":{"auto":false}}}""").placement(Placements.RANDOM)!!.autoShow)
+        assertTrue(base.placement(Placements.RANDOM)!!.autoShow)
+    }
 }
