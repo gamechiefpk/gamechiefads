@@ -47,6 +47,9 @@ data class AdsConfig(
     companion object {
         const val DEFAULT_REMOTE_KEY = "gamechief_ads_config"
         const val DEFAULT_NO_FILL_RETRY_SECONDS = 5
+        /** The random interstitial is automatic: every 3rd NEW screen (activity transition), at least 30 s after the last ad. */
+        const val DEFAULT_RANDOM_EVERY_N_SCREENS = 3
+        const val DEFAULT_RANDOM_GAP_SECONDS = 30
         const val DEFAULT_NO_AD_MESSAGE = "No ad available, please try again in a few seconds"
         const val DEFAULT_NO_AD_MESSAGE_MS = 1_800L
         const val DEFAULT_REMOTE_INTERVAL_SECONDS = 3_600L
@@ -101,8 +104,14 @@ data class AdsConfig(
         fun bannerUnits(vararg ids: String) = slot(Placements.BANNER, AdFormat.BANNER, ids)
         /** Banner for the exit screen (GamechiefAds.loadExitBannerAd). A medium rectangle unless you chain .bannerType(...). */
         fun exitBannerUnits(vararg ids: String) = slot(Placements.EXIT_BANNER, AdFormat.BANNER, ids).bannerType(BannerType.MEDIUM_RECTANGLE)
-        /** Interstitial for random clicks (GamechiefAds.loadRandomInterstitialAd). Chain .minGapSeconds(30).everyNCalls(3) to pace it. */
-        fun randomInterstitialUnits(vararg ids: String) = slot(Placements.RANDOM, AdFormat.INTERSTITIAL, ids)
+        /**
+         * Random interstitial. AUTOMATIC: shown with the loading dialog over every 3rd NEW screen (activity transition), at least 30 s
+         * after the last ad, never on back presses, the splash or excluded screens. Pace it with .everyNScreens(n), .minGapSeconds(s),
+         * .excludeScreens(...); .everyNScreens(0) turns the automatic part off. ALSO callable on a click: GamechiefAds.loadRandomInterstitialAd
+         * (paced by the same min gap and .everyNCalls(n)). Both share one gap, so they never stack.
+         */
+        fun randomInterstitialUnits(vararg ids: String) =
+            slot(Placements.RANDOM, AdFormat.INTERSTITIAL, ids).everyNScreens(DEFAULT_RANDOM_EVERY_N_SCREENS).minGapSeconds(DEFAULT_RANDOM_GAP_SECONDS)
         /** The ONE unit of the SECOND random interstitial (loadRandomInterstitialDoubleAd): one request, no floors. */
         fun randomInterstitialDoubleUnit(id: String) = second(Placements.RANDOM, id)
         /** Small native ad at the bottom of the intro screens (AdsUi.loadIntroNativeAd). Floors. */

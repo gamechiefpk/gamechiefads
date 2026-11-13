@@ -20,7 +20,7 @@ class NoFillTest {
         override fun onComplete(wasShown: Boolean) { calls += "complete:$wasShown" }
     }
 
-    private fun TestScope.rig() = Rig(this, AdsConfig.builder().randomInterstitialUnits("hf", "mf", "normal").build())
+    private fun TestScope.rig() = Rig(this, AdsConfig.builder().randomInterstitialUnits("hf", "mf", "normal").minGapSeconds(0).build())
 
     @Test fun aFailedPassTriesEachFloorOnceTellsTheUserAndNeverLoops() = runTest {
         val r = rig(); r.loadBehavior = { null }; val s = Spy()

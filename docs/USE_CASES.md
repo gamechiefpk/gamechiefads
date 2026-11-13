@@ -33,8 +33,8 @@ public class MyApp extends Application {
             .bannerUnits(HF, MF, NORMAL)                       // all normal screens
             .exitBannerUnits(EXIT_BANNER_UNIT)                 // exit screen
 
-            // interstitial on random clicks, and the units of its "double"
-            .randomInterstitialUnits(HF, MF, NORMAL).minGapSeconds(30).everyNCalls(3)
+            // random interstitial (automatic, plus your buttons), and the unit of its "double"
+            .randomInterstitialUnits(HF, MF, NORMAL)           // automatic over activity transitions (+ buttons, recipe 6)
             .randomInterstitialDoubleUnit(UNIT2)
 
             // native
@@ -119,9 +119,28 @@ Add a listener as the last argument if you want to know when it loaded or failed
 
 ---
 
-## Interstitial on random clicks
+## Random interstitial (automatic, plus buttons)
 
-### 6. Call it on a click, the library decides
+### 6. It shows by itself over activity transitions
+
+You write **no code in your screens**. After you give the units in the config, the library watches your activities and, over a
+**new** screen, shows an interstitial with the **"Ad is loading, please wait"** dialog:
+
+```java
+.randomInterstitialUnits(HF, MF, NORMAL)                // automatic: every 3rd new screen, at least 30 s after the last ad
+.randomInterstitialUnits(HF, MF, NORMAL)
+    .everyNScreens(2).minGapSeconds(45)                 // your pacing
+    .excludeScreens(SplashActivity.class, PaywallActivity.class)   // never over these screens
+```
+
+- Counts only **new** screens (a freshly opened Activity). Back presses and rotation do not count and never show an ad.
+- Never when another ad is open, for premium users, or over an excluded screen (put your splash there).
+- The ad comes after the new screen has settled, so the transition is not cut. No ad available? The dialog says so for a moment and
+  closes; during the short wait after that, new screens skip quietly (no repeated messages, no repeated requests).
+- Two ads together on the automatic ad: add `.doubleAd(true)` (its second ad uses `randomInterstitialDoubleUnit(id)`).
+- Turn the automatic part off (buttons only): `.everyNScreens(0)`.
+
+### 6b. Also on your own buttons
 
 ```java
 button.setOnClickListener(v -> GamechiefAds.loadRandomInterstitialAd(this, new InterstitialListener() {
@@ -129,11 +148,9 @@ button.setOnClickListener(v -> GamechiefAds.loadRandomInterstitialAd(this, new I
 }));
 ```
 
+- The same ad, the same loading dialog, and the same minimum gap as the automatic one (they never show back to back).
 - Not due yet (gap not over, not the Nth click, premium, another ad is open)? Nothing happens and `onComplete(false)` runs.
-- Due: the **"Ad is loading, please wait"** dialog shows while the ad loads. This dialog is always shown (it is built in).
-- Pass `null` if you do not need the listener.
-- Pace it in the config: `.randomInterstitialUnits(...).minGapSeconds(30).everyNCalls(3)`
-  (at least 30 s since the last ad, and only on every 3rd click).
+- Pace the clicks: `.everyNCalls(3)` shows on every 3rd call. Pass `null` if you do not need the listener.
 - Two ads together: `GamechiefAds.loadRandomInterstitialDoubleAd(this, listener)`.
 
 ### 7. Change the loading dialog text

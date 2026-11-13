@@ -36,7 +36,7 @@ internal class RandomInterstitialTrigger(
                 // preload mode: show only what is ready; otherwise ask for one for the next time
                 if (!interstitial.showPreloaded(activity, Placements.RANDOM, null)) interstitial.preload(Placements.RANDOM)
             } else {
-                interstitial.showOnDemand(activity, Placements.RANDOM, null)
+                interstitial.showAutoRandom(activity)
             }
         }
     }

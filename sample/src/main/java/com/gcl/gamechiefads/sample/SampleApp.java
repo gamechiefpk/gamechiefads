@@ -44,7 +44,7 @@ public class SampleApp extends Application {
 
                 // ---- interstitial on random clicks (with floors), double has its own units ----
                 .randomInterstitialUnits(NO_FILL_UNIT, interstitial, interstitial).tierTimeoutMs(10000).unitTimeoutMs(NO_FILL_UNIT, 1500)
-                    .minGapSeconds(15).everyNCalls(2)
+                    .everyNScreens(2).minGapSeconds(15).everyNCalls(2).excludeScreens(SplashActivity.class)
                 .randomInterstitialDoubleUnit(interstitial)
 
                 // ---- native ----

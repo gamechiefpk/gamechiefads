@@ -35,6 +35,23 @@ internal class InterstitialController(
         runOnDemand(activity, name, p, events)
     }
 
+    /**
+     * The automatic random interstitial, called by [RandomInterstitialTrigger] over a new screen after the policy said yes.
+     * Same loader dialog, floors and double (the placement's doubleAd) as a click. Silent while a "no fill" wait runs:
+     * an ad the user did not ask for never pops a "no ad available" message. Restarts the click counter when it shows.
+     */
+    fun showAutoRandom(activity: Activity) {
+        val p = config().placement(Placements.RANDOM)?.takeIf { config().enabled } ?: return
+        if ((cooldown?.remainingMs(Placements.RANDOM) ?: 0L) > 0) {
+            AdLog.d("random") { "automatic: no fill a moment ago, skipped quietly" }
+            return
+        }
+        val events = ListenerDispatcher(object : InterstitialListener {
+            override fun onShown() { callsSinceAd = 0 }
+        })
+        runOnDemand(activity, Placements.RANDOM, p, events)
+    }
+
     private var callsSinceAd = 0
 
     /**

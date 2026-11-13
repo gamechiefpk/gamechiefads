@@ -23,7 +23,7 @@ Modules: `gamechiefads-core` (all logic, no UI), `gamechiefads-ui` (shimmer, loa
 | `appOpenUnit(id)` | App open when the user returns (automatic) | no, one unit |
 | `bannerUnits(...)` | Banner, all normal screens | yes |
 | `exitBannerUnits(...)` | Exit-screen banner (medium rectangle unless `.bannerType(...)`) | yes |
-| `randomInterstitialUnits(...)` | Interstitial on random clicks | yes |
+| `randomInterstitialUnits(...)` | Random interstitial: automatic over activity transitions (every 3rd new screen, 30 s gap) and callable on clicks | yes |
 | `randomInterstitialDoubleUnit(id)` | 2nd interstitial of a double | no, one unit |
 | `introNativeUnits(...)` | Small native, intro screens | yes |
 | `fullScreenNativeUnit(id)` | Full-screen native like an interstitial | no, one unit |
@@ -34,7 +34,8 @@ Options you can chain after a slot method (they apply to that slot):
 ```java
 .randomInterstitialUnits(HF, MF, NORMAL)
     .minGapSeconds(30)              // at least 30 s since the last ad
-    .everyNCalls(3)                 // only on every 3rd call
+    .everyNScreens(3)               // automatic: over every 3rd NEW screen (0 = no automatic ads, buttons only)
+    .everyNCalls(3)                 // buttons: only on every 3rd call
     .excludeScreens(IntroActivity.class)   // never when called from these screens
     .tierTimeoutMs(3000)            // time for one unit (default 3 s)
     .unitTimeoutMs(HF, 1500)        // give one unit its own time (the high floor rarely fills)
@@ -71,7 +72,7 @@ Your own extra spots (optional): `.interstitial(AdPlacement)`, `.rewarded(...)`,
 | `loadBannerAd(frame[, isEnableFlooring][, listener])` | Banner, all screens. `isEnableFlooring=false`: one request, to the last unit. |
 | `loadExitBannerAd(frame[, isEnableFlooring][, listener])` | Exit banner, same option. |
 | `loadCustomBannerAd(frame, unitId, type[, listener])` | Your own unit, size and type. |
-| `loadRandomInterstitialAd(activity, listener)` | Click-driven interstitial. |
+| `loadRandomInterstitialAd(activity, listener)` | The random interstitial on YOUR button (the automatic one needs no call). |
 | `loadRandomInterstitialDoubleAd(activity, listener)` | Same, two ads together. |
 | `loadRewardedAd(activity, listener)` | Rewarded. Reward only in `onRewardEarned`. |
 | `AdsUi.loadIntroNativeAd(frame[, listener])` | Small native (ui module). |
