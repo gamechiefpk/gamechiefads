@@ -93,6 +93,7 @@ internal class AdsRuntime(app: Application, private val baseConfig: AdsConfig) {
     private val random = RandomInterstitialTrigger(state, { config }, tracker, interstitial, scope, clock)
     val splash = SplashFlow(state, { config }, pipeline, shower, tracker, scope, AppOpenSource::load, InterstitialSource::load, clock)
     val banner = BannerController(state, { config }, pipeline, tracker, scope, BannerSource::load, { shimmer })
+    private val tagBanners = TagBanners(banner) { config }
     val slots = FullScreenSlots(state, { config }, tracker, clock)
     val native = NativeController(state, { config }, pipeline, tracker, scope, NativeSource::load)
 
@@ -101,6 +102,8 @@ internal class AdsRuntime(app: Application, private val baseConfig: AdsConfig) {
             appOpen.onScreenResumed(activity)
             random.onScreenResumed(activity)
         }
+        // tagged banner containers: every screen instance once, also screens restored after a restart (not only "new" ones)
+        tracker.onResumed = { activity -> tagBanners.onScreen(activity) }
         app.registerActivityLifecycleCallbacks(tracker)
         ProcessLifecycleOwner.get().lifecycle.addObserver(ProcessForegroundObserver(appOpen::onForeground))
         scope.launch { state.premium.drop(1).filter { it }.collect { banner.hideAll() } }

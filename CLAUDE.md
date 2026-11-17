@@ -52,6 +52,9 @@ GamechiefAds.setLoadingDialog(ui); GamechiefAds.setLoadingText(title, message); 
 GamechiefAds.loadSplashAppOpenAd(activity, callback);         // + loadSplashAppOpenDoubleAd, loadSplashInterstitialAd, loadSplashInterstitialDoubleAd
 GamechiefAds.loadSplashBannerAd(frameLayout);                 // always LARGE_BANNER, ONE unit (splashBannerUnit), no floors
 GamechiefAds.loadBannerAd(frameLayout[, isEnableFlooring]);  GamechiefAds.loadExitBannerAd(frameLayout[, isEnableFlooring]);   // false = one request, last unit
+// no code at all: android:tag="gads_banner" | gads_banner_fast | gads_exit_banner | gads_exit_banner_fast | gads_splash_banner on a FrameLayout (TagBanners; .tagBanners(false) or RC {"tagBanners":false} = off)
+// optional base screen in the ui module: `AdsActivity extends AppCompatActivity` with open loadBannerAd/loadExitBannerAd/loadRandomInterstitialAd/loadRewardedAd
+// the loading dialog stays until the full-screen ad is really on screen (slow networks), not just until it is loaded
 GamechiefAds.loadCustomBannerAd(frameLayout, unitId, BannerType, listener);   // full control, one unit
 GamechiefAds.loadRandomInterstitialAd(activity, listener);    // the random interstitial on YOUR button; it is also AUTOMATIC over every 3rd new screen (no call needed; everyNScreens(0) or autoShow(false) = off; runtime switch: setAutoRandomInterstitialEnabled(boolean)); + loadRandomInterstitialDoubleAd
 GamechiefAds.loadRewardedAd(activity, listener);

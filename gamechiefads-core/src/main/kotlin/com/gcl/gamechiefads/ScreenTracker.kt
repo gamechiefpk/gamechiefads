@@ -21,6 +21,9 @@ internal class ScreenTracker(private val state: AdState) : Application.ActivityL
     /** Called after a new screen was counted. */
     var onScreen: ((Activity) -> Unit)? = null
 
+    /** Called on every resume of an app screen (new, restored or coming back), before the counting rules. */
+    var onResumed: ((Activity) -> Unit)? = null
+
     override val current: Activity? get() = currentRef?.get()
 
     override fun isUsable(activity: Activity): Boolean =
@@ -29,6 +32,7 @@ internal class ScreenTracker(private val state: AdState) : Application.ActivityL
     override fun onActivityResumed(activity: Activity) {
         if (isAdActivity(activity)) return
         currentRef = WeakReference(activity)
+        runCatching { onResumed?.invoke(activity) }
         if (configChange) {
             configChange = false
             lastCounted = WeakReference(activity)

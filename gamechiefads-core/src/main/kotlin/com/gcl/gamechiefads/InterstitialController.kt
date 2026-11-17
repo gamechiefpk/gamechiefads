@@ -105,7 +105,9 @@ internal class InterstitialController(
                     runCatching { ui?.dismiss() }
                     throw t
                 }
-                if (ads.isNotEmpty()) runCatching { ui?.dismiss() }
+                // The loader stays up after the ad is LOADED: on a slow connection the SDK can take seconds to put it on
+                // screen, and an empty gap there looks like "no ad, then an ad out of nowhere". It goes when the ad shows.
+                if (ads.isNotEmpty() && (state.premium.value || !screens.isUsable(activity))) runCatching { ui?.dismiss() }
                 when {
                     ads.isEmpty() -> {
                         AdLog.d("interstitial") { "$name: no fill -> not shown, no new pass for a few seconds" }
@@ -119,7 +121,13 @@ internal class InterstitialController(
                         AdLog.d("interstitial") { "$name: showing ${ads.size} ad(s)" }
                         cooldown?.recordOk(name)
                         handedOver = true
-                        shower.showAll(activity, ads, refillAfter(name, events))
+                        val inner = refillAfter(name, events)
+                        var loaderUp = true
+                        fun hideLoader() { if (loaderUp) { loaderUp = false; runCatching { ui?.dismiss() } } }
+                        shower.showAll(activity, ads, object : FullScreenShower.Events by inner {
+                            override fun onShown() { hideLoader(); inner.onShown() }
+                            override fun onFinished(shown: Boolean, reason: String?) { hideLoader(); inner.onFinished(shown, reason) }
+                        })
                     }
                 }
             } catch (e: CancellationException) {

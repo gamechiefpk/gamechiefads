@@ -107,6 +107,47 @@ GamechiefAds.loadExitBannerAd(findViewById(R.id.exitContainer), false);
 With `false` there is ONE request, to the **last** unit of the list (the lowest floor, the one that fills most often), so the banner
 appears as fast as possible. `true` (the default) walks the floors. You choose per call, per screen. The splash banner never uses floors.
 
+### 4b. Banners with NO code: a tag in the layout
+
+Put a tag on a FrameLayout and the library fills it when the screen opens. No `loadBannerAd` call in the activity:
+
+```xml
+<FrameLayout
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:tag="gads_banner" />
+```
+
+| Tag | What it loads |
+|---|---|
+| `gads_banner` | the banner slot, with floors |
+| `gads_banner_fast` | the banner slot, no floors (one request, fastest) |
+| `gads_exit_banner` / `gads_exit_banner_fast` | the exit banner slot, with / without floors |
+| `gads_splash_banner` | the splash banner (large banner, one unit) |
+
+Same shimmer, premium hiding and cleanup as the load methods. Each screen is filled once, so coming back to it never sends a new
+request. Fragments and views added later are not scanned: use the load method for those. Switch it off with `.tagBanners(false)` or
+remotely with `{"tagBanners": false}`.
+
+### 4c. A base screen (optional): `AdsActivity`
+
+In the ui module. Extend it instead of `AppCompatActivity` and every ad call is a short method of the screen:
+
+```java
+public class HomeActivity extends AdsActivity {
+    @Override protected void onCreate(Bundle b) {
+        super.onCreate(b);
+        setContentView(R.layout.activity_home);
+        loadBannerAd(R.id.bannerFrame);                                   // or loadExitBannerAd(R.id.exitFrame)
+        findViewById(R.id.btn).setOnClickListener(v -> loadRandomInterstitialAd());
+        findViewById(R.id.coins).setOnClickListener(v -> loadRewardedAd(listener));
+    }
+}
+```
+
+Every method is open: a screen can override `loadBannerAd(FrameLayout)` to change what it shows, in one place. Java has one parent
+class, so a screen that already extends something else calls `GamechiefAds` directly (same result). A base class is part of the
+app's code: changing it needs a library update. To change **behaviour** without an update use the tags (4b) and the remote rules (21).
+
 ### 5. Full control: your own ad unit, size and type
 
 ```java
@@ -367,6 +408,7 @@ those apps with no release.
   "noAdMessage": "No ad available, please try again in a few seconds",
   "noFillRetrySeconds": 5,
   "quietSecondsAfterAppOpen": 30,
+  "tagBanners": true,
   "global": { "splashTimeoutMs": 12000, "overallBudgetMs": 8000, "initTimeoutMs": 8000,
               "doubleSecondWaitMs": 2500, "noAdMessageMs": 1800 },
   "placements": {

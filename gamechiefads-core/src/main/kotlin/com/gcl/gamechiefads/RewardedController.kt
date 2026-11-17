@@ -93,7 +93,8 @@ internal class RewardedController(
                     runCatching { ui?.dismiss() }
                     throw t
                 }
-                if (ad != null) runCatching { ui?.dismiss() }
+                // the loader stays until the ad is really on screen (slow connections: show() can take seconds)
+                if (ad != null && (state.premium.value || !screens.isUsable(activity))) runCatching { ui?.dismiss() }
                 when {
                     ad == null -> {
                         cooldown?.recordFail(name)
@@ -105,11 +106,15 @@ internal class RewardedController(
                     else -> {
                         cooldown?.recordOk(name)
                         handedOver = true
+                        var loaderUp = true
+                        fun hideLoader() { if (loaderUp) { loaderUp = false; runCatching { ui?.dismiss() } } }
                         shower.show(activity, ad, object : FullScreenShower.Events {
-                            override fun onShown() {}
+                            override fun onShown() { hideLoader() }
                             override fun onRewarded(amount: Int, type: String) = result.earned(amount, type)
-                            override fun onFinished(shown: Boolean, reason: String?) =
+                            override fun onFinished(shown: Boolean, reason: String?) {
+                                hideLoader()
                                 result.finish(if (shown) null else reason ?: "not shown")
+                            }
                         })
                     }
                 }

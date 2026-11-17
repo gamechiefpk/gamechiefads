@@ -34,6 +34,7 @@ kotlin { compilerOptions { freeCompilerArgs.add("-Xjvm-default=all") } }
 dependencies {
     api(project(":gamechiefads-core"))
     implementation("androidx.annotation:annotation:1.11.0")
+    api("androidx.appcompat:appcompat:1.8.0") // AdsActivity extends AppCompatActivity
 }
 
 publishing {

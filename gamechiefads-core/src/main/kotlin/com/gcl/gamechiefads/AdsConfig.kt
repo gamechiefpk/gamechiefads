@@ -47,6 +47,8 @@ data class AdsConfig(
     val remoteConfigUrl: String? = null,
     /** How often the shared file is fetched (default 3600 s). */
     val remoteConfigUrlIntervalSeconds: Long = DEFAULT_REMOTE_INTERVAL_SECONDS,
+    /** FrameLayouts tagged gads_banner / gads_exit_banner / ... in the layout XML are filled by the library when the screen opens. */
+    val tagBanners: Boolean = true,
 ) {
     fun placement(name: String): PlacementConfig? = placements[name]
 
@@ -86,6 +88,7 @@ data class AdsConfig(
         private var remoteConfigUrlIntervalSeconds = DEFAULT_REMOTE_INTERVAL_SECONDS
         private var fallbackToLoad = false
         private var autoRefill = false
+        private var tagBanners = true
         private var overallBudgetMs = DEFAULT_OVERALL_BUDGET_MS
         private var splashTimeoutMs = DEFAULT_SPLASH_TIMEOUT_MS
         private var initTimeoutMs = DEFAULT_INIT_TIMEOUT_MS
@@ -217,6 +220,8 @@ data class AdsConfig(
         fun remoteDefaults(values: Map<String, Any>) = apply { values.forEach { (k, v) -> remoteDefault(k, v) } }
         /** Minimum seconds between server fetches (default 3600). Use a small value only while testing. */
         fun remoteFetchIntervalSeconds(seconds: Long) = apply { remoteFetchIntervalSeconds = seconds.coerceAtLeast(0) }
+        /** Automatic banners from layout tags (android:tag="gads_banner" ...). Default on; false = only the load methods fill banners. */
+        fun tagBanners(value: Boolean) = apply { tagBanners = value }
         fun fallbackToLoad(value: Boolean) = apply { fallbackToLoad = value }
         fun autoRefill(value: Boolean) = apply { autoRefill = value }
         fun overallBudgetMs(ms: Long) = apply { overallBudgetMs = ms.coerceAtLeast(1) }
@@ -243,6 +248,7 @@ data class AdsConfig(
                 noFillRetrySeconds = noFillRetrySeconds, noAdMessage = noAdMessage, noAdMessageMs = noAdMessageMs,
                 quietSecondsAfterAppOpen = quietSecondsAfterAppOpen,
                 remoteConfigUrl = remoteConfigUrl, remoteConfigUrlIntervalSeconds = remoteConfigUrlIntervalSeconds,
+                tagBanners = tagBanners,
             )
         }
 

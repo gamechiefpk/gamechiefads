@@ -24,6 +24,7 @@ public class MainActivity extends DemoActivity {
         button("Rewarded ad (coins)", () -> open(RewardedActivity.class));
         button("Remote Config: your own values", () -> open(RemoteConfigActivity.class));
         button("Banners: ready-made and custom", () -> open(BannerActivity.class));
+        button("Banners from layout tags (no ad code)", () -> open(TagBannerActivity.class));
         button("Native: intro, full screen, 6 sizes", () -> open(NativeActivity.class));
         button("App-open (leave and return)", () -> open(AppOpenActivity.class));
         button("Library trace (logcat GamechiefAds)", () -> open(TraceActivity.class));

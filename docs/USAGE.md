@@ -234,6 +234,18 @@ while an app-open ad is loading or on screen, and an app-open ad is not shown wh
 `onNotShown` + `onComplete(false)`. The time counts from the close of the app-open ad. Rewarded ads and a splash interstitial are
 not affected. Config: `.quietSecondsAfterAppOpen(s)`, Remote Config root key `quietSecondsAfterAppOpen`.
 
+## 14a. Slow connection: the loading dialog stays until the ad is on screen
+
+On a slow connection an ad can be loaded but take a few seconds to appear. The loading dialog (interstitial and rewarded) stays up until
+the ad is really on screen, or fails, or the 5 s start watchdog gives up: there is never an empty gap between "dialog gone" and "ad shows".
+
+## 14b. Banners from layout tags, and `AdsActivity`
+
+A FrameLayout with `android:tag="gads_banner"` (also `gads_banner_fast`, `gads_exit_banner`, `gads_exit_banner_fast`,
+`gads_splash_banner`) is filled by the library when its screen opens, no code in the activity (`.tagBanners(false)` or
+`{"tagBanners": false}` turns it off). `AdsActivity` (ui module) is an optional base screen with short overridable ad methods.
+Details and examples: USE_CASES recipes 4b and 4c.
+
 ## 14. Changing behaviour for every app without a release
 
 Library code cannot be updated inside an app that is already released (Google Play forbids downloading code). Behaviour can: every

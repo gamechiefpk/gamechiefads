@@ -29,6 +29,7 @@
         <activity android:name=".SplashLabActivity" />
         <activity android:name=".InterstitialActivity" />
         <activity android:name=".BannerActivity" />
+        <activity android:name=".TagBannerActivity" />
         <activity android:name=".NativeActivity" />
         <activity android:name=".AppOpenActivity" />
         <activity android:name=".TraceActivity" />
