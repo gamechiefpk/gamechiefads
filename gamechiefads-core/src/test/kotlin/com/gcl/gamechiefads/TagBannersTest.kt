@@ -20,6 +20,14 @@ class TagBannersTest {
         assertNull(TagBanners.parse(null)); assertNull(TagBanners.parse("")); assertNull(TagBanners.parse("my_frame")); assertNull(TagBanners.parse("gads_banner2"))
     }
 
+    @Test fun nativeTagsCarryThePlacementAndAnOptionalSize() {
+        assertEquals(TagBanners.NativeSpec("language_native", "medium"), TagBanners.parseNative("gads_native:language_native:medium"))
+        assertEquals(TagBanners.NativeSpec("intro_native", null), TagBanners.parseNative(" GADS_NATIVE : intro_native "))
+        assertNull(TagBanners.parseNative("gads_native")); assertNull(TagBanners.parseNative("gads_native:")); assertNull(TagBanners.parseNative("gads_native:a:b:c"))
+        assertNull(TagBanners.parseNative("gads_banner")); assertNull(TagBanners.parseNative(null))
+        assertNull(TagBanners.parse("gads_native:intro_native:small"))        // not a banner tag
+    }
+
     @Test fun theSwitchIsOnByDefaultAndCanBeTurnedOffInCodeOrRemotely() {
         val base = AdsConfig.builder().bannerUnits("b").build()
         assertTrue(base.tagBanners)

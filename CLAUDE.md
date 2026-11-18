@@ -59,6 +59,7 @@ GamechiefAds.loadCustomBannerAd(frameLayout, unitId, BannerType, listener);   //
 GamechiefAds.loadRandomInterstitialAd(activity, listener);    // the random interstitial on YOUR button; it is also AUTOMATIC over every 3rd new screen (no call needed; everyNScreens(0) or autoShow(false) = off; runtime switch: setAutoRandomInterstitialEnabled(boolean)); + loadRandomInterstitialDoubleAd
 GamechiefAds.loadRewardedAd(activity, listener);
 AdsUi.loadIntroNativeAd(frameLayout);  AdsUi.loadFullScreenNativeAd(activity, listener);   // ui module
+AdsUi.loadNativeAd(frameLayout, "placement_name", NativeSize.MEDIUM[, style, listener]);   // any native spot, only a FrameLayout needed (tag: gads_native:<placement>[:<size>])
 ```
 Single vs double is chosen by the method called (the app can use its own Remote Config flag). Double = both ads requested together from
 their own unit sets and SHOWN AT THE SAME TIME (stacked), so closing the top one reveals the other at once. The random interstitial is paced

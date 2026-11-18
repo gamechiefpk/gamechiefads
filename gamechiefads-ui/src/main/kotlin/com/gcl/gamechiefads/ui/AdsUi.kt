@@ -23,16 +23,55 @@ object AdsUi {
      */
     @JvmStatic
     @JvmOverloads
-    fun loadIntroNativeAd(container: FrameLayout, listener: NativeAdTemplateView.Listener? = null) {
+    fun loadIntroNativeAd(container: FrameLayout, listener: NativeAdTemplateView.Listener? = null) =
+        loadNativeAd(container, Placements.INTRO_NATIVE, NativeSize.SMALL, NativeStyle.DEFAULT, listener)
+
+    /**
+     * Any native ad in any FrameLayout, no XML of yours: the library inflates the layout for [size], shows a shimmer
+     * while loading, hides the container when there is no ad, and destroys the ad with the screen.
+     * [placement] is the name of a native spot ([Placements.INTRO_NATIVE] or your own `nativeAd("name").units(...)`).
+     *
+     * ```java
+     * AdsUi.loadNativeAd(frame, "language_native", NativeSize.MEDIUM);
+     * ```
+     * A second call on the same container replaces the first ad.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun loadNativeAd(
+        container: FrameLayout,
+        placement: String,
+        size: NativeSize = NativeSize.MEDIUM,
+        style: NativeStyle = NativeStyle.DEFAULT,
+        listener: NativeAdTemplateView.Listener? = null,
+    ) {
         container.removeAllViews()
         val view = NativeAdTemplateView(container.context).apply {
-            size = NativeSize.SMALL
+            this.size = size
+            this.style = style
             autoLoad = false
             this.listener = listener
         }
-        container.addView(view, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-        view.load(Placements.INTRO_NATIVE)
+        val height = if (size == NativeSize.FULL) ViewGroup.LayoutParams.MATCH_PARENT else ViewGroup.LayoutParams.WRAP_CONTENT
+        container.addView(view, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height))
+        view.load(placement)
     }
+
+    /** Same, with a placement object. */
+    @JvmStatic
+    @JvmOverloads
+    fun loadNativeAd(
+        container: FrameLayout,
+        placement: AdPlacement,
+        size: NativeSize = NativeSize.MEDIUM,
+        style: NativeStyle = NativeStyle.DEFAULT,
+        listener: NativeAdTemplateView.Listener? = null,
+    ) = loadNativeAd(container, placement.name, size, style, listener)
+
+    /** Used by the layout tag `gads_native:<placement>[:<size>]` (found by name from the core module). Size is a [NativeSize] name, any case. */
+    @JvmStatic
+    fun loadNativeAd(container: FrameLayout, placement: String, sizeName: String?) =
+        loadNativeAd(container, placement, NativeSize.entries.firstOrNull { it.name.equals(sizeName?.trim(), ignoreCase = true) } ?: NativeSize.MEDIUM)
 
     /**
      * Full-screen native ad that behaves like an interstitial (close button after a short countdown). Unit from

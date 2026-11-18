@@ -54,6 +54,18 @@ public class NativeActivity extends DemoActivity {
                 @Override public void onFailed(String reason) { say("intro native: failed (" + reason + ")"); }
             });
         });
+        FrameLayout any = new FrameLayout(this);
+        content.addView(any, new android.widget.LinearLayout.LayoutParams(-1, -2));
+        for (com.gcl.gamechiefads.ui.NativeSize size : new com.gcl.gamechiefads.ui.NativeSize[]{
+                com.gcl.gamechiefads.ui.NativeSize.TINY, com.gcl.gamechiefads.ui.NativeSize.SMALL_MEDIA, com.gcl.gamechiefads.ui.NativeSize.MEDIUM}) {
+            button("AdsUi.loadNativeAd(frame, \"intro_native\", " + size + ")  (frame only, no XML)", () -> {
+                say("loadNativeAd " + size + ": loading");
+                AdsUi.loadNativeAd(any, "intro_native", size, NativeStyle.DEFAULT, new NativeAdTemplateView.Listener() {
+                    @Override public void onLoaded() { say("loadNativeAd " + size + ": loaded"); }
+                    @Override public void onFailed(String reason) { say("loadNativeAd " + size + ": failed (" + reason + ")"); }
+                });
+            });
+        }
         button("AdsUi.loadFullScreenNativeAd()  (like an interstitial, 1 unit)", () ->
                 AdsUi.loadFullScreenNativeAd(this, listener("native-fs")));
         button("Reload all (one after another)", () -> {

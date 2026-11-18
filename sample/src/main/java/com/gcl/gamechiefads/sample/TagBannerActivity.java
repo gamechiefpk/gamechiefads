@@ -17,6 +17,8 @@ public class TagBannerActivity extends DemoActivity {
         note("This screen has no ad code. A container tagged gads_banner (floors) and one tagged gads_banner_fast (no floors) are filled by the library by itself. Tags: gads_banner, gads_banner_fast, gads_exit_banner, gads_exit_banner_fast, gads_splash_banner.");
         content.addView(tagged("gads_banner"), new FrameLayout.LayoutParams(-1, -2));
         content.addView(tagged("gads_banner_fast"), new FrameLayout.LayoutParams(-1, -2));
+        note("And a native ad from a tag: gads_native:<placement>:<size>");
+        content.addView(tagged("gads_native:intro_native:small"), new FrameLayout.LayoutParams(-1, -2));
     }
 
     /** Same as android:tag="..." on a FrameLayout in XML. */

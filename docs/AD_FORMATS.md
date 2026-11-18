@@ -77,37 +77,35 @@ Pick single or double with your own Remote Config flag if you want:
 
 ## 2. Language selection screen: native ad
 
-A native ad inside the screen. Use the ready-made view in XML with a size, medium is the usual choice here:
-
-```xml
-<com.gcl.gamechiefads.ui.NativeAdTemplateView
-    android:layout_width="match_parent" android:layout_height="wrap_content"
-    app:gads_size="medium"
-    app:gads_placement="language_native" />
-```
-
-The ad loads by itself when the screen opens (shimmer while loading, the view disappears if there is no ad). `language_native` is the name
-you gave in the config (`.nativeAd("language_native").units(...)`). Each native spot of your app (language, home list, result screen) gets its own name and its own units.
-
-Or from code (any size, your own colours):
+You give a `FrameLayout`, the library does the rest: it inflates the native layout for the size you pick, shows a shimmer while loading,
+hides the container when there is no ad, and destroys the ad with the screen. No native XML of your own.
 
 ```java
-NativeAdTemplateView ad = findViewById(R.id.languageNative);
-ad.setSize(NativeSize.MEDIUM);
-ad.setStyle(NativeStyle.builder().button(0xFF6C4CF1, 0xFFFFFFFF).cornerRadiusDp(16).build());
-ad.load("language_native");
+AdsUi.loadNativeAd(findViewById(R.id.nativeFrame), "language_native", NativeSize.MEDIUM);   // medium is the usual choice here
 ```
 
-All sizes and options are in the **Native box** below.
+`language_native` is the name you gave in the config (`.nativeAd("language_native").units(...)`). Each native spot of your app (language, home list,
+result screen) gets its own name and its own units. Optional extras: a style and a listener:
+`AdsUi.loadNativeAd(frame, "language_native", NativeSize.MEDIUM, NativeStyle.builder().button(0xFF6C4CF1, 0xFFFFFFFF).cornerRadiusDp(16).build(), listener)`.
+
+No code at all: tag the FrameLayout in the layout XML and the library fills it when the screen opens:
+
+```xml
+<FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:tag="gads_native:language_native:medium" />          <!-- gads_native:<placement>[:<size>] -->
+```
+
+Sizes: `tiny`, `small`, `small_media`, `medium` (default when left out), `large`, `full`. All sizes and options are in the **Native box** below.
+(The `NativeAdTemplateView` XML view still works if you want the ad inside your own layout tree with its own attributes.)
 
 ## 3. Intro / onboarding screens: small native at the bottom
 
 ```java
-AdsUi.loadIntroNativeAd(findViewById(R.id.nativeContainer));    // any FrameLayout, small card, floors from introNativeUnits
+AdsUi.loadIntroNativeAd(findViewById(R.id.nativeContainer));                      // small card, floors from introNativeUnits
+AdsUi.loadNativeAd(findViewById(R.id.nativeContainer), "intro_native", NativeSize.SMALL_MEDIA);   // another size, same units
 ```
 
-Fixed to the `SMALL` size. For another size on intro screens use the XML view with `app:gads_placement="intro_native"` and `app:gads_size="small_media"` (or `tiny`).
-Reload per page: call it again with the same container; the old ad is replaced and destroyed.
+Or by tag: `android:tag="gads_native:intro_native:small"`. Reload per page: call it again with the same container; the old ad is replaced and destroyed.
 
 ## 4. Home screen (and every normal screen): banner
 
@@ -225,10 +223,12 @@ it is destroyed with its screen; a second call on a container that already has a
 
 # Box 2: Native ads, usage and sizes
 
-Native ads need the `ui` module (included in the one JitPack line). Three ways to show one:
+Native ads need the `ui` module (included in the one JitPack line). Five ways to show one:
 
 | How | Use for |
 |---|---|
+| `AdsUi.loadNativeAd(frame, placement, size)` | **any screen, the easy way**: give a FrameLayout, no XML of yours |
+| tag `android:tag="gads_native:<placement>[:<size>]"` on a FrameLayout | no code at all, filled when the screen opens |
 | `<NativeAdTemplateView app:gads_size=... app:gads_placement=...>` in XML | any screen: language, lists, results, dialogs (loads by itself) |
 | `AdsUi.loadIntroNativeAd(frame)` | intro screens: small card, one line of code |
 | `AdsUi.loadFullScreenNativeAd(activity, listener)` | full-screen native like an interstitial |

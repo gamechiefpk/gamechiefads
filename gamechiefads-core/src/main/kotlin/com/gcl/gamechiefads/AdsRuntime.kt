@@ -93,7 +93,16 @@ internal class AdsRuntime(app: Application, private val baseConfig: AdsConfig) {
     private val random = RandomInterstitialTrigger(state, { config }, tracker, interstitial, scope, clock)
     val splash = SplashFlow(state, { config }, pipeline, shower, tracker, scope, AppOpenSource::load, InterstitialSource::load, clock)
     val banner = BannerController(state, { config }, pipeline, tracker, scope, BannerSource::load, { shimmer })
-    private val tagBanners = TagBanners(banner) { config }
+    /** The ui module's native loader, found by name like the loading dialog (null without the ui module). */
+    private val nativeLoader: ((android.widget.FrameLayout, String, String?) -> Unit)? by lazy {
+        runCatching {
+            val m = Class.forName("com.gcl.gamechiefads.ui.AdsUi")
+                .getMethod("loadNativeAd", android.widget.FrameLayout::class.java, String::class.java, String::class.java)
+            val f: (android.widget.FrameLayout, String, String?) -> Unit = { c, p, s -> m.invoke(null, c, p, s) }
+            f
+        }.getOrNull()
+    }
+    private val tagBanners = TagBanners(banner, { config }) { c, p, s -> nativeLoader?.invoke(c, p, s) }
     val slots = FullScreenSlots(state, { config }, tracker, clock)
     val native = NativeController(state, { config }, pipeline, tracker, scope, NativeSource::load)
 
