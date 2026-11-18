@@ -138,6 +138,8 @@ data class AdsConfig(
         fun introNativeUnits(vararg ids: String) = slot(Placements.INTRO_NATIVE, AdFormat.NATIVE, ids)
         /** Full-screen native ad like an interstitial (AdsUi.loadFullScreenNativeAd): ONE unit, no floors. */
         fun fullScreenNativeUnit(id: String) = slot(Placements.FULLSCREEN_NATIVE, AdFormat.NATIVE, arrayOf(id))
+        /** Native ads in a RecyclerView or other scrolling list (NativeListAds): ONE unit, no floors (one request per ad). */
+        fun listNativeUnit(id: String) = slot(Placements.LIST_NATIVE, AdFormat.NATIVE, arrayOf(id)).flooring(false)
         /** Rewarded ad (GamechiefAds.loadRewardedAd). Floors. */
         fun rewardedUnits(vararg ids: String) = slot(Placements.REWARDED, AdFormat.REWARDED, ids)
 

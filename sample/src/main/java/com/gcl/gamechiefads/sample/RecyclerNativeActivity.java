@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.Gravity;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -17,15 +16,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.gcl.gamechiefads.ui.NativeListAds;
+import com.gcl.gamechiefads.ui.NativeListPositions;
 import com.gcl.gamechiefads.ui.NativeSize;
 
 /**
- * Native ads inside a RecyclerView with dummy data. Every 6th row is an ad. Scroll down and back up: each ad is requested ONCE and
- * shown again from memory (watch logcat "native-list": one "request" per ad index, never one per scroll).
+ * Native ads inside a RecyclerView with dummy data: the first ad after 4 rows, then one every 8 rows. Scroll down and back up: each ad is
+ * requested ONCE and shown again from memory (logcat "native-list": one "request" per ad index, never one per scroll). Rotate the phone:
+ * the ads survive (the NativeListAds object is handed to the new screen), so there is no new request either.
  */
 public class RecyclerNativeActivity extends Activity {
-    private static final int AD_EVERY = 6;          // one ad row after every 5 items
-    private static final int ITEMS = 40;            // dummy data
+    private static final int ITEMS = 40;                                      // dummy data
+    private final NativeListPositions positions = new NativeListPositions();  // recommended: first ad after 4 rows, then every 8
     private RecyclerView list;
     private NativeListAds ads;
 
@@ -56,7 +57,11 @@ public class RecyclerNativeActivity extends Activity {
         list.setLayoutManager(new LinearLayoutManager(this));
         root.addView(list, new LinearLayout.LayoutParams(-1, 0, 1));
         setContentView(root);
-        useSize(NativeSize.SMALL);
+
+        // after a rotation the previous screen handed its NativeListAds over: the loaded ads are shown again, no new request
+        ads = (NativeListAds) getLastNonConfigurationInstance();
+        if (ads == null) ads = new NativeListAds(NativeSize.SMALL);          // placement "list_native": ONE unit, no floors
+        list.setAdapter(new Adapter(ads, positions));
     }
 
     private Button sizeButton(String text, NativeSize size) {
@@ -64,50 +69,45 @@ public class RecyclerNativeActivity extends Activity {
         b.setText(text);
         b.setAllCaps(false);
         b.setTextSize(12);
-        b.setOnClickListener(v -> useSize(size));
+        b.setOnClickListener(v -> {
+            ads.destroy();                                                   // a new size = a new list of ads
+            ads = new NativeListAds(size);
+            list.setAdapter(new Adapter(ads, positions));
+        });
         return b;
     }
 
-    /** A new list with ads of this size (the old ads are freed first). */
-    private void useSize(NativeSize size) {
-        if (ads != null) ads.destroy();
-        ads = new NativeListAds("list_native", size, com.gcl.gamechiefads.ui.NativeStyle.DEFAULT, 6);
-        list.setAdapter(new Adapter(ads));
+    @Override
+    public Object onRetainNonConfigurationInstance() {
+        return ads;                                                          // survives the rotation
     }
 
     @Override
     protected void onDestroy() {
-        if (ads != null) ads.destroy();      // frees every ad of the list
+        if (!isChangingConfigurations() && ads != null) ads.destroy();       // really leaving: free every ad
         super.onDestroy();
     }
 
-    /** Rows: dummy items, with an ad row at every AD_EVERY-th position. */
+    /** Rows: dummy items, with the ad rows where NativeListPositions says. */
     private static class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         private static final int TYPE_ITEM = 0;
         private static final int TYPE_AD = 1;
         private final NativeListAds ads;
+        private final NativeListPositions pos;
 
-        Adapter(NativeListAds ads) {
+        Adapter(NativeListAds ads, NativeListPositions pos) {
             this.ads = ads;
+            this.pos = pos;
         }
 
         @Override
         public int getItemCount() {
-            return ITEMS + ITEMS / (AD_EVERY - 1);
+            return pos.count(ITEMS);
         }
 
         @Override
         public int getItemViewType(int position) {
-            return isAd(position) ? TYPE_AD : TYPE_ITEM;
-        }
-
-        private static boolean isAd(int position) {
-            return position % AD_EVERY == AD_EVERY - 1;
-        }
-
-        /** Item number without the ad rows. */
-        private static int itemNumber(int position) {
-            return position - position / AD_EVERY;
+            return pos.isAd(position) ? TYPE_AD : TYPE_ITEM;
         }
 
         @NonNull
@@ -132,11 +132,10 @@ public class RecyclerNativeActivity extends Activity {
 
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-            View v = holder.itemView;
-            if (isAd(position)) {
-                ads.bind((FrameLayout) v, position / AD_EVERY);       // ad number 0, 1, 2...
+            if (pos.isAd(position)) {
+                ads.bind((FrameLayout) holder.itemView, pos.adIndex(position));   // ad number 0, 1, 2...
             } else {
-                ((TextView) v).setText("Dummy item " + (itemNumber(position) + 1) + "  (position " + position + ")");
+                ((TextView) holder.itemView).setText("Dummy item " + (pos.itemIndex(position) + 1) + "  (row " + position + ")");
             }
         }
     }

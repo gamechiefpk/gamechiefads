@@ -74,6 +74,18 @@ public class NativeActivity extends DemoActivity {
                 @Override public void onFailed(String reason) { say("language_native: failed (" + reason + ")"); }
             });
         });
+        button("Remote Config: language_native size = TINY (then tap the language button)", () -> {
+            com.gcl.gamechiefads.GamechiefAds.applyRemoteConfig("{\"placements\":{\"language_native\":{\"nativeSize\":\"tiny\"}}}");
+            say("remote rules: language_native nativeSize=tiny");
+        });
+        button("Remote Config: language_native size = LARGE", () -> {
+            com.gcl.gamechiefads.GamechiefAds.applyRemoteConfig("{\"placements\":{\"language_native\":{\"nativeSize\":\"large\"}}}");
+            say("remote rules: language_native nativeSize=large");
+        });
+        button("Remote Config: clear (the app code size is used again)", () -> {
+            com.gcl.gamechiefads.GamechiefAds.applyRemoteConfig(null);
+            say("remote rules cleared");
+        });
         button("AdsUi.loadFullScreenNativeAd()  (like an interstitial, 1 unit)", () ->
                 AdsUi.loadFullScreenNativeAd(this, listener("native-fs")));
         button("Reload all (one after another)", () -> {

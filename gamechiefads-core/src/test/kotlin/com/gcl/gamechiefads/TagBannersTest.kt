@@ -55,3 +55,22 @@ class BannerTypeDefaultTest {
         assertEquals(BannerType.ADAPTIVE, RemoteOverrides.apply(c, """{"placements":{"banner":{"bannerType":"ADAPTIVE"}}}""").placement(Placements.BANNER)!!.bannerType)
     }
 }
+
+class NativeSizeRemoteTest {
+    private val base = AdsConfig.builder().introNativeUnits("n").nativeAd("list_native").units("x").build()
+
+    @Test fun theNativeSizeCanBeSetRemotelyPerPlacement() {
+        assertNull(base.placement(Placements.INTRO_NATIVE)!!.nativeSize)
+        val c = RemoteOverrides.apply(base, """{"placements":{"intro_native":{"nativeSize":" TINY "},"list_native":{"nativeSize":"small_media"}}}""")
+        assertEquals("tiny", c.placement(Placements.INTRO_NATIVE)!!.nativeSize)
+        assertEquals("small_media", c.placement("list_native")!!.nativeSize)
+    }
+
+    @Test fun aLaterLayerThatIsSilentKeepsItAndBlankOrOversizedValuesAreIgnored() {
+        val a = RemoteOverrides.apply(base, """{"placements":{"intro_native":{"nativeSize":"large"}}}""")
+        val b = RemoteOverrides.apply(a, """{"placements":{"intro_native":{"units":["z"]}}}""")
+        assertEquals("large", b.placement(Placements.INTRO_NATIVE)!!.nativeSize)
+        assertNull(RemoteOverrides.apply(base, """{"placements":{"intro_native":{"nativeSize":"  "}}}""").placement(Placements.INTRO_NATIVE)!!.nativeSize)
+        assertNull(RemoteOverrides.apply(base, """{"placements":{"intro_native":{"nativeSize":"${"x".repeat(40)}"}}}""").placement(Placements.INTRO_NATIVE)!!.nativeSize)
+    }
+}

@@ -27,6 +27,7 @@ Modules: `gamechiefads-core` (all logic, no UI), `gamechiefads-ui` (shimmer, loa
 | `randomInterstitialDoubleUnit(id)` | 2nd interstitial of a double | no, one unit |
 | `introNativeUnits(...)` | Small native, intro screens | yes |
 | `fullScreenNativeUnit(id)` | Full-screen native like an interstitial | no, one unit |
+| `listNativeUnit(id)` | Native ads inside a RecyclerView (`NativeListAds`) | no, one unit |
 | `rewardedUnits(...)` | Rewarded | yes |
 
 Options you can chain after a slot method (they apply to that slot):

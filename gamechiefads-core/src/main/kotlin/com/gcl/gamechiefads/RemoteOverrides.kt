@@ -56,6 +56,7 @@ internal object RemoteOverrides {
         if (o.opt("auto") is Boolean) r = r.copy(autoShow = o.getBoolean("auto"))
         if (o.opt("premiumGetsReward") is Boolean) r = r.copy(premiumGetsReward = o.getBoolean("premiumGetsReward"))
         parseEnum<BannerType>(o.optString("bannerType", ""))?.let { r = r.copy(bannerType = it) }
+        o.optString("nativeSize", "").trim().lowercase().takeIf { it.isNotEmpty() && it.length <= 20 }?.let { r = r.copy(nativeSize = it) }
         if (o.opt("flooring") is Boolean) r = r.copy(flooring = o.getBoolean("flooring"))
         parseEnum<WaterfallMode>(o.optString("waterfall", ""))?.let { r = r.copy(waterfall = it) }
         o.optJSONObject("tierTimeouts")?.let { t ->

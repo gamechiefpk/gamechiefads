@@ -169,6 +169,10 @@ object GamechiefAds {
         listener?.onFailed("not initialized")
     }
 
+    /** Native size name set remotely for a native placement (`"nativeSize"` in the rules), or null. The ui module applies it. */
+    @JvmStatic
+    fun nativeSizeOf(placement: String): String? = runtime?.config?.placement(placement)?.nativeSize
+
     /** The configured [BannerType] of a banner slot or placement (ADAPTIVE if unknown). The ui module sizes its shimmer with it. */
     @JvmStatic
     fun bannerTypeOf(placement: String): BannerType =

@@ -23,6 +23,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
+    testOptions { unitTests.isReturnDefaultValues = true }
+
     publishing {
         singleVariant("release") { withSourcesJar() }
     }
@@ -34,6 +36,7 @@ kotlin { compilerOptions { freeCompilerArgs.add("-Xjvm-default=all") } }
 dependencies {
     api(project(":gamechiefads-core"))
     implementation("androidx.annotation:annotation:1.11.0")
+    testImplementation("junit:junit:4.13.2")
     api("androidx.appcompat:appcompat:1.8.0") // AdsActivity extends AppCompatActivity
 }
 

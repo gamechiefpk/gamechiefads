@@ -109,26 +109,40 @@ Or by tag: `android:tag="gads_native:intro_native:small"`. Reload per page: call
 
 ## 3b. Native ads in a scrolling list (RecyclerView): tiny, small or any size
 
-Use `NativeListAds`, one object per list. Do **not** call `AdsUi.loadNativeAd` inside `onBindViewHolder`: a recycled row is detached, which destroys its ad, so
-every scroll back would send a new request. `NativeListAds` requests each ad **once**, keeps it, and shows it again when the row comes back. A failed ad is not retried
-(its row collapses), and `maxAds` (default 5) stops a very long list from sending dozens of requests.
+Use `NativeListAds`, one object per list. A list ad loads **without floors from ONE ad unit**: one request per ad, nothing more.
+Do **not** call `AdsUi.loadNativeAd` inside `onBindViewHolder`: a recycled row is detached, which destroys its ad, so every scroll back would send a new request.
+`NativeListAds` requests each ad **once**, keeps it, and shows it again when the row comes back. A failed ad is not retried (its row collapses).
 
-**1. Config** (one placement for the list, units with floors if you like):
+**Recommended setup** (the defaults already follow it):
+
+| Setting | Recommended | Where |
+|---|---|---|
+| Ad unit | one unit, no floors | `.listNativeUnit(id)` in the config |
+| Size | `SMALL` (or `TINY` between dense rows, `SMALL_MEDIA` with a thumbnail). Avoid `LARGE` and `FULL` in lists | `new NativeListAds(NativeSize.SMALL)` |
+| Spacing | first ad after 4 rows, then one every 8 rows, never as the last row | `new NativeListPositions()` |
+| Limit | at most 5 ads per screen (the rest stay empty) | `maxAds`, default 5 |
+| Expiry | a kept ad older than 50 minutes is replaced by one new request | `ttlMinutes`, default 50 |
+| Premium | no ad rows at all | `new NativeListPositions(4, 8, !isPremium)` |
+| Size from the server | `{"placements":{"list_native":{"nativeSize":"tiny"}}}` | Remote Config, no app update |
+
+**1. Config:**
 
 ```java
-.nativeAd("list_native").units(HF, MF, NORMAL)
+.listNativeUnit(LIST_NATIVE_UNIT)        // ONE unit, no floors
 ```
 
-**2. The adapter**: an ad row is a row whose root view is a `FrameLayout`. Pick where the ads go (here every 6th row):
+**2. The adapter**: an ad row is a row whose root view is a `FrameLayout`:
 
 ```java
 public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private static final int AD_EVERY = 6, TYPE_ITEM = 0, TYPE_AD = 1;
-    private final NativeListAds ads;                       // created by the screen, see step 3
+    private static final int TYPE_ITEM = 0, TYPE_AD = 1;
+    private final NativeListAds ads;
+    private final NativeListPositions pos;                              // where the ad rows go
 
-    MyAdapter(NativeListAds ads) { this.ads = ads; }
+    MyAdapter(NativeListAds ads, NativeListPositions pos) { this.ads = ads; this.pos = pos; }
 
-    @Override public int getItemViewType(int position) { return position % AD_EVERY == AD_EVERY - 1 ? TYPE_AD : TYPE_ITEM; }
+    @Override public int getItemCount() { return pos.count(items.size()); }             // items + ad rows
+    @Override public int getItemViewType(int position) { return pos.isAd(position) ? TYPE_AD : TYPE_ITEM; }
 
     @Override public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int type) {
         if (type == TYPE_AD) {
@@ -140,37 +154,28 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     @Override public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        if (getItemViewType(position) == TYPE_AD) {
-            ads.bind((FrameLayout) holder.itemView, position / AD_EVERY);        // ad number 0, 1, 2... (NOT the position)
-        } else {
-            ((ItemHolder) holder).show(items.get(position - position / AD_EVERY));   // the item index skips the ad rows
-        }
+        if (pos.isAd(position)) ads.bind((FrameLayout) holder.itemView, pos.adIndex(position));   // ad number 0, 1, 2...
+        else ((ItemHolder) holder).show(items.get(pos.itemIndex(position)));                     // skips the ad rows
     }
-
-    @Override public int getItemCount() { return items.size() + items.size() / (AD_EVERY - 1); }
 }
 ```
 
-**3. The screen**: choose the size here, and free the ads in `onDestroy`:
+**3. The screen:**
 
 ```java
-ads = new NativeListAds("list_native", NativeSize.SMALL);        // TINY, SMALL, SMALL_MEDIA, MEDIUM...
-recycler.setAdapter(new MyAdapter(ads));
-// optional: NativeListAds(name, size, style, maxAds)
+ads = new NativeListAds(NativeSize.SMALL);                  // placement "list_native"; also (placement, size, style, maxAds, ttlMinutes)
+recycler.setAdapter(new MyAdapter(ads, new NativeListPositions()));
 
 @Override protected void onDestroy() { ads.destroy(); super.onDestroy(); }      // in a Fragment: onDestroyView
 ```
 
-| Size in a list | Height | Notes |
-|---|---|---|
-| `TINY` | about 60 dp | one line: icon, headline, text, small button. Best between dense rows |
-| `SMALL` | about 140 dp | the usual list ad |
-| `SMALL_MEDIA` | about 148 dp | thumbnail left, text and button right |
-| `MEDIUM` | about 330 dp | big; fine for a list with few rows |
+**Rotation without new requests.** A rotation recreates the screen and its `NativeListAds`, which would ask again. Keep the object in a `ViewModel`
+(`ads = new NativeListAds(...)` as a field, `ads.destroy()` in `onCleared()`), or in a plain Activity return it from `onRetainNonConfigurationInstance()` and read it back with
+`getLastNonConfigurationInstance()`; call `destroy()` only when `!isChangingConfigurations()`. The loaded ads are then shown again at once. (The sample screen does this.)
 
-Avoid `LARGE` and `FULL` in lists. Rules: the ad row's root **must be the FrameLayout** (so a failed ad collapses the whole row); the ad number is
-`position / AD_EVERY`, not the position (so inserting items does not move ads); a premium user: do not add ad rows at all (the app knows `isPremium`).
-Another list on another screen can use the same placement name; each `NativeListAds` object keeps its own ads. Try it in the sample: "Native ads in a RecyclerView (dummy list)".
+Rules: the ad row's root **must be the FrameLayout** (so a failed ad collapses the whole row); the ad number comes from `pos.adIndex(position)`, never the raw position
+(inserting items does not move ads). Remote `nativeSize` may be `tiny`, `small`, `small_media`, `medium`, `large` or `full`; use `full` only where the row can be tall.
+Try it in the sample: "Native ads in a RecyclerView (dummy list)".
 
 ## 4. Home screen (and every normal screen): banner
 
@@ -321,6 +326,7 @@ Native ads need the `ui` module (included in the one JitPack line). Six ways to 
 | Load when attached | `gads_autoLoad` | `setAutoLoad(boolean)` | true |
 | Hide when no ad | `gads_hideOnFail` | `setHideOnFail(boolean)` | true (GONE) |
 | Colours and corners | colour names in `res/values/colors.xml` | `setStyle(NativeStyle.builder()...)` | light and dark built in |
+| Size from the server | | Remote Config `{"placements":{"<placement>":{"nativeSize":"tiny"}}}` overrides the size in code, for any native placement (intro, language, list...) | the size in code |
 | Result | | `setListener(NativeAdTemplateView.Listener)` (`onLoaded`, `onFailed`) | none |
 
 `NativeStyle.builder()`: `background`, `stroke`, `headlineColor`, `bodyColor`, `secondaryColor`, `badge(bg, text)`, `button(bg, text)`, `cornerRadiusDp`, `strokeWidthDp`.

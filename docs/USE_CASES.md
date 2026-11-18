@@ -238,8 +238,10 @@ AdsUi.loadFullScreenNativeAd(this, new InterstitialListener() {  // covers the s
 ### 8b. Native ads in a RecyclerView (tiny, small, any size)
 
 ```java
-NativeListAds ads = new NativeListAds("list_native", NativeSize.SMALL);       // config: .nativeAd("list_native").units(...)
-// onBindViewHolder of the ad row (its root view is a FrameLayout):  ads.bind((FrameLayout) holder.itemView, position / AD_EVERY);
+// config: .listNativeUnit(id)   (ONE unit, no floors)
+NativeListAds ads = new NativeListAds(NativeSize.SMALL);
+NativeListPositions pos = new NativeListPositions();         // first ad after 4 rows, then every 8
+// onBindViewHolder of the ad row (its root view is a FrameLayout):  ads.bind((FrameLayout) holder.itemView, pos.adIndex(position));
 // onDestroy:  ads.destroy();
 ```
 
@@ -426,6 +428,7 @@ those apps with no release.
   "global": { "splashTimeoutMs": 12000, "overallBudgetMs": 8000, "initTimeoutMs": 8000,
               "doubleSecondWaitMs": 2500, "noAdMessageMs": 1800 },
   "placements": {
+    "intro_native": { "nativeSize": "small" },
     "random": { "enabled": true, "units": ["hf","mf","normal"], "secondUnit": "x", "every": 3, "gap": 30,
                 "everyNCalls": 1, "auto": true, "flooring": true, "waterfall": "sequential",
                 "tierTimeoutMs": 3000, "tierTimeouts": {"hf": 1500}, "disabledUnits": [],
@@ -435,7 +438,7 @@ those apps with no release.
 ```
 
 Slots: `splash`, `splash_interstitial`, `splash_banner`, `app_open`, `banner`, `exit_banner`, `random`, `intro_native`,
-`fullscreen_native`, `rewarded`. `"enabled": false` at the top is a kill switch for every ad. A slot you did not declare in code
+`fullscreen_native`, `list_native`, `rewarded`. `"enabled": false` at the top is a kill switch for every ad. A slot you did not declare in code
 cannot be added remotely.
 
 **A tip for fixes:** when you add a feature to the library, add a setting for it (default = old behaviour) and switch it on from the

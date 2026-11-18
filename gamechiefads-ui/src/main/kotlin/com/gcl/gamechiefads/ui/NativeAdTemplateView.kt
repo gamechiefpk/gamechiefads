@@ -151,6 +151,8 @@ class NativeAdTemplateView @JvmOverloads constructor(
     private fun startLoad() {
         val p = placement ?: return
         lastShared = null
+        // Remote Config can change the size of a native placement without an app update
+        NativeSize.fromName(GamechiefAds.nativeSizeOf(p))?.let { if (it != size) size = it }
         cancelLoad()
         releaseAd()
         removeContent()

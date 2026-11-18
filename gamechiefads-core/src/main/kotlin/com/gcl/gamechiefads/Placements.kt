@@ -32,6 +32,9 @@ object Placements {
     /** Full-screen native ad that behaves like an interstitial: ONE unit, no floors. */
     const val FULLSCREEN_NATIVE = "fullscreen_native"
 
+    /** Native ads inside scrolling lists (NativeListAds): ONE unit, no floors, so a list never walks a floor chain per row. */
+    const val LIST_NATIVE = "list_native"
+
     /** Rewarded ad (units with floors). */
     const val REWARDED = "rewarded"
 

@@ -28,5 +28,8 @@ enum class NativeSize(@param:LayoutRes internal val layout: Int, internal val pl
 
     internal companion object {
         fun fromAttr(value: Int): NativeSize = entries.getOrElse(value) { MEDIUM }
+
+        /** A size by name (tiny, small, small_media, medium, large, full; any case), or null when unknown. Used by Remote Config. */
+        fun fromName(name: String?): NativeSize? = entries.firstOrNull { it.name.equals(name?.trim(), ignoreCase = true) }
     }
 }

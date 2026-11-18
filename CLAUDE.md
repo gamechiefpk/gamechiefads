@@ -60,7 +60,7 @@ GamechiefAds.loadCustomBannerAd(frameLayout, unitId, BannerType, listener);   //
 GamechiefAds.loadRandomInterstitialAd(activity, listener);    // the random interstitial on YOUR button; it is also AUTOMATIC over every 3rd new screen (no call needed; everyNScreens(0) or autoShow(false) = off; runtime switch: setAutoRandomInterstitialEnabled(boolean)); + loadRandomInterstitialDoubleAd
 GamechiefAds.loadRewardedAd(activity, listener);
 AdsUi.loadIntroNativeAd(frameLayout);  AdsUi.loadFullScreenNativeAd(activity, listener);   // ui module
-NativeListAds ads = new NativeListAds("list_native", NativeSize.SMALL);  // native ads in a RecyclerView: ads.bind(rowFrameLayout, adIndex) in onBindViewHolder, ads.destroy() in onDestroy; each ad requested ONCE
+NativeListAds ads = new NativeListAds(NativeSize.SMALL);  // config .listNativeUnit(id): ONE unit, no floors; positions: new NativeListPositions() (first ad after 4 rows, then every 8); RC "nativeSize" on any native placement changes its size remotely;  // native ads in a RecyclerView: ads.bind(rowFrameLayout, adIndex) in onBindViewHolder, ads.destroy() in onDestroy; each ad requested ONCE
 AdsUi.loadNativeAd(frameLayout, "placement_name", NativeSize.MEDIUM[, style, listener]);   // any native spot, only a FrameLayout needed (tag: gads_native:<placement>[:<size>])
 ```
 Single vs double is chosen by the method called (the app can use its own Remote Config flag). Double = both ads requested together from

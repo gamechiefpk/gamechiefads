@@ -54,6 +54,8 @@ data class PlacementConfig(
     val everyNCalls: Int = 1,
     /** Random interstitial: show automatically over new screens (true) or only on your button calls (false). */
     val autoShow: Boolean = true,
+    /** Native only: size name set from Remote Config ("nativeSize"), overrides the size in the app code. Null = the app code decides. */
+    val nativeSize: String? = null,
 ) {
     /** This placement as the SECOND ad of a double: one request, no floors, to [secondUnit] (else the last unit). */
     fun forSecondAd(): PlacementConfig {
