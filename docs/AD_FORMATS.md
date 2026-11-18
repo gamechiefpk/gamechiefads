@@ -193,6 +193,8 @@ Options (`FullScreenNativeAd.Options`): `closeDelaySeconds`, `style`, `loader`.
 
 # Box 1: Banner ads, all types and sizes
 
+**Change the default type for the whole app** (for example collapsible instead of adaptive): `.bannerUnits(HF, MF, NORMAL).defaultBannerType(BannerType.COLLAPSIBLE_BOTTOM)` in the config. It applies to the normal-screen banner; the exit banner (300x250) and the splash banner (320x100) keep their own sizes. One screen can still choose its own: `GamechiefAds.loadBannerAd(frame, BannerType.ADAPTIVE)` or the tag `gads_banner:adaptive`. From Remote Config: `{"placements":{"banner":{"bannerType":"COLLAPSIBLE_BOTTOM"}}}`. Collapsible banners belong at the **bottom** of the screen (`COLLAPSIBLE_TOP` at the top) and fill from Google demand only.
+
 Set the type of a slot with `.bannerType(...)` in the config (or `"bannerType"` in the remote rules), or per call with `loadCustomBannerAd(frame, unit, type)`.
 
 | `BannerType` | Size | Best for |

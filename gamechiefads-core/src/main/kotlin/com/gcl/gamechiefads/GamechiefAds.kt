@@ -121,6 +121,15 @@ object GamechiefAds {
     fun loadBannerAd(container: FrameLayout, isEnableFlooring: Boolean, listener: BannerListener? = null) =
         banner(container, Placements.BANNER, listener, isEnableFlooring)
 
+    /**
+     * Same, with the banner type chosen for this call only (for example [BannerType.COLLAPSIBLE_BOTTOM] on one screen).
+     * The default type of all banners is set in the config: `.defaultBannerType(...)`.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun loadBannerAd(container: FrameLayout, type: BannerType, isEnableFlooring: Boolean = true, listener: BannerListener? = null) =
+        banner(container, Placements.BANNER, listener, isEnableFlooring, type)
+
     /** Banner for the exit screen (units from exitBannerUnits), with floors. */
     @JvmStatic
     @JvmOverloads
@@ -149,10 +158,10 @@ object GamechiefAds {
     fun loadBannerAd(container: FrameLayout, placement: AdPlacement, listener: BannerListener?) =
         banner(container, placement.name, listener, true)
 
-    private fun banner(container: FrameLayout, name: String, listener: BannerListener?, flooring: Boolean) {
+    private fun banner(container: FrameLayout, name: String, listener: BannerListener?, flooring: Boolean, type: BannerType? = null) {
         val r = runtime
         if (r == null) failBanner(container, listener)
-        else r.banner.attach(container, name, listener, if (name == Placements.SPLASH_BANNER) BannerType.LARGE_BANNER else null, flooring)
+        else r.banner.attach(container, name, listener, if (name == Placements.SPLASH_BANNER) BannerType.LARGE_BANNER else type, flooring)
     }
 
     private fun failBanner(container: FrameLayout, listener: BannerListener?) {

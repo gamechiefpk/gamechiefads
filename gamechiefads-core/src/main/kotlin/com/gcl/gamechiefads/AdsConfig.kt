@@ -89,6 +89,7 @@ data class AdsConfig(
         private var fallbackToLoad = false
         private var autoRefill = false
         private var tagBanners = true
+        private var defaultBannerType: BannerType? = null
         private var overallBudgetMs = DEFAULT_OVERALL_BUDGET_MS
         private var splashTimeoutMs = DEFAULT_SPLASH_TIMEOUT_MS
         private var initTimeoutMs = DEFAULT_INIT_TIMEOUT_MS
@@ -115,6 +116,12 @@ data class AdsConfig(
         fun appOpenUnit(id: String) = slot(Placements.APP_OPEN, AdFormat.APP_OPEN, arrayOf(id))
         /** Banner for all normal screens (GamechiefAds.loadBannerAd). */
         fun bannerUnits(vararg ids: String) = slot(Placements.BANNER, AdFormat.BANNER, ids)
+        /**
+         * The default type of the normal-screen banner for this app: ADAPTIVE (default), COLLAPSIBLE_BOTTOM, MEDIUM_RECTANGLE, ...
+         * The exit banner (medium rectangle) and the splash banner (large banner) keep their own sizes. A single call can still override it
+         * with `loadBannerAd(frame, type)`, and Remote Config with `"bannerType"` on the `banner` slot.
+         */
+        fun defaultBannerType(type: BannerType) = apply { defaultBannerType = type }
         /** Banner for the exit screen (GamechiefAds.loadExitBannerAd). A medium rectangle unless you chain .bannerType(...). */
         fun exitBannerUnits(vararg ids: String) = slot(Placements.EXIT_BANNER, AdFormat.BANNER, ids).bannerType(BannerType.MEDIUM_RECTANGLE)
         /**
@@ -235,6 +242,7 @@ data class AdsConfig(
 
         fun build(): AdsConfig {
             commit()
+            defaultBannerType?.let { t -> done[Placements.BANNER]?.let { done[Placements.BANNER] = it.copy(bannerType = t) } }
             pendingSecond.forEach { (name, id) ->
                 val p = done[name] ?: throw IllegalStateException("Double units for \"$name\" need the normal units of that slot too")
                 done[name] = p.copy(secondUnit = id)

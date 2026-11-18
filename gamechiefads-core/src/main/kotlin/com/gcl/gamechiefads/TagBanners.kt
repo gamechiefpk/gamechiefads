@@ -12,6 +12,8 @@ import android.widget.FrameLayout
  *     <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:tag="gads_banner" />
  *
  * Tags: gads_banner, gads_banner_fast (no floors), gads_exit_banner, gads_exit_banner_fast, gads_splash_banner.
+ * A normal banner can carry its type: gads_banner:collapsible_bottom, gads_banner_fast:adaptive (any [BannerType] name).
+ * Natives: gads_native:<placement>[:<size>].
  * Each screen instance is scanned once, so coming back to it never causes a new request. Fragments or views added later
  * are not found: call the load method for those.
  */
@@ -76,7 +78,16 @@ internal class TagBanners(
         }
 
         /** Pure: a tag string to a request, or null when it is not one of ours. */
-        fun parse(tag: String?): Spec? = when (tag?.trim()?.lowercase()) {
+        fun parse(tag: String?): Spec? {
+            val parts = tag?.trim()?.lowercase()?.split(':') ?: return null
+            if (parts.size > 2) return null
+            val base = parseBase(parts[0].trim()) ?: return null
+            val type = parts.getOrNull(1)?.trim()?.takeIf { it.isNotEmpty() }
+                ?.let { n -> BannerType.entries.firstOrNull { it.name.equals(n, ignoreCase = true) } ?: return null }
+            return if (type != null && base.placement == Placements.BANNER) base.copy(forceType = type) else if (type != null) null else base
+        }
+
+        private fun parseBase(tag: String): Spec? = when (tag) {
             "gads_banner" -> Spec(Placements.BANNER, true)
             "gads_banner_fast" -> Spec(Placements.BANNER, false)
             "gads_exit_banner" -> Spec(Placements.EXIT_BANNER, true)

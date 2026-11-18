@@ -95,6 +95,7 @@ GamechiefAds.loadExitBannerAd(findViewById(R.id.exitContainer));
 
 A shimmer shows while it loads (when the ui module is in your app). The container hides itself if there is no ad.
 The banner type of a slot: `.bannerUnits(...).bannerType(BannerType.MEDIUM_RECTANGLE)`.
+Default type for the whole app: `.defaultBannerType(BannerType.COLLAPSIBLE_BOTTOM)` (normal banner only). One call: `GamechiefAds.loadBannerAd(frame, BannerType.ADAPTIVE)`.
 
 **Banner on a screen the user leaves fast?** A banner needs a moment to load, so on a screen where the user just taps a button and
 moves on, the walk through the floors can be too slow and the banner never shows. Turn floors off for that call:
@@ -123,6 +124,7 @@ Put a tag on a FrameLayout and the library fills it when the screen opens. No `l
 | `gads_banner_fast` | the banner slot, no floors (one request, fastest) |
 | `gads_exit_banner` / `gads_exit_banner_fast` | the exit banner slot, with / without floors |
 | `gads_splash_banner` | the splash banner (large banner, one unit) |
+| `gads_banner:<type>` | a normal banner with its own type, e.g. `gads_banner:collapsible_bottom`, `gads_banner_fast:adaptive` |
 | `gads_native:<placement>[:<size>]` | a native ad (needs the ui module), e.g. `gads_native:language_native:medium`; sizes tiny, small, small_media, medium, large, full |
 
 Same shimmer, premium hiding and cleanup as the load methods. Each screen is filled once, so coming back to it never sends a new

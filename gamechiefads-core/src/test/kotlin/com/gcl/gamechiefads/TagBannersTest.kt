@@ -37,3 +37,21 @@ class TagBannersTest {
         assertTrue(RemoteOverrides.apply(base, """{"tagBanners":"no"}""").tagBanners)  // wrong type: ignored
     }
 }
+
+class BannerTypeDefaultTest {
+    @Test fun aTagCanCarryTheBannerTypeOfANormalBanner() {
+        assertEquals(TagBanners.Spec(Placements.BANNER, true, BannerType.COLLAPSIBLE_BOTTOM), TagBanners.parse("gads_banner:collapsible_bottom"))
+        assertEquals(TagBanners.Spec(Placements.BANNER, false, BannerType.ADAPTIVE), TagBanners.parse("GADS_BANNER_FAST : adaptive"))
+        assertNull(TagBanners.parse("gads_banner:nonsense")); assertNull(TagBanners.parse("gads_exit_banner:banner")); assertNull(TagBanners.parse("gads_banner:a:b"))
+    }
+
+    @Test fun theDefaultBannerTypeOfTheAppAppliesToTheNormalBannerOnly() {
+        val c = AdsConfig.builder().bannerUnits("b").exitBannerUnits("e").splashBannerUnit("s").defaultBannerType(BannerType.COLLAPSIBLE_BOTTOM).build()
+        assertEquals(BannerType.COLLAPSIBLE_BOTTOM, c.placement(Placements.BANNER)!!.bannerType)
+        assertEquals(BannerType.MEDIUM_RECTANGLE, c.placement(Placements.EXIT_BANNER)!!.bannerType)
+        assertEquals(BannerType.LARGE_BANNER, c.placement(Placements.SPLASH_BANNER)!!.bannerType)
+        assertEquals(BannerType.ADAPTIVE, AdsConfig.builder().bannerUnits("b").build().placement(Placements.BANNER)!!.bannerType)
+        // Remote Config can still change it later
+        assertEquals(BannerType.ADAPTIVE, RemoteOverrides.apply(c, """{"placements":{"banner":{"bannerType":"ADAPTIVE"}}}""").placement(Placements.BANNER)!!.bannerType)
+    }
+}

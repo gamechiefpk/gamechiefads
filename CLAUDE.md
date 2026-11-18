@@ -51,6 +51,7 @@ GamechiefAds.init(app, config);   GamechiefAds.setPremium(boolean);   GamechiefA
 GamechiefAds.setLoadingDialog(ui); GamechiefAds.setLoadingText(title, message); GamechiefAds.skipNextAppOpenAd();
 GamechiefAds.loadSplashAppOpenAd(activity, callback);         // + loadSplashAppOpenDoubleAd, loadSplashInterstitialAd, loadSplashInterstitialDoubleAd
 GamechiefAds.loadSplashBannerAd(frameLayout);                 // always LARGE_BANNER, ONE unit (splashBannerUnit), no floors
+GamechiefAds.loadBannerAd(frameLayout, BannerType[, isEnableFlooring]);  // type for one call; app default: AdsConfig .defaultBannerType(type); tag gads_banner:<type>
 GamechiefAds.loadBannerAd(frameLayout[, isEnableFlooring]);  GamechiefAds.loadExitBannerAd(frameLayout[, isEnableFlooring]);   // false = one request, last unit
 // no code at all: android:tag="gads_banner" | gads_banner_fast | gads_exit_banner | gads_exit_banner_fast | gads_splash_banner on a FrameLayout (TagBanners; .tagBanners(false) or RC {"tagBanners":false} = off)
 // optional base screen in the ui module: `AdsActivity extends AppCompatActivity` with open loadBannerAd/loadExitBannerAd/loadRandomInterstitialAd/loadRewardedAd
