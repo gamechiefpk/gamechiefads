@@ -65,6 +65,9 @@ class NativeAdTemplateView @JvmOverloads constructor(
     private var handle: AdRequestHandle? = null
     private var content: NativeAdView? = null
     private var shimmer: ShimmerView? = null
+    private var sharedAd = false
+    /** The shared ad this view last showed: shown again when a recycled view is re-attached without a new bind. */
+    private var lastShared: NativeAd? = null
 
     init {
         if (attrs != null) {
@@ -95,9 +98,34 @@ class NativeAdTemplateView @JvmOverloads constructor(
     fun bind(nativeAd: NativeAd) {
         cancelLoad()
         releaseAd()
+        lastShared = null
         ad = nativeAd
         visibility = VISIBLE
         bindInternal(nativeAd)
+    }
+
+    /**
+     * Shows an ad that someone else owns and keeps (used for lists, see [NativeListAds]): this view never destroys it, so the same
+     * ad can be shown again in another recycled view.
+     */
+    fun bindShared(nativeAd: NativeAd) {
+        cancelLoad()
+        releaseAd()
+        ad = nativeAd
+        sharedAd = true
+        lastShared = nativeAd
+        visibility = VISIBLE
+        bindInternal(nativeAd)
+    }
+
+    /** Clears the view and shows the loading shimmer, without loading anything (the owner loads). */
+    fun showPlaceholder() {
+        cancelLoad()
+        releaseAd()
+        lastShared = null
+        removeContent()
+        visibility = VISIBLE
+        showShimmer()
     }
 
     /** Stops loading and frees the ad now. Also done automatically on detach. */
@@ -110,6 +138,7 @@ class NativeAdTemplateView @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        lastShared?.let { if (ad == null) bindShared(it) }
         if (autoLoad && placement != null && ad == null && handle == null) startLoad()
     }
 
@@ -121,6 +150,7 @@ class NativeAdTemplateView @JvmOverloads constructor(
 
     private fun startLoad() {
         val p = placement ?: return
+        lastShared = null
         cancelLoad()
         releaseAd()
         removeContent()
@@ -208,6 +238,8 @@ class NativeAdTemplateView @JvmOverloads constructor(
     private fun releaseAd() {
         val a = ad
         ad = null
-        if (a != null) runCatching { a.destroy() }
+        val keep = sharedAd
+        sharedAd = false
+        if (a != null && !keep) runCatching { a.destroy() }
     }
 }

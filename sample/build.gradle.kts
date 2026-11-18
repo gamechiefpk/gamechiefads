@@ -25,4 +25,5 @@ dependencies {
     implementation(project(":gamechiefads-core"))
     implementation(project(":gamechiefads-ui"))
     implementation("androidx.appcompat:appcompat:1.8.0")
+    implementation("androidx.recyclerview:recyclerview:1.4.0")   // only for the RecyclerView demo screen
 }

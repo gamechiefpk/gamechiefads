@@ -107,6 +107,71 @@ AdsUi.loadNativeAd(findViewById(R.id.nativeContainer), "intro_native", NativeSiz
 
 Or by tag: `android:tag="gads_native:intro_native:small"`. Reload per page: call it again with the same container; the old ad is replaced and destroyed.
 
+## 3b. Native ads in a scrolling list (RecyclerView): tiny, small or any size
+
+Use `NativeListAds`, one object per list. Do **not** call `AdsUi.loadNativeAd` inside `onBindViewHolder`: a recycled row is detached, which destroys its ad, so
+every scroll back would send a new request. `NativeListAds` requests each ad **once**, keeps it, and shows it again when the row comes back. A failed ad is not retried
+(its row collapses), and `maxAds` (default 5) stops a very long list from sending dozens of requests.
+
+**1. Config** (one placement for the list, units with floors if you like):
+
+```java
+.nativeAd("list_native").units(HF, MF, NORMAL)
+```
+
+**2. The adapter**: an ad row is a row whose root view is a `FrameLayout`. Pick where the ads go (here every 6th row):
+
+```java
+public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private static final int AD_EVERY = 6, TYPE_ITEM = 0, TYPE_AD = 1;
+    private final NativeListAds ads;                       // created by the screen, see step 3
+
+    MyAdapter(NativeListAds ads) { this.ads = ads; }
+
+    @Override public int getItemViewType(int position) { return position % AD_EVERY == AD_EVERY - 1 ? TYPE_AD : TYPE_ITEM; }
+
+    @Override public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int type) {
+        if (type == TYPE_AD) {
+            FrameLayout frame = new FrameLayout(parent.getContext());            // or an XML file whose root is a FrameLayout
+            frame.setLayoutParams(new RecyclerView.LayoutParams(-1, -2));
+            return new RecyclerView.ViewHolder(frame) { };
+        }
+        return new ItemHolder(...);                                              // your normal row
+    }
+
+    @Override public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        if (getItemViewType(position) == TYPE_AD) {
+            ads.bind((FrameLayout) holder.itemView, position / AD_EVERY);        // ad number 0, 1, 2... (NOT the position)
+        } else {
+            ((ItemHolder) holder).show(items.get(position - position / AD_EVERY));   // the item index skips the ad rows
+        }
+    }
+
+    @Override public int getItemCount() { return items.size() + items.size() / (AD_EVERY - 1); }
+}
+```
+
+**3. The screen**: choose the size here, and free the ads in `onDestroy`:
+
+```java
+ads = new NativeListAds("list_native", NativeSize.SMALL);        // TINY, SMALL, SMALL_MEDIA, MEDIUM...
+recycler.setAdapter(new MyAdapter(ads));
+// optional: NativeListAds(name, size, style, maxAds)
+
+@Override protected void onDestroy() { ads.destroy(); super.onDestroy(); }      // in a Fragment: onDestroyView
+```
+
+| Size in a list | Height | Notes |
+|---|---|---|
+| `TINY` | about 60 dp | one line: icon, headline, text, small button. Best between dense rows |
+| `SMALL` | about 140 dp | the usual list ad |
+| `SMALL_MEDIA` | about 148 dp | thumbnail left, text and button right |
+| `MEDIUM` | about 330 dp | big; fine for a list with few rows |
+
+Avoid `LARGE` and `FULL` in lists. Rules: the ad row's root **must be the FrameLayout** (so a failed ad collapses the whole row); the ad number is
+`position / AD_EVERY`, not the position (so inserting items does not move ads); a premium user: do not add ad rows at all (the app knows `isPremium`).
+Another list on another screen can use the same placement name; each `NativeListAds` object keeps its own ads. Try it in the sample: "Native ads in a RecyclerView (dummy list)".
+
 ## 4. Home screen (and every normal screen): banner
 
 Two ways, same result:
@@ -225,7 +290,7 @@ it is destroyed with its screen; a second call on a container that already has a
 
 # Box 2: Native ads, usage and sizes
 
-Native ads need the `ui` module (included in the one JitPack line). Five ways to show one:
+Native ads need the `ui` module (included in the one JitPack line). Six ways to show one:
 
 | How | Use for |
 |---|---|
@@ -233,6 +298,7 @@ Native ads need the `ui` module (included in the one JitPack line). Five ways to
 | tag `android:tag="gads_native:<placement>[:<size>]"` on a FrameLayout | no code at all, filled when the screen opens |
 | `<NativeAdTemplateView app:gads_size=... app:gads_placement=...>` in XML | any screen: language, lists, results, dialogs (loads by itself) |
 | `AdsUi.loadIntroNativeAd(frame)` | intro screens: small card, one line of code |
+| `NativeListAds` (see 3b) | native ads inside a RecyclerView: each ad requested once, kept while scrolling |
 | `AdsUi.loadFullScreenNativeAd(activity, listener)` | full-screen native like an interstitial |
 
 **Sizes** (`NativeSize`, XML `app:gads_size`):

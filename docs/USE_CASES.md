@@ -235,6 +235,16 @@ AdsUi.loadFullScreenNativeAd(this, new InterstitialListener() {  // covers the s
 });
 ```
 
+### 8b. Native ads in a RecyclerView (tiny, small, any size)
+
+```java
+NativeListAds ads = new NativeListAds("list_native", NativeSize.SMALL);       // config: .nativeAd("list_native").units(...)
+// onBindViewHolder of the ad row (its root view is a FrameLayout):  ads.bind((FrameLayout) holder.itemView, position / AD_EVERY);
+// onDestroy:  ads.destroy();
+```
+
+Each ad is requested once and kept while the list scrolls; a failed ad is not retried. Full adapter code: [AD_FORMATS](AD_FORMATS.md) section 3b.
+
 ---
 
 ## Rewarded
