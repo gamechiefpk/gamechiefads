@@ -57,7 +57,8 @@ public class NativeActivity extends DemoActivity {
         FrameLayout any = new FrameLayout(this);
         content.addView(any, new android.widget.LinearLayout.LayoutParams(-1, -2));
         for (com.gcl.gamechiefads.ui.NativeSize size : new com.gcl.gamechiefads.ui.NativeSize[]{
-                com.gcl.gamechiefads.ui.NativeSize.TINY, com.gcl.gamechiefads.ui.NativeSize.SMALL_MEDIA, com.gcl.gamechiefads.ui.NativeSize.MEDIUM}) {
+                com.gcl.gamechiefads.ui.NativeSize.TINY, com.gcl.gamechiefads.ui.NativeSize.SMALL, com.gcl.gamechiefads.ui.NativeSize.SMALL_MEDIA,
+                com.gcl.gamechiefads.ui.NativeSize.MEDIUM, com.gcl.gamechiefads.ui.NativeSize.LARGE}) {
             button("AdsUi.loadNativeAd(frame, \"intro_native\", " + size + ")  (frame only, no XML)", () -> {
                 say("loadNativeAd " + size + ": loading");
                 AdsUi.loadNativeAd(any, "intro_native", size, NativeStyle.DEFAULT, new NativeAdTemplateView.Listener() {
@@ -66,6 +67,13 @@ public class NativeActivity extends DemoActivity {
                 });
             });
         }
+        button("Language screen: loadNativeAd(frame, \"language_native\", MEDIUM)", () -> {
+            say("language_native: loading");
+            AdsUi.loadNativeAd(any, "language_native", com.gcl.gamechiefads.ui.NativeSize.MEDIUM, NativeStyle.DEFAULT, new NativeAdTemplateView.Listener() {
+                @Override public void onLoaded() { say("language_native: loaded"); }
+                @Override public void onFailed(String reason) { say("language_native: failed (" + reason + ")"); }
+            });
+        });
         button("AdsUi.loadFullScreenNativeAd()  (like an interstitial, 1 unit)", () ->
                 AdsUi.loadFullScreenNativeAd(this, listener("native-fs")));
         button("Reload all (one after another)", () -> {

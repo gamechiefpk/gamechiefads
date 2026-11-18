@@ -28,6 +28,17 @@ public class BannerActivity extends DemoActivity {
         button("loadExitBannerAd()  (medium rectangle)", () -> show("exit banner", f -> GamechiefAds.loadExitBannerAd(f, bannerListener("exit banner"))));
         button("loadSplashBannerAd()  (large banner)", () -> show("splash banner", f -> GamechiefAds.loadSplashBannerAd(f, bannerListener("splash banner"))));
 
+        note("Banner slot with the type chosen for ONE call (the app default is set in the config: defaultBannerType):");
+        button("loadBannerAd(frame, ADAPTIVE)", () -> show("banner ADAPTIVE", f -> GamechiefAds.loadBannerAd(f, BannerType.ADAPTIVE, true, bannerListener("banner ADAPTIVE"))));
+        button("loadBannerAd(frame, MEDIUM_RECTANGLE)", () -> show("banner MEDIUM_RECTANGLE", f -> GamechiefAds.loadBannerAd(f, BannerType.MEDIUM_RECTANGLE, true, bannerListener("banner MEDIUM_RECTANGLE"))));
+        button("loadBannerAd(frame, COLLAPSIBLE_BOTTOM)  (pinned at the bottom)", () -> {
+            clear();
+            FrameLayout f = new FrameLayout(this);
+            bottomBar().addView(f, new FrameLayout.LayoutParams(-1, -2));
+            say("banner COLLAPSIBLE_BOTTOM: loading at the bottom");
+            GamechiefAds.loadBannerAd(f, BannerType.COLLAPSIBLE_BOTTOM, true, bannerListener("banner COLLAPSIBLE_BOTTOM"));
+        });
+
         note("Full control: your own ad unit, size and type, one call:");
         button("Custom: adaptive", () -> custom(BannerType.ADAPTIVE));
         button("Custom: medium rectangle 300x250", () -> custom(BannerType.MEDIUM_RECTANGLE));

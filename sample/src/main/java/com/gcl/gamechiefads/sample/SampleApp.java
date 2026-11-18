@@ -50,6 +50,7 @@ public class SampleApp extends Application {
                 // ---- native ----
                 .introNativeUnits(NO_FILL_UNIT, nativeUnit, nativeUnit).tierTimeoutMs(10000).unitTimeoutMs(NO_FILL_UNIT, 1500) // small, floors
                 .fullScreenNativeUnit(nativeUnit)                          // one unit, no floors
+                .nativeAd("language_native").units(nativeUnit, nativeUnit) // your own native spot (language screen): any name, floors
 
                 // ---- rewarded ----
                 .rewardedUnits(getString(R.string.unit_rewarded)).tierTimeoutMs(10000)
