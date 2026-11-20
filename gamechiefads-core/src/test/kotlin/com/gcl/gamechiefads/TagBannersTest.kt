@@ -84,3 +84,29 @@ class AdaptiveLargeTypeTest {
         assertEquals(BannerType.ADAPTIVE_LARGE, c.placement(Placements.BANNER)!!.bannerType)
     }
 }
+
+/** The ready-made Firebase files in docs/firebase must stay valid and understood by the library. */
+class FirebaseFilesTest {
+    private val dir = java.io.File("../docs/firebase")
+    private val rules get() = java.io.File(dir, "gamechief_ads_config.json").readText()
+
+    @Test fun theRulesFileIsValidJsonAndAppliesWithoutChangingTheDefaults() {
+        org.json.JSONObject(rules)                                              // parses
+        val base = AdsConfig.builder().randomInterstitialUnits("r").bannerUnits("b").exitBannerUnits("e").rewardedUnits("w").build()
+        val c = RemoteOverrides.apply(base, rules)
+        assertTrue(c.enabled); assertTrue(c.tagBanners)
+        assertEquals(5, c.noFillRetrySeconds); assertEquals(30, c.quietSecondsAfterAppOpen)
+        assertEquals(base.splashTimeoutMs, c.splashTimeoutMs); assertEquals(base.overallBudgetMs, c.overallBudgetMs)
+        val r = c.placement(Placements.RANDOM)!!
+        assertEquals(3, r.everyNScreens); assertEquals(30, r.minGapSeconds)
+        assertEquals(base.placement(Placements.RANDOM)!!.units, r.units)       // the file never overrides your ad units
+        assertEquals(base.placement(Placements.BANNER)!!.units, c.placement(Placements.BANNER)!!.units)
+    }
+
+    @Test fun theFirebaseTemplateCarriesTheSameRulesInTheRightKey() {
+        val t = org.json.JSONObject(java.io.File(dir, "remoteconfig.template.json").readText())
+        val p = t.getJSONObject("parameters").getJSONObject(AdsConfig.DEFAULT_REMOTE_KEY)
+        assertEquals("JSON", p.getString("valueType"))
+        assertEquals(org.json.JSONObject(rules).toString(), org.json.JSONObject(p.getJSONObject("defaultValue").getString("value")).toString())
+    }
+}

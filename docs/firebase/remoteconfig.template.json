@@ -1,0 +1,11 @@
+{
+    "parameters":  {
+                       "gamechief_ads_config":  {
+                                                    "defaultValue":  {
+                                                                         "value":  "{\"enabled\":true,\"noFillRetrySeconds\":5,\"quietSecondsAfterAppOpen\":30,\"tagBanners\":true,\"loaderTitle\":\"Ad is loading\",\"loaderMessage\":\"Please wait...\",\"noAdMessage\":\"No ad available, please try again in a few seconds\",\"global\":{\"splashTimeoutMs\":10000,\"overallBudgetMs\":8000,\"initTimeoutMs\":8000,\"doubleSecondWaitMs\":2500,\"noAdMessageMs\":1800},\"placements\":{\"random\":{\"enabled\":true,\"every\":3,\"gap\":30,\"everyNCalls\":1,\"auto\":true},\"banner\":{\"enabled\":true},\"exit_banner\":{\"enabled\":true},\"rewarded\":{\"enabled\":true,\"premiumGetsReward\":true}}}"
+                                                                     },
+                                                    "description":  "GamechiefAds rules (JSON). See docs/USE_CASES.md recipe 21.",
+                                                    "valueType":  "JSON"
+                                                }
+                   }
+}
