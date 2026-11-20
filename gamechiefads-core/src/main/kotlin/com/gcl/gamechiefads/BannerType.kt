@@ -2,8 +2,11 @@ package com.gcl.gamechiefads
 
 /** Banner flavours, chosen per placement (`AdsConfig.Builder.bannerType`) or by Remote Config (`"bannerType"`). */
 enum class BannerType {
-    /** Large anchored adaptive banner (default): full width, height picked by Google (50 to 150 dp). */
+    /** Anchored adaptive banner (default): full width, a standard height picked by Google for the width (about 50 to 90 dp). Collapsible banners use the same size. */
     ADAPTIVE,
+
+    /** Large anchored adaptive banner: full width and TALLER than [ADAPTIVE] (about 100 to 150 dp), more room for the ad. */
+    ADAPTIVE_LARGE,
 
     /** Inline adaptive: for banners inside scrolling content. Height is decided at load time. */
     INLINE_ADAPTIVE,

@@ -30,6 +30,7 @@ public class BannerActivity extends DemoActivity {
 
         note("Banner slot with the type chosen for ONE call (the app default is set in the config: defaultBannerType):");
         button("loadBannerAd(frame, ADAPTIVE)", () -> show("banner ADAPTIVE", f -> GamechiefAds.loadBannerAd(f, BannerType.ADAPTIVE, true, bannerListener("banner ADAPTIVE"))));
+        button("loadBannerAd(frame, ADAPTIVE_LARGE)  (taller)", () -> show("banner ADAPTIVE_LARGE", f -> GamechiefAds.loadBannerAd(f, BannerType.ADAPTIVE_LARGE, true, bannerListener("banner ADAPTIVE_LARGE"))));
         button("loadBannerAd(frame, MEDIUM_RECTANGLE)", () -> show("banner MEDIUM_RECTANGLE", f -> GamechiefAds.loadBannerAd(f, BannerType.MEDIUM_RECTANGLE, true, bannerListener("banner MEDIUM_RECTANGLE"))));
         button("loadBannerAd(frame, COLLAPSIBLE_BOTTOM)  (pinned at the bottom)", () -> {
             clear();

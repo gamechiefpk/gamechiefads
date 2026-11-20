@@ -25,7 +25,7 @@ class ShimmerBannerPlaceholder : BannerPlaceholder {
 
     private fun heightDp(type: BannerType): Int = when (type) {
         BannerType.MEDIUM_RECTANGLE -> 250
-        BannerType.LARGE_BANNER -> 100
+        BannerType.LARGE_BANNER, BannerType.ADAPTIVE_LARGE -> 100
         BannerType.LEADERBOARD, BannerType.FULL_BANNER -> 60
         BannerType.BANNER -> 50
         else -> 60

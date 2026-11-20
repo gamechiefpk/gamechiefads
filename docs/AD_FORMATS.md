@@ -269,10 +269,11 @@ Set the type of a slot with `.bannerType(...)` in the config (or `"bannerType"` 
 
 | `BannerType` | Size | Best for |
 |---|---|---|
-| `ADAPTIVE` (default) | full width, height chosen by Google (about 50 to 150 dp) | home and all normal screens |
+| `ADAPTIVE` (default) | full width, standard height chosen by Google (about 50 to 90 dp) | home and all normal screens |
+| `ADAPTIVE_LARGE` | full width, taller (about 100 to 150 dp) | when you want more room for the ad |
 | `INLINE_ADAPTIVE` | full width, height decided when it loads | inside scrolling lists or content |
-| `COLLAPSIBLE_BOTTOM` | adaptive, expands upwards | banner pinned at the **bottom** of the screen (Google demand only) |
-| `COLLAPSIBLE_TOP` | adaptive, expands downwards | banner pinned at the **top** (Google demand only) |
+| `COLLAPSIBLE_BOTTOM` | same size as `ADAPTIVE`, expands upwards | banner pinned at the **bottom** of the screen (Google demand only) |
+| `COLLAPSIBLE_TOP` | same size as `ADAPTIVE`, expands downwards | banner pinned at the **top** (Google demand only) |
 | `BANNER` | 320 x 50 | small footer |
 | `LARGE_BANNER` | 320 x 100 | splash banner (fixed for `loadSplashBannerAd`) |
 | `MEDIUM_RECTANGLE` | 300 x 250 | exit dialog (default of the exit slot), result screens |

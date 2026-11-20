@@ -74,3 +74,13 @@ class NativeSizeRemoteTest {
         assertNull(RemoteOverrides.apply(base, """{"placements":{"intro_native":{"nativeSize":"${"x".repeat(40)}"}}}""").placement(Placements.INTRO_NATIVE)!!.nativeSize)
     }
 }
+
+class AdaptiveLargeTypeTest {
+    @Test fun theTallAdaptiveBannerIsItsOwnTypeSetByTagOrRemoteRules() {
+        assertEquals(TagBanners.Spec(Placements.BANNER, true, BannerType.ADAPTIVE_LARGE), TagBanners.parse("gads_banner:adaptive_large"))
+        val base = AdsConfig.builder().bannerUnits("b").build()
+        assertEquals(BannerType.ADAPTIVE, base.placement(Placements.BANNER)!!.bannerType)
+        val c = RemoteOverrides.apply(base, """{"placements":{"banner":{"bannerType":"ADAPTIVE_LARGE"}}}""")
+        assertEquals(BannerType.ADAPTIVE_LARGE, c.placement(Placements.BANNER)!!.bannerType)
+    }
+}

@@ -42,8 +42,10 @@ internal object BannerSource {
     }
 
     private fun sizeFor(context: Context, widthDp: Int, type: BannerType): AdSize = when (type) {
+        // the standard anchored adaptive size (the usual "adaptive banner" height); collapsible banners use it too
         BannerType.ADAPTIVE, BannerType.COLLAPSIBLE_BOTTOM, BannerType.COLLAPSIBLE_TOP ->
-            AdSize.getLargeAnchoredAdaptiveBannerAdSize(context, widthDp)
+            AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, widthDp)
+        BannerType.ADAPTIVE_LARGE -> AdSize.getLargeAnchoredAdaptiveBannerAdSize(context, widthDp)
         BannerType.INLINE_ADAPTIVE -> AdSize.getCurrentOrientationInlineAdaptiveBannerAdSize(context, widthDp)
         BannerType.BANNER -> AdSize.BANNER
         BannerType.LARGE_BANNER -> AdSize.LARGE_BANNER
