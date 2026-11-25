@@ -28,7 +28,11 @@ public class MainActivity extends DemoActivity {
         button("Native ads in a RecyclerView (dummy list)", () -> open(RecyclerNativeActivity.class));
         button("Native: intro, full screen, 6 sizes", () -> open(NativeActivity.class));
         button("App-open (leave and return)", () -> open(AppOpenActivity.class));
-        button("QA tools: setup check, test mode, ad inspector", () -> open(QaActivity.class));
+        button("Intro slider (IntroPager) with Firebase count = 0", () -> introWithAds(0));
+        button("Intro slider with Firebase count = 1", () -> introWithAds(1));
+        button("Intro slider with Firebase count = 2", () -> introWithAds(2));
+        button("DEBUG PANEL (bottom sheet, debug builds only)", () -> GamechiefAds.showDebugPanel(this));
+        button("QA screen (debug builds only)", () -> GamechiefAds.openQaScreen(this));
         button("Library trace (logcat GamechiefAds)", () -> open(TraceActivity.class));
         button("Run the real splash again", () -> open(SplashActivity.class));
 
@@ -74,6 +78,13 @@ public class MainActivity extends DemoActivity {
             DemoLog.clear();
             recreate();
         });
+    }
+
+    /** Pretends you set the Firebase value noOfBigNativeAdInIntro, then opens the intro slider. */
+    private void introWithAds(long count) {
+        DemoRemoteSource.INSTANCE.publish("noOfBigNativeAdInIntro", count);
+        say("Firebase noOfBigNativeAdInIntro = " + count + " (read now: " + GamechiefAds.getRemoteLong("noOfBigNativeAdInIntro", -1) + ")");
+        open(IntroPagerActivity.class);
     }
 
     private void open(Class<?> c) {

@@ -6,6 +6,13 @@
                                                                      },
                                                     "description":  "GamechiefAds rules (JSON). See docs/USE_CASES.md recipe 21.",
                                                     "valueType":  "JSON"
-                                                }
+                                                },
+                       "noOfBigNativeAdInIntro":  {
+                                                      "defaultValue":  {
+                                                                           "value":  "0"
+                                                                       },
+                                                      "description":  "How many full-screen native ad pages the IntroPager shows between the intro slides. 0 = none.",
+                                                      "valueType":  "NUMBER"
+                                                  }
                    }
 }

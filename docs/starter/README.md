@@ -8,7 +8,7 @@ put your own ad unit ids in `MyApp.java`, and it runs. Debug builds show Google 
 | [`MyApp.java`](MyApp.java) | All ad units in one place (`GamechiefAds.init`) |
 | [`SplashActivity.java`](SplashActivity.java) | Splash banner + one full-screen ad, then the next screen |
 | [`LanguageActivity.java`](LanguageActivity.java) | Small-media native on the language screen (one line) |
-| [`IntroActivity.java`](IntroActivity.java) | Small-media native on an intro screen (one line) |
+| [`IntroActivity.java`](IntroActivity.java) | The intro slider with `IntroPager`: only page layouts, ads and "Get started" built in |
 | [`HomeActivity.java`](HomeActivity.java) | Banner with no code (a tag), random click ad, rewarded ad, exit dialog banner |
 | [`res/layout/`](res/layout) | The layouts: ads are just empty `FrameLayout`s |
 | [`AndroidManifest.snippet.xml`](AndroidManifest.snippet.xml) | The app id and the activities |

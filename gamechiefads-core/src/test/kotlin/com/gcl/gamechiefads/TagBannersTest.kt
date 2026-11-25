@@ -105,6 +105,7 @@ class FirebaseFilesTest {
 
     @Test fun theFirebaseTemplateCarriesTheSameRulesInTheRightKey() {
         val t = org.json.JSONObject(java.io.File(dir, "remoteconfig.template.json").readText())
+        assertEquals("0", t.getJSONObject("parameters").getJSONObject("noOfBigNativeAdInIntro").getJSONObject("defaultValue").getString("value"))   // the intro ads count, off by default
         val p = t.getJSONObject("parameters").getJSONObject(AdsConfig.DEFAULT_REMOTE_KEY)
         assertEquals("JSON", p.getString("valueType"))
         assertEquals(org.json.JSONObject(rules).toString(), org.json.JSONObject(p.getJSONObject("defaultValue").getString("value")).toString())

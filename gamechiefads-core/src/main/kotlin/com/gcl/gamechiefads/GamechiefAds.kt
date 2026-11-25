@@ -50,6 +50,43 @@ object GamechiefAds {
     fun checkSetup(): List<String> = runtime?.checkSetup() ?: listOf("[ERROR] GamechiefAds.init(app, config) was not called yet (do it in Application.onCreate).")
 
     /**
+     * DEBUG BUILDS ONLY: opens a bottom sheet with the live library log, the setup check, the current rules and buttons to test every ad.
+     * Call it from any screen (a long press, a hidden button...). In a release build it does nothing and returns false.
+     * Needs the gamechiefads-ui module (included in the one-line dependency).
+     */
+    @JvmStatic
+    fun showDebugPanel(activity: Activity): Boolean {
+        val r = runtime ?: return false
+        if (!r.isDebug) { Log.w("GamechiefAds", "showDebugPanel ignored: release build"); return false }
+        return runCatching {
+            Class.forName("com.gcl.gamechiefads.ui.DebugSheet").getMethod("show", Activity::class.java).invoke(null, activity)
+            true
+        }.getOrElse { Log.w("GamechiefAds", "debug panel needs the gamechiefads-ui module: $it"); false }
+    }
+
+    /** DEBUG BUILDS ONLY: opens the full-screen QA screen (the same tools as the debug panel). Does nothing in a release build and returns false. */
+    @JvmStatic
+    fun openQaScreen(activity: Activity): Boolean {
+        val r = runtime ?: return false
+        if (!r.isDebug) { Log.w("GamechiefAds", "openQaScreen ignored: release build"); return false }
+        return runCatching {
+            activity.startActivity(android.content.Intent(activity, Class.forName("com.gcl.gamechiefads.ui.QaActivity")))
+            true
+        }.getOrElse { Log.w("GamechiefAds", "QA screen needs the gamechiefads-ui module: $it"); false }
+    }
+
+    /** The current rules as readable lines (units, switches, doubles, sizes), for QA screens. */
+    @JvmStatic
+    fun debugConfig(): List<String> = runtime?.describeConfig() ?: listOf("GamechiefAds.init(app, config) was not called yet")
+
+    @JvmStatic
+    fun isPremium(): Boolean = runtime?.state?.premium?.value ?: false
+
+    /** Debug builds only: is this a debuggable app (the debug panel is available)? */
+    @JvmStatic
+    fun isDebugBuild(): Boolean = runtime?.isDebug ?: false
+
+    /**
      * QA test mode: every ad request uses Google TEST unit ids, in any build (also release). Put it behind your debug or QA menu so testers can
      * click ads without risking your account. Off by default and not remembered: call it again after a restart.
      */

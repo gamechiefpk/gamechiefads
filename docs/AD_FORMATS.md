@@ -8,7 +8,7 @@ All ad units are given once in `Application` (see [USE_CASES](USE_CASES.md) reci
 |---|---|---|
 | 1. Splash | Large banner + app open **or** interstitial (single or double) | `loadSplashBannerAd`, `loadSplashAppOpenAd`, `loadSplashInterstitialAd` |
 | 2. Language selection | Native (medium or large) | `NativeAdTemplateView` |
-| 3. Intro / onboarding screens | Small native at the bottom | `AdsUi.loadIntroNativeAd` |
+| 3. Intro / onboarding screens | Small native at the bottom, or the `IntroPager` with full-screen native pages (Firebase `noOfBigNativeAdInIntro`) | `AdsUi.loadIntroNativeAd`, `IntroPager` |
 | 4. Home and other screens | Banner | `loadBannerAd` or the tag `gads_banner` |
 | 5. Exit dialog | Banner (300x250) or a native | `loadExitBannerAd` |
 | 6. Button clicks / transitions | Random interstitial (automatic + buttons) | `loadRandomInterstitialAd` |
@@ -107,6 +107,40 @@ AdsUi.loadNativeAd(findViewById(R.id.nativeContainer), "intro_native", NativeSiz
 ```
 
 Or by tag: `android:tag="gads_native:intro_native:small"`. Reload per page: call it again with the same container; the old ad is replaced and destroyed.
+
+## 3a. Intro slider with `IntroPager`: you give the layouts, the ads are built in
+
+For an intro slider use `IntroPager` (ui module) instead of your own ViewPager. It does the swiping, the dots, the **Get started** button on the last page and the
+full-screen native ad pages between the slides.
+
+```xml
+<com.gcl.gamechiefads.ui.IntroPager android:id="@+id/introPager" android:layout_width="match_parent" android:layout_height="match_parent" />
+```
+```java
+IntroPager pager = findViewById(R.id.introPager);
+pager.setPages(R.layout.intro_1, R.layout.intro_2, R.layout.intro_3);            // only layouts, no fragments
+pager.setOnFinished(() -> startActivity(new Intent(this, HomeActivity.class)));  // Get started was tapped
+// optional: pager.setOnPageBound((index, view) -> { ... });   wire the buttons of a page
+//           pager.getStartedButton.setText("Let's go");          restyle the button
+//           pager.setPageFactories(list of PageFactory)          pages made from code
+```
+
+**How many full-screen native ads: from Firebase.** Add a Remote Config parameter named **`noOfBigNativeAdInIntro`** (a number). `0` or missing = none (the default).
+`1` puts one ad page in the middle of the slider, `2` two, spread evenly. Never before the first page, never after the last one, at most one between two slides.
+Units: `.introSlideNativeUnit(id)` in the config (ONE unit, no floors).
+
+| Firebase `noOfBigNativeAdInIntro` | 4 slides become |
+|---|---|
+| 0 (default) | slide, slide, slide, slide |
+| 1 | slide, slide, **AD**, slide, slide |
+| 2 | slide, **AD**, slide, slide, **AD**, slide |
+
+- **Fast, no repeated requests:** each ad is requested **once**, one after the other, as soon as the intro opens, so it is already loaded when the user reaches it.
+  It is never requested again. An ad that has not loaded, failed, or is turned off leaves **no blank page**: its page is simply not there. Premium users get none.
+- **The ad page:** full screen, with a close button that appears after 3 seconds (`pager.closeDelaySeconds`). Until then the page ignores touches (no accidental ad clicks)
+  and cannot be swiped. Tapping the close button swipes to the next slide.
+- **Get started** shows on the last slide. The dots count the slides only.
+- Firebase is read when the intro opens: the first launch of an app usually has the value by then (it is fetched during the splash).
 
 ## 3b. Native ads in a scrolling list (RecyclerView): tiny, small or any size
 

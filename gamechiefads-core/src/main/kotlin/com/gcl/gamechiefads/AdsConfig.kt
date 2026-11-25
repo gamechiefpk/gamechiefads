@@ -136,6 +136,8 @@ data class AdsConfig(
         fun randomInterstitialDoubleUnit(id: String) = second(Placements.RANDOM, id)
         /** Small native ad at the bottom of the intro screens (AdsUi.loadIntroNativeAd). Floors. */
         fun introNativeUnits(vararg ids: String) = slot(Placements.INTRO_NATIVE, AdFormat.NATIVE, ids)
+        /** Full-screen native pages between the intro slides (IntroPager in the ui module): ONE unit, no floors. How many pages: Firebase value `noOfBigNativeAdInIntro`, 0 (default) = none. */
+        fun introSlideNativeUnit(id: String) = slot(Placements.INTRO_SLIDE_NATIVE, AdFormat.NATIVE, arrayOf(id)).flooring(false)
         /** Native ad for the language selection screen (AdsUi.loadLanguageNativeAd): small media size by default, floors. */
         fun languageNativeUnits(vararg ids: String) = slot(Placements.LANGUAGE_NATIVE, AdFormat.NATIVE, ids)
         /**

@@ -1,1 +1,7 @@
-<manifest />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- the QA screen: opens only in debug builds (GamechiefAds.openQaScreen) -->
+        <activity android:name="com.gcl.gamechiefads.ui.QaActivity" android:exported="false"
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar" />
+    </application>
+</manifest>

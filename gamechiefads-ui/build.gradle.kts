@@ -38,6 +38,7 @@ dependencies {
     implementation("androidx.annotation:annotation:1.11.0")
     testImplementation("junit:junit:4.13.2")
     api("androidx.appcompat:appcompat:1.8.0") // AdsActivity extends AppCompatActivity
+    api("androidx.viewpager2:viewpager2:1.1.0") // IntroPager
 }
 
 publishing {

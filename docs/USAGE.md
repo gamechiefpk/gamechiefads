@@ -254,6 +254,8 @@ Details and examples: USE_CASES recipes 4b and 4c.
 | `GamechiefAds.checkSetup()` | Returns a list of the usual integration mistakes in plain words, each starting with `[ERROR]`, `[WARN]` or `[INFO]` (empty = all good). Debug builds also print it in logcat (tag `GamechiefAds`) at start. It checks: the AdMob app id in the manifest, the old `play-services-ads` still in the app, Google TEST unit ids in a release build, unit ids that do not look like AdMob ids, slots without units, a double asked without a second unit, a missing ui module, an http rules file. |
 | `GamechiefAds.setTestMode(true)` | Every ad request uses Google TEST unit ids, in any build (also release), so testers can click ads without risking your account. Off by default, not remembered across restarts: put it behind your debug or QA menu. |
 | `GamechiefAds.openAdInspector()` | Opens Google's Ad Inspector (requests and responses of this device). |
+| `GamechiefAds.showDebugPanel(activity)` | **Debug builds only** (does nothing in release): a bottom sheet over the current screen with 4 tabs. **Logs** (live library trace, Copy and Clear), **Setup** (the setup check), **Config** (current rules: units, switches, double, sizes, and a box to apply a rules JSON like Firebase would send) and **Test** (a button for every banner, native, interstitial, double, rewarded, full-screen native and splash ad, plus premium and test mode switches). Call it from a long press or a hidden button. |
+| `GamechiefAds.openQaScreen(activity)` | **Debug builds only:** the same panel as a full screen for QA. |
 
 A copy-paste starter with a complete small flow is in [starter/](starter/README.md). The sample app has a "QA tools" screen.
 

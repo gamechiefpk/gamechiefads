@@ -32,6 +32,9 @@ object Placements {
     /** Small native ad at the bottom of the intro screens (units with floors). */
     const val INTRO_NATIVE = "intro_native"
 
+    /** Full-screen native pages between the intro slider pages (IntroPager): ONE unit, no floors. How many is set by the Firebase value `noOfBigNativeAdInIntro` (0 = none). */
+    const val INTRO_SLIDE_NATIVE = "intro_slide_native"
+
     /** Full-screen native ad that behaves like an interstitial: ONE unit, no floors. OFF until Remote Config (or `.enabled(true)`) turns it on. */
     const val FULLSCREEN_NATIVE = "fullscreen_native"
 

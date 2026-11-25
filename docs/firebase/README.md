@@ -13,7 +13,8 @@ The parameter name must be exactly **`gamechief_ads_config`** (the library reads
 
 1. Firebase console, your project, **Engagement > Remote Config**.
 2. **Add parameter**: name `gamechief_ads_config`, data type **JSON**, default value: paste the whole content of `gamechief_ads_config.json`.
-3. **Save**, then **Publish changes**.
+3. **Add a second parameter**: name `noOfBigNativeAdInIntro`, data type **Number**, default value `0` (how many full-screen native pages the intro slider shows; the template file has it too).
+4. **Save**, then **Publish changes**.
 
 ## Option B: Firebase CLI
 
@@ -39,6 +40,7 @@ a change reaches users on their next fetch, with no app update.
 | `loaderTitle`, `loaderMessage`, `noAdMessage` | dialog texts |
 | `global.*` | timeouts in ms: splash, one waterfall, SDK start, second ad of a double, "no ad" message |
 | `placements.splash.double`, `placements.splash_interstitial.double`, `placements.random.double` | the **double** ads (a second ad shown with the first). OFF by default. **Your value here is the master**: `true` shows doubles even if the app code asks for a single, `false` shows a single ad even if the code asks for a double. Needs a second unit declared in the app, otherwise it is a single ad |
+| Parameter `noOfBigNativeAdInIntro` (a NUMBER, not inside the JSON) | how many full-screen native pages the `IntroPager` puts between the intro slides. `0` = none (default), `1`, `2`... spread evenly. Needs `.introSlideNativeUnit(id)` in the app |
 | `placements.fullscreen_native.enabled` | the full-screen native ad. OFF; set `true` to turn on |
 | `placements.random` | `every` (every Nth new screen, 0 = off), `gap` (seconds between ads), `everyNCalls` (button calls), `auto` |
 | `placements.<slot>.enabled` | switch one slot off: `splash`, `splash_interstitial`, `splash_banner`, `app_open`, `banner`, `exit_banner`, `random`, `intro_native`, `fullscreen_native`, `list_native`, `rewarded` |

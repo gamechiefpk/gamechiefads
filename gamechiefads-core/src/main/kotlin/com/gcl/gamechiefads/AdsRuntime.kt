@@ -178,6 +178,29 @@ internal class AdsRuntime(private val app: Application, private val baseConfig: 
         recompute()
     }
 
+    /** The current rules as readable lines, for the debug panel. */
+    fun describeConfig(): List<String> {
+        val c = config
+        val out = ArrayList<String>()
+        out += "ads enabled=${c.enabled}  premium=${state.premium.value}  test mode=$testMode  debuggable=$debuggable"
+        out += "app id=${c.appId ?: "(Google test app id)"}  rules: shared file=${urlJson != null}, firebase=${firebaseJson != null}, manual=${manualJson != null}"
+        out += "quiet after app open=${c.quietSecondsAfterAppOpen}s  no-fill wait=${c.noFillRetrySeconds}s  tag banners=${c.tagBanners}"
+        for ((name, p) in c.placements) {
+            val extras = buildString {
+                if (p.secondUnit != null) append("  second=${p.secondUnit}")
+                append("  double=${p.wantsDouble()}")
+                if (p.doubleRemote != null) append("(firebase=${p.doubleRemote})")
+                if (p.nativeSize != null) append("  nativeSize=${p.nativeSize}")
+                if (p.format == AdFormat.BANNER) append("  type=${p.bannerType}")
+                if (!p.flooring) append("  no floors")
+            }
+            out += "$name: ${if (p.enabled) "ON " else "OFF"} ${p.units}$extras"
+        }
+        return out
+    }
+
+    val isDebug: Boolean get() = debuggable
+
     /** The setup checker (see [SetupChecker]): the usual integration mistakes, in plain words. */
     fun checkSetup(): List<String> {
         fun has(cls: String) = runCatching { Class.forName(cls) }.isSuccess
@@ -188,12 +211,21 @@ internal class AdsRuntime(private val app: Application, private val baseConfig: 
             config,
             SetupChecker.Env(
                 debuggable = debuggable, hasAdMobAppIdInManifest = meta,
-                legacyPlayServicesAdsPresent = has("com.google.android.gms.ads.MobileAds"),
+                legacyPlayServicesAdsPresent = legacyAdsInManifest(),
                 uiModulePresent = has("com.gcl.gamechiefads.ui.DefaultLoaderDialog"),
                 firebaseModulePresent = has("com.gcl.gamechiefads.remoteconfig.FirebaseRemoteConfigSource"),
             ),
         )
     }
+
+    /**
+     * The OLD play-services-ads declares com.google.android.gms.ads.AdActivity in the merged manifest. (Checking for a class is wrong: the Next-Gen
+     * SDK ships its own class named com.google.android.gms.ads.MobileAds.)
+     */
+    private fun legacyAdsInManifest(): Boolean = runCatching {
+        app.packageManager.getPackageInfo(app.packageName, android.content.pm.PackageManager.GET_ACTIVITIES)
+            .activities?.any { it.name == "com.google.android.gms.ads.AdActivity" } == true
+    }.getOrDefault(false)
 
     /** Debug builds: say it in logcat (warnings) once at start. */
     private fun logSetup() {
