@@ -27,7 +27,13 @@ enum class NativeSize(@param:LayoutRes internal val layout: Int, internal val pl
     FULL(R.layout.gads_native_full, MATCH_PARENT_HEIGHT, true);
 
     internal companion object {
-        fun fromAttr(value: Int): NativeSize = entries.getOrElse(value) { MEDIUM }
+        fun fromAttr(value: Int): NativeSize = entries.getOrElse(value) { SMALL }
+
+        /**
+         * The size a native placement uses when the code does not choose one: the language screen shows SMALL_MEDIA, everything else a small card.
+         * Big sizes (MEDIUM, LARGE, FULL) are never a default: ask for them in code or with Remote Config `"nativeSize"`.
+         */
+        fun defaultFor(placement: String?): NativeSize = if (placement == com.gcl.gamechiefads.Placements.LANGUAGE_NATIVE) SMALL_MEDIA else SMALL
 
         /** A size by name (tiny, small, small_media, medium, large, full; any case), or null when unknown. Used by Remote Config. */
         fun fromName(name: String?): NativeSize? = entries.firstOrNull { it.name.equals(name?.trim(), ignoreCase = true) }

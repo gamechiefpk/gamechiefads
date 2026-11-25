@@ -195,7 +195,7 @@ button.setOnClickListener(v -> GamechiefAds.loadRandomInterstitialAd(this, new I
 - The same ad, the same loading dialog, and the same minimum gap as the automatic one (they never show back to back).
 - Not due yet (gap not over, not the Nth click, premium, another ad is open)? Nothing happens and `onComplete(false)` runs.
 - Pace the clicks: `.everyNCalls(3)` shows on every 3rd call. Pass `null` if you do not need the listener.
-- Two ads together: `GamechiefAds.loadRandomInterstitialDoubleAd(this, listener)`.
+- Two ads together: `GamechiefAds.loadRandomInterstitialAd(this, true, listener)` (or the remote switch `double`).
 
 ### 6c. Switch the automatic ad on and off while the app runs
 
@@ -292,7 +292,7 @@ GamechiefAds.applyRemoteConfig(remoteConfig.getString("ads_config"));
 
 The slot names are `splash`, `splash_interstitial`, `splash_banner`, `app_open`, `banner`, `exit_banner`, `random`,
 `intro_native`, `fullscreen_native`, `rewarded`. Bad JSON is ignored. `{"enabled": false}` turns every ad off.
-Choosing single or double is your call: call the normal or the `...Double...` method (for example from a Remote Config flag).
+Single or double: OFF by default. Turn the double on from Remote Config (`{"placements":{"random":{"double":true}}}`, also `splash`, `splash_interstitial`), `.doubleAd(true)` in the config, or per call with the boolean (`loadRandomInterstitialAd(this, true, listener)`). There is no separate double method any more (the old ones still work, deprecated).
 
 ### 13. Why did no ad show?
 
@@ -336,7 +336,7 @@ double factor = GamechiefAds.getRemoteDouble("price_factor", 1.0);
 ```
 
 The second argument is the fallback if the key has no value anywhere. Use it to choose single or double ads:
-`if (GamechiefAds.getRemoteBoolean("splash_double", false)) loadSplashAppOpenDoubleAd(...) else loadSplashAppOpenAd(...)`.
+`GamechiefAds.loadSplashAppOpenAd(this, GamechiefAds.getRemoteBoolean("splash_double", false), callback)`, or simply use the built-in switch `{"placements":{"splash":{"double":true}}}`.
 
 More: `GamechiefAds.addRemoteDefaults(map)` adds keys later, `GamechiefAds.fetchRemoteConfig(ok -> ...)` fetches now,
 `GamechiefAds.setRemoteConfigListener(() -> ...)` runs after every update so you can re-read, `.remoteFetchIntervalSeconds(60)`

@@ -38,6 +38,8 @@ a change reaches users on their next fetch, with no app update.
 | `tagBanners` | banners and natives from layout tags (`gads_banner`, `gads_native:...`) |
 | `loaderTitle`, `loaderMessage`, `noAdMessage` | dialog texts |
 | `global.*` | timeouts in ms: splash, one waterfall, SDK start, second ad of a double, "no ad" message |
+| `placements.splash.double`, `placements.splash_interstitial.double`, `placements.random.double` | the **double** ads (a second ad shown with the first). OFF; set `true` to turn on (the second ad uses its own unit from the app). No separate method needed |
+| `placements.fullscreen_native.enabled` | the full-screen native ad. OFF; set `true` to turn on |
 | `placements.random` | `every` (every Nth new screen, 0 = off), `gap` (seconds between ads), `everyNCalls` (button calls), `auto` |
 | `placements.<slot>.enabled` | switch one slot off: `splash`, `splash_interstitial`, `splash_banner`, `app_open`, `banner`, `exit_banner`, `random`, `intro_native`, `fullscreen_native`, `list_native`, `rewarded` |
 
@@ -54,7 +56,7 @@ a change reaches users on their next fetch, with no app update.
 ```
 
 `bannerType`: `ADAPTIVE`, `ADAPTIVE_LARGE`, `INLINE_ADAPTIVE`, `COLLAPSIBLE_BOTTOM`, `COLLAPSIBLE_TOP`, `BANNER`, `LARGE_BANNER`, `MEDIUM_RECTANGLE`, `FULL_BANNER`, `LEADERBOARD`.
-`nativeSize`: `tiny`, `small`, `small_media`, `medium`, `large`, `full`. `units` replaces that slot's ad units (first id = first floor).
+`nativeSize`: `tiny`, `small`, `small_media`, `medium`, `large`, `full` (the app shows small cards by default; big sizes only when you set them here or in code). `units` replaces that slot's ad units (first id = first floor).
 All keys: [USE_CASES.md](../USE_CASES.md) recipe 21.
 
 ## Needs in the app

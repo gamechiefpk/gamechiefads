@@ -14,18 +14,28 @@
     "noAdMessageMs": 1800
   },
   "placements": {
+    "splash": {
+      "double": false
+    },
+    "splash_interstitial": {
+      "double": false
+    },
     "random": {
       "enabled": true,
       "every": 3,
       "gap": 30,
       "everyNCalls": 1,
-      "auto": true
+      "auto": true,
+      "double": false
     },
     "banner": {
       "enabled": true
     },
     "exit_banner": {
       "enabled": true
+    },
+    "fullscreen_native": {
+      "enabled": false
     },
     "rewarded": {
       "enabled": true,

@@ -26,10 +26,13 @@ object Placements {
     /** Interstitial shown on "random" clicks (paced by gap and every-N-calls). The double version uses its second units. */
     const val RANDOM = "random"
 
+    /** Native ad on the language selection screen (units with floors). Small media size by default. */
+    const val LANGUAGE_NATIVE = "language_native"
+
     /** Small native ad at the bottom of the intro screens (units with floors). */
     const val INTRO_NATIVE = "intro_native"
 
-    /** Full-screen native ad that behaves like an interstitial: ONE unit, no floors. */
+    /** Full-screen native ad that behaves like an interstitial: ONE unit, no floors. OFF until Remote Config (or `.enabled(true)`) turns it on. */
     const val FULLSCREEN_NATIVE = "fullscreen_native"
 
     /** Native ads inside scrolling lists (NativeListAds): ONE unit, no floors, so a list never walks a floor chain per row. */

@@ -27,9 +27,19 @@ object AdsUi {
         loadNativeAd(container, Placements.INTRO_NATIVE, NativeSize.SMALL, NativeStyle.DEFAULT, listener)
 
     /**
+     * Native ad for the language selection screen: fills [container], SMALL_MEDIA size (thumbnail left, text and button right). Units from
+     * `languageNativeUnits(...)` with floors. Remote Config `{"placements":{"language_native":{"nativeSize":"medium"}}}` changes the size.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun loadLanguageNativeAd(container: FrameLayout, listener: NativeAdTemplateView.Listener? = null) =
+        loadNativeAd(container, Placements.LANGUAGE_NATIVE, NativeSize.SMALL_MEDIA, NativeStyle.DEFAULT, listener)
+
+    /**
      * Any native ad in any FrameLayout, no XML of yours: the library inflates the layout for [size], shows a shimmer
      * while loading, hides the container when there is no ad, and destroys the ad with the screen.
-     * [placement] is the name of a native spot ([Placements.INTRO_NATIVE] or your own `nativeAd("name").units(...)`).
+     * [placement] is the name of a native spot ([Placements.INTRO_NATIVE], [Placements.LANGUAGE_NATIVE] or your own `nativeAd("name").units(...)`).
+     * Without [size] you get a small card (SMALL_MEDIA on the language screen): big sizes are only shown when you ask for them or Remote Config does.
      *
      * ```java
      * AdsUi.loadNativeAd(frame, "language_native", NativeSize.MEDIUM);
@@ -41,10 +51,11 @@ object AdsUi {
     fun loadNativeAd(
         container: FrameLayout,
         placement: String,
-        size: NativeSize = NativeSize.MEDIUM,
+        size: NativeSize? = null,
         style: NativeStyle = NativeStyle.DEFAULT,
         listener: NativeAdTemplateView.Listener? = null,
     ) {
+        val size = size ?: NativeSize.defaultFor(placement) // no size given: a small card (SMALL_MEDIA on the language screen)
         container.removeAllViews()
         val view = NativeAdTemplateView(container.context).apply {
             this.size = size
@@ -63,7 +74,7 @@ object AdsUi {
     fun loadNativeAd(
         container: FrameLayout,
         placement: AdPlacement,
-        size: NativeSize = NativeSize.MEDIUM,
+        size: NativeSize? = null,
         style: NativeStyle = NativeStyle.DEFAULT,
         listener: NativeAdTemplateView.Listener? = null,
     ) = loadNativeAd(container, placement.name, size, style, listener)
@@ -71,7 +82,7 @@ object AdsUi {
     /** Used by the layout tag `gads_native:<placement>[:<size>]` (found by name from the core module). Size is a [NativeSize] name, any case. */
     @JvmStatic
     fun loadNativeAd(container: FrameLayout, placement: String, sizeName: String?) =
-        loadNativeAd(container, placement, NativeSize.entries.firstOrNull { it.name.equals(sizeName?.trim(), ignoreCase = true) } ?: NativeSize.MEDIUM)
+        loadNativeAd(container, placement, NativeSize.fromName(sizeName), NativeStyle.DEFAULT, null)
 
     /**
      * Full-screen native ad that behaves like an interstitial (close button after a short countdown). Unit from

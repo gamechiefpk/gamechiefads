@@ -32,7 +32,7 @@ GamechiefAds.init(this, AdsConfig.builder()
     .splashInterstitialUnits(HF, MF, NORMAL)         // only if your splash shows an interstitial
     .appOpenUnit(APP_OPEN)                           // when the user returns: one unit, no floors
     .introNativeUnits(HF, MF, NORMAL)                // small native on intro screens
-    .nativeAd("language_native").units(HF, MF, NORMAL)   // your own native spot, e.g. the language screen (any name)
+    .languageNativeUnits(HF, MF, NORMAL)             // language selection screen native (small media by default)
     .bannerUnits(HF, MF, NORMAL)                     // home and all normal screens
     .exitBannerUnits(EXIT_BANNER)                    // exit dialog
     .randomInterstitialUnits(HF, MF, NORMAL)         // clicks + automatic over transitions
@@ -64,10 +64,11 @@ GamechiefAds.loadSplashAppOpenAd(this, ads ->
 | I want on the splash | Call |
 |---|---|
 | App open ad (default choice) | `loadSplashAppOpenAd(this, callback)` |
-| Two app open ads together ("double") | `loadSplashAppOpenDoubleAd(this, callback)` |
+| Two app open ads together ("double") | `loadSplashAppOpenAd(this, true, callback)`, or turn the double switch on remotely (see below) |
 | Interstitial instead of app open | `loadSplashInterstitialAd(this, callback)` |
-| Two interstitials together ("double") | `loadSplashInterstitialDoubleAd(this, callback)` |
+| Two interstitials together ("double") | `loadSplashInterstitialAd(this, true, callback)`, or the remote switch |
 
+- **Double is OFF by default**, there is no separate method: the normal methods show a second ad only when the switch is on, from Remote Config `{"placements":{"splash":{"double":true}}}` (slots `splash`, `splash_interstitial`, `random`) or `.doubleAd(true)` in the config. A call can also decide: `loadSplashAppOpenAd(this, true, callback)`. The old `...DoubleAd` methods still work (deprecated).
 - **Double:** both ads are requested together and shown on top of each other, so closing the first reveals the second at once. The second uses its own single unit (the same id as the first is fine).
 - **Floors off:** add `.flooring(false)` after the units in the config: one request to the last unit (faster).
 - **Time limit:** consent dialog (EU), SDK start and the ad together are limited to `splashTimeoutMs` (12 s). Changeable remotely.
@@ -81,7 +82,7 @@ You give a `FrameLayout`, the library does the rest: it inflates the native layo
 hides the container when there is no ad, and destroys the ad with the screen. No native XML of your own.
 
 ```java
-AdsUi.loadNativeAd(findViewById(R.id.nativeFrame), "language_native", NativeSize.MEDIUM);   // medium is the usual choice here
+AdsUi.loadLanguageNativeAd(findViewById(R.id.nativeFrame));          // SMALL_MEDIA by default: thumbnail left, text and button right
 ```
 
 `language_native` is the name you gave in the config (`.nativeAd("language_native").units(...)`). Each native spot of your app (language, home list,
@@ -92,10 +93,10 @@ No code at all: tag the FrameLayout in the layout XML and the library fills it w
 
 ```xml
 <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-    android:tag="gads_native:language_native:medium" />          <!-- gads_native:<placement>[:<size>] -->
+    android:tag="gads_native:language_native" />          <!-- gads_native:<placement>[:<size>] -->
 ```
 
-Sizes: `tiny`, `small`, `small_media`, `medium` (default when left out), `large`, `full`. All sizes and options are in the **Native box** below.
+Sizes: `tiny`, `small`, `small_media`, `medium`, `large`, `full`. Left out = the default of the placement (small card; SMALL_MEDIA for `language_native`)., `large`, `full`. All sizes and options are in the **Native box** below.
 (The `NativeAdTemplateView` XML view still works if you want the ad inside your own layout tree with its own attributes.)
 
 ## 3. Intro / onboarding screens: small native at the bottom
@@ -224,7 +225,7 @@ Extra buttons (the library decides if it is time):
 button.setOnClickListener(v -> GamechiefAds.loadRandomInterstitialAd(this, new InterstitialListener() {
     @Override public void onComplete(boolean wasShown) { openNextScreen(); }     // runs once, shown or not
 }));
-GamechiefAds.loadRandomInterstitialDoubleAd(this, listener);                       // two ads stacked
+GamechiefAds.loadRandomInterstitialAd(this, true, listener);                            // two ads stacked (or the remote switch `double`)
 ```
 
 The loading dialog ("Ad is loading, please wait") is always shown for an ad that loads at run time, and it stays until the ad is really on screen.

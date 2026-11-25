@@ -67,9 +67,9 @@ public class NativeActivity extends DemoActivity {
                 });
             });
         }
-        button("Language screen: loadNativeAd(frame, \"language_native\", MEDIUM)", () -> {
+        button("Language screen: AdsUi.loadLanguageNativeAd(frame)  (SMALL_MEDIA by default)", () -> {
             say("language_native: loading");
-            AdsUi.loadNativeAd(any, "language_native", com.gcl.gamechiefads.ui.NativeSize.MEDIUM, NativeStyle.DEFAULT, new NativeAdTemplateView.Listener() {
+            AdsUi.loadLanguageNativeAd(any, new NativeAdTemplateView.Listener() {
                 @Override public void onLoaded() { say("language_native: loaded"); }
                 @Override public void onFailed(String reason) { say("language_native: failed (" + reason + ")"); }
             });

@@ -49,7 +49,7 @@ take ONE unit, no floors. The second ad of a double is ONE unit, no floors (the 
 ```java
 GamechiefAds.init(app, config);   GamechiefAds.setPremium(boolean);   GamechiefAds.applyRemoteConfig(json);
 GamechiefAds.setLoadingDialog(ui); GamechiefAds.setLoadingText(title, message); GamechiefAds.skipNextAppOpenAd();
-GamechiefAds.loadSplashAppOpenAd(activity, callback);         // + loadSplashAppOpenDoubleAd, loadSplashInterstitialAd, loadSplashInterstitialDoubleAd
+GamechiefAds.loadSplashAppOpenAd(activity[, double], callback);   // + loadSplashInterstitialAd(activity[, double], callback); double = a boolean per call or the slot switch (config .doubleAd / RC placements.splash.double), OFF by default; the old ...DoubleAd methods are deprecated aliases
 GamechiefAds.loadSplashBannerAd(frameLayout);                 // always LARGE_BANNER, ONE unit (splashBannerUnit), no floors
 GamechiefAds.loadBannerAd(frameLayout, BannerType[, isEnableFlooring]);  // type for one call; app default: AdsConfig .defaultBannerType(type); tag gads_banner:<type>
 GamechiefAds.loadBannerAd(frameLayout[, isEnableFlooring]);  GamechiefAds.loadExitBannerAd(frameLayout[, isEnableFlooring]);   // false = one request, last unit
@@ -63,7 +63,7 @@ AdsUi.loadIntroNativeAd(frameLayout);  AdsUi.loadFullScreenNativeAd(activity, li
 NativeListAds ads = new NativeListAds(NativeSize.SMALL);  // config .listNativeUnit(id): ONE unit, no floors; positions: new NativeListPositions() (first ad after 4 rows, then every 8); RC "nativeSize" on any native placement changes its size remotely;  // native ads in a RecyclerView: ads.bind(rowFrameLayout, adIndex) in onBindViewHolder, ads.destroy() in onDestroy; each ad requested ONCE
 AdsUi.loadNativeAd(frameLayout, "placement_name", NativeSize.MEDIUM[, style, listener]);   // any native spot, only a FrameLayout needed (tag: gads_native:<placement>[:<size>])
 ```
-Single vs double is chosen by the method called (the app can use its own Remote Config flag). Double = both ads requested together from
+Single vs double: OFF by default; turn it on with the slot switch (Remote Config `double`, or `.doubleAd(true)`) or a boolean argument. EXTRA ads are off until switched on: doubles, `fullScreenNativeUnit` (RC `placements.fullscreen_native.enabled`); native sizes default to small (language screen: SMALL_MEDIA, via `languageNativeUnits` + `AdsUi.loadLanguageNativeAd`), big sizes only on request or RC `nativeSize`. Double = both ads requested together from
 their own unit sets and SHOWN AT THE SAME TIME (stacked), so closing the top one reveals the other at once. The random interstitial is paced
 by `minGapSeconds` and `everyNCalls`; when it loads at runtime the loading dialog is ALWAYS shown (default dialog built in, found by name from
 the ui module). Optional custom spots: `loadInterstitialAd(activity, AdPlacement, listener)` and the preload trio. Auto-refill is OFF.

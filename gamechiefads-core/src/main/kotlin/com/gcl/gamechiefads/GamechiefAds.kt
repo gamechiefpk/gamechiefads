@@ -72,29 +72,44 @@ object GamechiefAds {
     // call ads.show(activity, onDone) and open your next screen in onDone (it runs exactly once).
     // =====================================================================================================
 
-    /** Splash app-open ad (units from splashAppOpenUnits). */
+    /**
+     * Splash app-open ad (units from splashAppOpenUnits). A second ad is shown with it ("double") ONLY when the double switch is on:
+     * Remote Config `{"placements":{"splash":{"double":true}}}` or `.doubleAd(true)` in the config. OFF by default.
+     */
     @JvmStatic
     fun loadSplashAppOpenAd(activity: Activity, callback: SplashCallback) =
-        splash(activity, callback, Placements.SPLASH, false)
+        splash(activity, callback, Placements.SPLASH, null)
 
-    /** Two splash app-open ads shown together (second ad: one request to splashAppOpenDoubleUnit, no floors). */
+    /** Same, choosing single or double for this call (true = also load and show the second ad: one request to splashAppOpenDoubleUnit, no floors). */
+    @JvmStatic
+    fun loadSplashAppOpenAd(activity: Activity, double: Boolean, callback: SplashCallback) =
+        splash(activity, callback, Placements.SPLASH, double)
+
+    /** Splash interstitial ad (units from splashInterstitialUnits). Double: the same switch, on the `splash_interstitial` slot. OFF by default. */
+    @JvmStatic
+    fun loadSplashInterstitialAd(activity: Activity, callback: SplashCallback) =
+        splash(activity, callback, Placements.SPLASH_INTERSTITIAL, null)
+
+    /** Same, choosing single or double for this call (true = also the second ad: one request to splashInterstitialDoubleUnit, no floors). */
+    @JvmStatic
+    fun loadSplashInterstitialAd(activity: Activity, double: Boolean, callback: SplashCallback) =
+        splash(activity, callback, Placements.SPLASH_INTERSTITIAL, double)
+
+    @Deprecated("Use loadSplashAppOpenAd(activity, true, callback), or turn the double switch on in the config or Remote Config.", ReplaceWith("loadSplashAppOpenAd(activity, true, callback)"))
     @JvmStatic
     fun loadSplashAppOpenDoubleAd(activity: Activity, callback: SplashCallback) =
         splash(activity, callback, Placements.SPLASH, true)
 
-    /** Splash interstitial ad (units from splashInterstitialUnits). */
-    @JvmStatic
-    fun loadSplashInterstitialAd(activity: Activity, callback: SplashCallback) =
-        splash(activity, callback, Placements.SPLASH_INTERSTITIAL, false)
-
-    /** Two splash interstitials shown together (second: one request to splashInterstitialDoubleUnit, no floors). */
+    @Deprecated("Use loadSplashInterstitialAd(activity, true, callback), or turn the double switch on in the config or Remote Config.", ReplaceWith("loadSplashInterstitialAd(activity, true, callback)"))
     @JvmStatic
     fun loadSplashInterstitialDoubleAd(activity: Activity, callback: SplashCallback) =
         splash(activity, callback, Placements.SPLASH_INTERSTITIAL, true)
 
-    private fun splash(activity: Activity, callback: SplashCallback, name: String, double: Boolean) {
+    /** [double] null = follow the slot's switch (config or Remote Config, default off). */
+    private fun splash(activity: Activity, callback: SplashCallback, name: String, double: Boolean?) {
         val r = runtime
-        if (r == null) callback.onReady(NoSplashAds) else r.splash.prepare(activity, callback, name, double)
+        if (r == null) callback.onReady(NoSplashAds)
+        else r.splash.prepare(activity, callback, name, double ?: r.config.placement(name)?.doubleAd ?: false)
     }
 
     // =====================================================================================================
@@ -185,20 +200,25 @@ object GamechiefAds {
     // loads (always), then the ad. [listener] may be null; onComplete runs once whether or not an ad was shown.
     // =====================================================================================================
 
-    /** One interstitial (units from randomInterstitialUnits). */
+    /**
+     * The random interstitial (units from randomInterstitialUnits). A second ad is shown with it ("double") ONLY when the double switch is on:
+     * Remote Config `{"placements":{"random":{"double":true}}}` or `.doubleAd(true)` in the config. OFF by default.
+     */
     @JvmStatic
-    fun loadRandomInterstitialAd(activity: Activity, listener: InterstitialListener?) {
-        val r = runtime
-        if (r == null) ListenerDispatcher(listener).onFinished(false, "not initialized")
-        else r.interstitial.showRandom(activity, listener, false)
-    }
+    fun loadRandomInterstitialAd(activity: Activity, listener: InterstitialListener?) = randomInterstitial(activity, listener, null)
 
-    /** Two interstitials shown together (second: one request to randomInterstitialDoubleUnit, no floors). */
+    /** Same, choosing single or double for this call (true = also the second ad: one request to randomInterstitialDoubleUnit, no floors). */
     @JvmStatic
-    fun loadRandomInterstitialDoubleAd(activity: Activity, listener: InterstitialListener?) {
+    fun loadRandomInterstitialAd(activity: Activity, double: Boolean, listener: InterstitialListener?) = randomInterstitial(activity, listener, double)
+
+    @Deprecated("Use loadRandomInterstitialAd(activity, true, listener), or turn the double switch on in the config or Remote Config.", ReplaceWith("loadRandomInterstitialAd(activity, true, listener)"))
+    @JvmStatic
+    fun loadRandomInterstitialDoubleAd(activity: Activity, listener: InterstitialListener?) = randomInterstitial(activity, listener, true)
+
+    private fun randomInterstitial(activity: Activity, listener: InterstitialListener?, double: Boolean?) {
         val r = runtime
         if (r == null) ListenerDispatcher(listener).onFinished(false, "not initialized")
-        else r.interstitial.showRandom(activity, listener, true)
+        else r.interstitial.showRandom(activity, listener, double ?: r.config.placement(Placements.RANDOM)?.doubleAd ?: false)
     }
 
     /**

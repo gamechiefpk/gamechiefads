@@ -136,8 +136,13 @@ data class AdsConfig(
         fun randomInterstitialDoubleUnit(id: String) = second(Placements.RANDOM, id)
         /** Small native ad at the bottom of the intro screens (AdsUi.loadIntroNativeAd). Floors. */
         fun introNativeUnits(vararg ids: String) = slot(Placements.INTRO_NATIVE, AdFormat.NATIVE, ids)
-        /** Full-screen native ad like an interstitial (AdsUi.loadFullScreenNativeAd): ONE unit, no floors. */
-        fun fullScreenNativeUnit(id: String) = slot(Placements.FULLSCREEN_NATIVE, AdFormat.NATIVE, arrayOf(id))
+        /** Native ad for the language selection screen (AdsUi.loadLanguageNativeAd): small media size by default, floors. */
+        fun languageNativeUnits(vararg ids: String) = slot(Placements.LANGUAGE_NATIVE, AdFormat.NATIVE, ids)
+        /**
+         * Full-screen native ad like an interstitial (AdsUi.loadFullScreenNativeAd): ONE unit, no floors. An EXTRA ad: OFF by default,
+         * turn it on from Remote Config (`{"placements":{"fullscreen_native":{"enabled":true}}}`) or chain `.enabled(true)` here.
+         */
+        fun fullScreenNativeUnit(id: String) = slot(Placements.FULLSCREEN_NATIVE, AdFormat.NATIVE, arrayOf(id)).enabled(false)
         /** Native ads in a RecyclerView or other scrolling list (NativeListAds): ONE unit, no floors (one request per ad). */
         fun listNativeUnit(id: String) = slot(Placements.LIST_NATIVE, AdFormat.NATIVE, arrayOf(id)).flooring(false)
         /** Rewarded ad (GamechiefAds.loadRewardedAd). Floors. */

@@ -34,7 +34,7 @@ class NativeAdTemplateView @JvmOverloads constructor(
         fun onFailed(reason: String) {}
     }
 
-    var size: NativeSize = NativeSize.MEDIUM
+    var size: NativeSize = NativeSize.SMALL
         set(value) {
             if (field == value) return
             field = value

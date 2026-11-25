@@ -67,16 +67,16 @@ Your own extra spots (optional): `.interstitial(AdPlacement)`, `.rewarded(...)`,
 | `setLoadingDialog(ui)` / `setLoadingText(title, message)` | Replace / re-text the loading dialog. |
 | `skipNextAppOpenAd()` | Skip the next app-open ad. |
 | `loadSplashAppOpenAd(activity, callback)` | Splash. `callback` gets `ads`: call `ads.show(activity, onDone)`. |
-| `loadSplashAppOpenDoubleAd(activity, callback)` | Same, two ads together. |
+| `loadSplashAppOpenAd(activity, double, callback)` | Same, with the double chosen for this call (the old `loadSplashAppOpenDoubleAd` still works, deprecated). Double is OFF by default: Remote Config `placements.splash.double`. |
 | `loadSplashInterstitialAd(activity, callback)` | Same with an interstitial. |
-| `loadSplashInterstitialDoubleAd(activity, callback)` | Same, two interstitials together. |
+| `loadSplashInterstitialAd(activity, double, callback)` | Same for the interstitial (switch `placements.splash_interstitial.double`). |
 | `loadSplashBannerAd(frame[, listener])` | Large banner into a FrameLayout. |
 | `loadBannerAd(frame[, isEnableFlooring][, listener])` | Banner, all screens. `isEnableFlooring=false`: one request, to the last unit. |
 | `loadExitBannerAd(frame[, isEnableFlooring][, listener])` | Exit banner, same option. |
 | `loadCustomBannerAd(frame, unitId, type[, listener])` | Your own unit, size and type. |
 | `loadRandomInterstitialAd(activity, listener)` | The random interstitial on YOUR button (the automatic one needs no call). |
 | `setAutoRandomInterstitialEnabled(boolean)` / `isAutoRandomInterstitialEnabled()` | Switch the automatic random interstitial on/off at runtime (off: screens are not counted). |
-| `loadRandomInterstitialDoubleAd(activity, listener)` | Same, two ads together. |
+| `loadRandomInterstitialAd(activity, double, listener)` | Same, with the double chosen for this call (switch `placements.random.double`, OFF by default). |
 | `loadRewardedAd(activity, listener)` | Rewarded. Reward only in `onRewardEarned`. |
 | `AdsUi.loadIntroNativeAd(frame[, listener])` | Small native (ui module). |
 | `AdsUi.loadFullScreenNativeAd(activity[, listener])` | Full-screen native (ui module). |
@@ -107,7 +107,7 @@ dependency. Bad JSON is ignored. It can only change slots you declared, never ad
 
 Slot names: `splash`, `splash_interstitial`, `splash_banner`, `app_open`, `banner`, `exit_banner`, `random`, `intro_native`,
 `fullscreen_native`, `rewarded`. Single or double is chosen by the method you call, so keep your own Remote Config flag:
-`if (flag) loadSplashAppOpenDoubleAd(...) else loadSplashAppOpenAd(...)`.
+`loadSplashAppOpenAd(activity, flag, callback)`, or the built-in switch `placements.splash.double`.
 
 ## 6. The loading dialog
 

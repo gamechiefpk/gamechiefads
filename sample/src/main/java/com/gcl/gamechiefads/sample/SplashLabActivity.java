@@ -10,8 +10,8 @@ import com.gcl.gamechiefads.SplashCallback;
 
 /**
  * Splash lab: pick the splash ad type (app open or interstitial), flooring on/off and single/double, then run it right
- * here. Each choice is just a different method: loadSplashAppOpenAd, loadSplashAppOpenDoubleAd,
- * loadSplashInterstitialAd, loadSplashInterstitialDoubleAd. Flooring is a Remote Config switch on the slot.
+ * here. Each choice is a method of loadSplashAppOpenAd / loadSplashInterstitialAd; the double is a boolean (true) or the double switch in Remote Config.
+ * Flooring is a Remote Config switch on the slot.
  * The first floor never fills: flooring ON shows it miss, then the next unit hit; OFF = one request to the last unit.
  */
 public class SplashLabActivity extends DemoActivity {
@@ -95,10 +95,10 @@ public class SplashLabActivity extends DemoActivity {
             });
         };
         if (interstitial) {
-            if (doubleAd) GamechiefAds.loadSplashInterstitialDoubleAd(this, callback);
+            if (doubleAd) GamechiefAds.loadSplashInterstitialAd(this, true, callback);
             else GamechiefAds.loadSplashInterstitialAd(this, callback);
         } else {
-            if (doubleAd) GamechiefAds.loadSplashAppOpenDoubleAd(this, callback);
+            if (doubleAd) GamechiefAds.loadSplashAppOpenAd(this, true, callback);
             else GamechiefAds.loadSplashAppOpenAd(this, callback);
         }
     }

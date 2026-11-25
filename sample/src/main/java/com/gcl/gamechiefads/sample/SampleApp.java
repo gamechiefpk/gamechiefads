@@ -49,8 +49,8 @@ public class SampleApp extends Application {
 
                 // ---- native ----
                 .introNativeUnits(NO_FILL_UNIT, nativeUnit, nativeUnit).tierTimeoutMs(10000).unitTimeoutMs(NO_FILL_UNIT, 1500) // small, floors
-                .fullScreenNativeUnit(nativeUnit)                          // one unit, no floors
-                .nativeAd("language_native").units(nativeUnit, nativeUnit) // your own native spot (language screen): any name, floors
+                .fullScreenNativeUnit(nativeUnit).enabled(true)           // one unit, no floors; an EXTRA ad that is OFF by default, switched on here for the demo
+                .languageNativeUnits(nativeUnit, nativeUnit)            // language screen native (SMALL_MEDIA by default), floors
                 .listNativeUnit(nativeUnit)                               // native ads inside a RecyclerView: ONE unit, no floors
 
                 // ---- rewarded ----

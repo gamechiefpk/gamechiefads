@@ -14,8 +14,8 @@ public class InterstitialActivity extends DemoActivity {
                 + "When due, the \"Ad is loading, please wait\" dialog shows while the ad loads. The first floor never fills.");
         button("loadRandomInterstitialAd()", () ->
                 GamechiefAds.loadRandomInterstitialAd(this, listener("random")));
-        button("loadRandomInterstitialDoubleAd()  (two ads together)", () ->
-                GamechiefAds.loadRandomInterstitialDoubleAd(this, listener("random double")));
+        button("loadRandomInterstitialAd(activity, true, listener)  (two ads together)", () ->
+                GamechiefAds.loadRandomInterstitialAd(this, true, listener("random double")));
         button("Null listener (must not crash)", () -> {
             GamechiefAds.loadRandomInterstitialAd(this, null);
             say("null-listener call made");

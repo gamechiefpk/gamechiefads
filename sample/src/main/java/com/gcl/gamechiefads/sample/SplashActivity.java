@@ -23,7 +23,7 @@ public class SplashActivity extends Activity {
         GamechiefAds.loadSplashBannerAd(findViewById(R.id.splashBanner));
 
         // consent -> init -> waterfall -> timeout. Called once, with or without an ad.
-        GamechiefAds.loadSplashAppOpenDoubleAd(this, (SplashAds ads) -> {
+        GamechiefAds.loadSplashAppOpenAd(this, true, (SplashAds ads) -> {
             status.setText(ads.hasAd() ? "Ad ready" : "No ad (premium, offline, consent denied or timeout)");
             start.setVisibility(android.view.View.VISIBLE);
             start.setOnClickListener(v -> {

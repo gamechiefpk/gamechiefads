@@ -25,7 +25,7 @@ public class SecondActivity extends DemoActivity {
             say("automatic random ad: " + (GamechiefAds.isAutoRandomInterstitialEnabled() ? "ON" : "OFF"));
         });
         button("Click (random interstitial)", () -> GamechiefAds.loadRandomInterstitialAd(this, listener("click")));
-        button("Click (random DOUBLE interstitial)", () -> GamechiefAds.loadRandomInterstitialDoubleAd(this, listener("click double")));
+        button("Click (random DOUBLE interstitial)", () -> GamechiefAds.loadRandomInterstitialAd(this, true, listener("click double")));
         button("Open another screen", () -> startActivity(new Intent(this, SecondActivity.class).putExtra("depth", depth + 1)));
         button("Back", this::finish);
     }
