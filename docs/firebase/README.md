@@ -27,7 +27,7 @@ A parameter you do not publish (or leave empty) is "not set": the app's own sett
 | `homescrBannerType` | text | type for `GamechiefAds.loadHomeBannerAd(...)`: `adaptive`, `adaptiveLarge`, `collapsible`, `collapsibleTop`, `mediumRectangle`... |
 | `bannerAdType` | text | type of the normal banner (`loadBannerAd`), same values |
 | `randomClickInterstitialAd` | bool | the random interstitial on or off |
-| `doubleInterstitialAdEnable` | bool | double random interstitial. A double loads its second ad with the same request as the first, at the same time: no extra delay |
+| `doubleInterstitialAdEnable` | bool | double random interstitial. A double loads its second ad with the same request as the first, at the same time, with at most a 1.5 s grace for the second |
 | `randomClickAdInterval` | number | every N-th click and every N-th new screen |
 | `randomClickTimeGap` | number | seconds between two random interstitials |
 | `randomClickAdAutoEnable` | bool | the automatic random interstitial over new screens |

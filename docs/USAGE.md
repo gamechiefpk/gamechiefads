@@ -84,7 +84,7 @@ All listeners are optional (`null` is fine) and all callbacks run on the main th
 
 ## 4. How a double ad works
 
-Both ads are requested at the same time. The first uses its units with floors; the second is the **same request** as the first (same units), started together, so there is no extra delay; a `...DoubleUnit` is only an optional override (ONE request to that unit). The second is used only if it is already loaded when the first arrives, otherwise one ad is shown. Both are shown **at the same time**,
+Both ads are requested at the same time. The first uses its units with floors; the second is the **same request** as the first (same units), started together, so there is no extra delay; a `...DoubleUnit` is only an optional override (ONE request to that unit). After the first arrives the second is waited for at most a short fixed 1.5 s (never remote), otherwise one ad is shown. Both are shown **at the same time**,
 stacked. The user closes the top ad and the other is already underneath, so it feels like the first ad never closed. The
 "ad showing" flag is held until the last one closes, and your callback runs once, after the last ad.
 

@@ -3,6 +3,7 @@ package com.gcl.gamechiefads
 import android.app.Activity
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * The one way to load any ad: SDK ready? -> resolve unit ids (test ids in debug, disabled units removed,
@@ -50,7 +51,7 @@ internal class AdLoadPipeline(
 
     /**
      * Two ads for a "double" show, requested at the same time. The second is optional: after the first has
-     * arrived the second is used only if it is already there (no waiting). Null = no ad at all.
+     * arrived the second is waited for only a short fixed grace ([SECOND_AD_GRACE_MS], not remote). Null = no ad at all.
      */
     suspend fun <T : Any> loadPair(
         p: PlacementConfig,
@@ -67,8 +68,14 @@ internal class AdLoadPipeline(
             val only = d2.await() ?: return@coroutineScope null
             return@coroutineScope Pair(only, null)
         }
-        val b = if (d2.isCompleted && !d2.isCancelled) d2.getCompleted() else { d2.cancel(); null }
+        val b = withTimeoutOrNull(SECOND_AD_GRACE_MS) { d2.await() }
+        if (b == null) d2.cancel()
         AdLog.d("pipeline") { "${p.name}: double ${if (b != null) "ready (2 ads)" else "second ad missing, showing one"}" }
         Pair(a, b)
+    }
+
+    companion object {
+        /** Small fixed wait for the second ad of a double after the first arrived: better odds of a real double, never a long delay. */
+        const val SECOND_AD_GRACE_MS = 1_500L
     }
 }
