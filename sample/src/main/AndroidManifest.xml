@@ -30,6 +30,7 @@
         <activity android:name=".InterstitialActivity" />
         <activity android:name=".BannerActivity" />
         <activity android:name=".TagBannerActivity" />
+        <activity android:name=".QaActivity" />
         <activity android:name=".RecyclerNativeActivity" />
         <activity android:name=".NativeActivity" />
         <activity android:name=".AppOpenActivity" />

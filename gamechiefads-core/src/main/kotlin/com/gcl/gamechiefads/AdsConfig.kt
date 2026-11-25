@@ -196,6 +196,8 @@ data class AdsConfig(
 
         // ---- format options
         /** Interstitial / app-open: two ads back to back as one break. Also switchable by Remote Config. */
+        /** The ONE unit of the second ad of a double for this placement (no floors). Without it a double is never started: a quiet single ad. */
+        fun secondUnit(id: String) = edit { it.copy(secondUnit = id.takeIf { s -> s.isNotBlank() }) }
         fun doubleAd(value: Boolean) = edit { it.copy(doubleAd = value) }
         /** Rewarded: true (default) = premium users get the reward with no ad. false = they get nothing. */
         fun premiumGetsReward(value: Boolean) = edit { it.copy(premiumGetsReward = value) }

@@ -23,14 +23,8 @@ class ExtraAdsOffByDefaultTest {
 
     @Test fun remoteConfigTurnsTheDoubleOnPerSlot() {
         val on = RemoteOverrides.apply(c, """{"placements":{"splash":{"double":true},"random":{"double":true}}}""")
-        assertTrue(on.placement(Placements.SPLASH)!!.doubleAd); assertTrue(on.placement(Placements.RANDOM)!!.doubleAd)
-        assertFalse(on.placement(Placements.SPLASH_INTERSTITIAL)!!.doubleAd)             // only the slots named
-    }
-
-    @Test fun theCodeSwitchStillWorksAndRemoteCanTurnItOff() {
-        val code = AdsConfig.builder().randomInterstitialUnits("a").doubleAd(true).build()
-        assertTrue(code.placement(Placements.RANDOM)!!.doubleAd)
-        assertFalse(RemoteOverrides.apply(code, """{"placements":{"random":{"double":false}}}""").placement(Placements.RANDOM)!!.doubleAd)
+        assertTrue(on.placement(Placements.SPLASH)!!.wantsDouble()); assertTrue(on.placement(Placements.RANDOM)!!.wantsDouble())
+        assertFalse(on.placement(Placements.SPLASH_INTERSTITIAL)!!.wantsDouble())          // only the slots named
     }
 
     @Test fun theFullScreenNativeIsOffUntilRemoteConfigOrTheCodeTurnsItOn() {
@@ -50,12 +44,38 @@ class ExtraAdsOffByDefaultTest {
 }
 
 class DoubleSwitchTest {
-    @Test fun theRemoteSwitchTurnsTheDoubleOnWhateverTheCodeAsked() {
-        assertTrue(DoubleSwitch.resolve(null, true)); assertTrue(DoubleSwitch.resolve(false, true)); assertTrue(DoubleSwitch.resolve(true, true))
+    private fun slot(second: String? = "u2", code: Boolean = false, remote: Boolean? = null): PlacementConfig {
+        var b = AdsConfig.builder().randomInterstitialUnits("u1")
+        if (second != null) b = b.randomInterstitialDoubleUnit(second)
+        if (code) b = b.doubleAd(true)
+        val c = b.build()
+        return (if (remote == null) c else RemoteOverrides.apply(c, """{"placements":{"random":{"double":$remote}}}""")).placement(Placements.RANDOM)!!
     }
 
-    @Test fun theCodeCanAskForTheDoubleItselfAndBothOffMeansSingle() {
-        assertTrue(DoubleSwitch.resolve(true, false))
-        assertFalse(DoubleSwitch.resolve(null, false)); assertFalse(DoubleSwitch.resolve(false, false))
+    @Test fun remoteConfigIsTheMasterInBothDirections() {
+        assertTrue(DoubleSwitch.resolve(slot(remote = true), false))          // code says single, Firebase says double: double
+        assertTrue(DoubleSwitch.resolve(slot(remote = true), null))
+        assertFalse(DoubleSwitch.resolve(slot(remote = false), true))         // code asks for double, Firebase says no: single
+        assertFalse(DoubleSwitch.resolve(slot(code = true, remote = false), null))   // also over the config flag
+    }
+
+    @Test fun withoutAnyRemoteValueTheCodeDecidesAndBothOffMeansSingle() {
+        assertTrue(DoubleSwitch.resolve(slot(), true)); assertTrue(DoubleSwitch.resolve(slot(code = true), null))
+        assertFalse(DoubleSwitch.resolve(slot(), null)); assertFalse(DoubleSwitch.resolve(slot(), false))
+        assertFalse(DoubleSwitch.resolve(slot(code = true), false))           // a call that says single beats the config flag
+    }
+
+    @Test fun noSecondUnitDeclaredMeansAQuietSingleNeverACrashOrAnError() {
+        for (remote in listOf<Boolean?>(null, true, false)) for (code in listOf<Boolean?>(null, true, false))
+            assertFalse("remote=$remote code=$code", DoubleSwitch.resolve(slot(second = null, code = code == true, remote = remote), code))
+        assertFalse(DoubleSwitch.resolve(slot(second = " ", remote = true), true))   // a blank id counts as not declared
+        assertFalse(DoubleSwitch.resolve(null, true))                                 // unknown slot
+    }
+
+    @Test fun aLaterRemoteLayerThatSaysNothingKeepsTheOwnersValue() {
+        val c = AdsConfig.builder().randomInterstitialUnits("u1").randomInterstitialDoubleUnit("u2").build()
+        val a = RemoteOverrides.apply(c, """{"placements":{"random":{"double":true}}}""")
+        val b = RemoteOverrides.apply(a, """{"placements":{"random":{"gap":10}}}""")
+        assertTrue(b.placement(Placements.RANDOM)!!.wantsDouble())
     }
 }

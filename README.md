@@ -50,3 +50,4 @@ app `build.gradle`: `id "com.google.gms.google-services"`). Without it the app s
 Remove `com.google.android.gms:play-services-ads` from your app. Then see [docs/USAGE.md](docs/USAGE.md).
 
 Recipes for common cases: [docs/USE_CASES.md](docs/USE_CASES.md).
+Copy-paste starter (a small complete flow): [docs/starter](docs/starter/README.md).

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="16dp">
+
+    <Button android:id="@+id/extraButton"
+        android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Extra click spot" />
+    <Button android:id="@+id/rewardButton"
+        android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Watch an ad for a reward" />
+
+    <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+
+    <!-- banner with NO code: the tag is all it needs (gads_banner, or gads_banner_fast = no floors) -->
+    <FrameLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:tag="gads_banner" />
+</LinearLayout>

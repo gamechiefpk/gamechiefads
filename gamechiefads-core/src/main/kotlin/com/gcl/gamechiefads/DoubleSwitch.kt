@@ -1,9 +1,9 @@
 package com.gcl.gamechiefads
 
 /**
- * Single or double? The owner controls it from Remote Config: when the slot's switch is on (`"double": true`), the double ad is shown
- * whatever the app's code asked for. The code can also ask for it (`loadSplashAppOpenAd(activity, true, callback)`). Both off = single.
+ * Single or double? One place for the rule, used by the facade and the automatic random interstitial.
+ * Remote Config (the owner) is the master in both directions; the code's ask is the fallback; no declared second unit = single, quietly.
  */
 internal object DoubleSwitch {
-    fun resolve(requestedByCode: Boolean?, slotSwitch: Boolean): Boolean = slotSwitch || requestedByCode == true
+    fun resolve(slot: PlacementConfig?, requestedByCode: Boolean?): Boolean = slot?.wantsDouble(requestedByCode) ?: false
 }

@@ -24,7 +24,7 @@ class RandomInterstitialTriggerTest {
     }
 
     @Test fun randomDoubleShowsTwoAdsAtOnceAndCountsOneBreak() = runTest {
-        val r = rig { doubleAd(true) }; r.screens(3)
+        val r = rig { doubleAd(true).secondUnit("r2") }; r.screens(3)
         val ads = mutableListOf<FakeAd>()
         r.loadBehavior = { FakeAd.manual().also { ads += it } }
         r.random.onScreenResumed(r.activity)
@@ -39,7 +39,7 @@ class RandomInterstitialTriggerTest {
     }
 
     @Test fun randomDoubleWithOneMissingShowsOne() = runTest {
-        val r = rig { doubleAd(true) }; r.screens(3)
+        val r = rig { doubleAd(true).secondUnit("r2") }; r.screens(3)
         var n = 0
         r.loadBehavior = { if (n++ == 0) FakeAd(it) else null }
         r.random.onScreenResumed(r.activity)

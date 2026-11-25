@@ -54,9 +54,21 @@ data class PlacementConfig(
     val everyNCalls: Int = 1,
     /** Random interstitial: show automatically over new screens (true) or only on your button calls (false). */
     val autoShow: Boolean = true,
+    /** The owner's master switch from Remote Config (`"double": true|false`). Null = Remote Config says nothing: the code decides. */
+    val doubleRemote: Boolean? = null,
     /** Native only: size name set from Remote Config ("nativeSize"), overrides the size in the app code. Null = the app code decides. */
     val nativeSize: String? = null,
 ) {
+    /** A second ad unit was declared for the double (`...DoubleUnit(id)`). Without it a double is never started. */
+    val hasSecondUnit: Boolean get() = !secondUnit.isNullOrBlank()
+
+    /**
+     * Single or double? Remote Config is the master: when it says `true` or `false` that wins, even over what the app's code passes.
+     * When it says nothing, the code decides ([requestedByCode], else the `.doubleAd(...)` flag). Never double without a declared second unit:
+     * that quietly gives a single ad, no error.
+     */
+    fun wantsDouble(requestedByCode: Boolean? = null): Boolean = (doubleRemote ?: requestedByCode ?: doubleAd) && hasSecondUnit
+
     /** This placement as the SECOND ad of a double: one request, no floors, to [secondUnit] (else the last unit). */
     fun forSecondAd(): PlacementConfig {
         val id = secondUnit?.takeIf { it.isNotBlank() } ?: units.lastOrNull()

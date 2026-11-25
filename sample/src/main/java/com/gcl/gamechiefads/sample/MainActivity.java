@@ -28,6 +28,7 @@ public class MainActivity extends DemoActivity {
         button("Native ads in a RecyclerView (dummy list)", () -> open(RecyclerNativeActivity.class));
         button("Native: intro, full screen, 6 sizes", () -> open(NativeActivity.class));
         button("App-open (leave and return)", () -> open(AppOpenActivity.class));
+        button("QA tools: setup check, test mode, ad inspector", () -> open(QaActivity.class));
         button("Library trace (logcat GamechiefAds)", () -> open(TraceActivity.class));
         button("Run the real splash again", () -> open(SplashActivity.class));
 

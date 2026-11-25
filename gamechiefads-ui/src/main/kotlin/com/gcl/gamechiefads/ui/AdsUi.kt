@@ -18,13 +18,13 @@ import com.gcl.gamechiefads.Placements
 object AdsUi {
 
     /**
-     * Small native ad for the intro screens: fills [container] (any FrameLayout, no XML needed). Units from
+     * Small-media native ad for the intro screens (thumbnail left, text and button right): fills [container] (any FrameLayout, no XML needed). Units from
      * `introNativeUnits(...)` with floors. A shimmer shows while it loads and the ad hides itself when there is none.
      */
     @JvmStatic
     @JvmOverloads
     fun loadIntroNativeAd(container: FrameLayout, listener: NativeAdTemplateView.Listener? = null) =
-        loadNativeAd(container, Placements.INTRO_NATIVE, NativeSize.SMALL, NativeStyle.DEFAULT, listener)
+        loadNativeAd(container, Placements.INTRO_NATIVE, NativeSize.SMALL_MEDIA, NativeStyle.DEFAULT, listener)
 
     /**
      * Native ad for the language selection screen: fills [container], SMALL_MEDIA size (thumbnail left, text and button right). Units from
@@ -39,7 +39,7 @@ object AdsUi {
      * Any native ad in any FrameLayout, no XML of yours: the library inflates the layout for [size], shows a shimmer
      * while loading, hides the container when there is no ad, and destroys the ad with the screen.
      * [placement] is the name of a native spot ([Placements.INTRO_NATIVE], [Placements.LANGUAGE_NATIVE] or your own `nativeAd("name").units(...)`).
-     * Without [size] you get a small card (SMALL_MEDIA on the language screen): big sizes are only shown when you ask for them or Remote Config does.
+     * Without [size] you get a small card (SMALL_MEDIA on the language and intro screens): big sizes are only shown when you ask for them or Remote Config does.
      *
      * ```java
      * AdsUi.loadNativeAd(frame, "language_native", NativeSize.MEDIUM);
@@ -55,7 +55,7 @@ object AdsUi {
         style: NativeStyle = NativeStyle.DEFAULT,
         listener: NativeAdTemplateView.Listener? = null,
     ) {
-        val size = size ?: NativeSize.defaultFor(placement) // no size given: a small card (SMALL_MEDIA on the language screen)
+        val size = size ?: NativeSize.defaultFor(placement) // no size given: a small card (SMALL_MEDIA on the language and intro screens)
         container.removeAllViews()
         val view = NativeAdTemplateView(container.context).apply {
             this.size = size

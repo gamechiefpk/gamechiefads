@@ -38,7 +38,7 @@ a change reaches users on their next fetch, with no app update.
 | `tagBanners` | banners and natives from layout tags (`gads_banner`, `gads_native:...`) |
 | `loaderTitle`, `loaderMessage`, `noAdMessage` | dialog texts |
 | `global.*` | timeouts in ms: splash, one waterfall, SDK start, second ad of a double, "no ad" message |
-| `placements.splash.double`, `placements.splash_interstitial.double`, `placements.random.double` | the **double** ads (a second ad shown with the first). OFF; set `true` to turn on (the second ad uses its own unit from the app). No separate method needed |
+| `placements.splash.double`, `placements.splash_interstitial.double`, `placements.random.double` | the **double** ads (a second ad shown with the first). OFF by default. **Your value here is the master**: `true` shows doubles even if the app code asks for a single, `false` shows a single ad even if the code asks for a double. Needs a second unit declared in the app, otherwise it is a single ad |
 | `placements.fullscreen_native.enabled` | the full-screen native ad. OFF; set `true` to turn on |
 | `placements.random` | `every` (every Nth new screen, 0 = off), `gap` (seconds between ads), `everyNCalls` (button calls), `auto` |
 | `placements.<slot>.enabled` | switch one slot off: `splash`, `splash_interstitial`, `splash_banner`, `app_open`, `banner`, `exit_banner`, `random`, `intro_native`, `fullscreen_native`, `list_native`, `rewarded` |

@@ -49,7 +49,7 @@ take ONE unit, no floors. The second ad of a double is ONE unit, no floors (the 
 ```java
 GamechiefAds.init(app, config);   GamechiefAds.setPremium(boolean);   GamechiefAds.applyRemoteConfig(json);
 GamechiefAds.setLoadingDialog(ui); GamechiefAds.setLoadingText(title, message); GamechiefAds.skipNextAppOpenAd();
-GamechiefAds.loadSplashAppOpenAd(activity[, double], callback);   // + loadSplashInterstitialAd(activity[, double], callback); double = the slot switch (RC placements.splash.double or config .doubleAd), OFF by default, and the RC switch turns it on even if the code passes false (the boolean only lets code ask for it); the old ...DoubleAd methods are deprecated aliases
+GamechiefAds.loadSplashAppOpenAd(activity[, double], callback);   // + loadSplashInterstitialAd(activity[, double], callback); double = Remote Config placements.splash.double is the MASTER both ways (true or false beats what the code passes); without it the boolean or config .doubleAd decides; OFF by default; no declared second unit = quiet single ad; the old ...DoubleAd methods are deprecated aliases
 GamechiefAds.loadSplashBannerAd(frameLayout);                 // always LARGE_BANNER, ONE unit (splashBannerUnit), no floors
 GamechiefAds.loadBannerAd(frameLayout, BannerType[, isEnableFlooring]);  // type for one call; app default: AdsConfig .defaultBannerType(type); tag gads_banner:<type>
 GamechiefAds.loadBannerAd(frameLayout[, isEnableFlooring]);  GamechiefAds.loadExitBannerAd(frameLayout[, isEnableFlooring]);   // false = one request, last unit
@@ -59,6 +59,7 @@ GamechiefAds.loadBannerAd(frameLayout[, isEnableFlooring]);  GamechiefAds.loadEx
 GamechiefAds.loadCustomBannerAd(frameLayout, unitId, BannerType, listener);   // full control, one unit
 GamechiefAds.loadRandomInterstitialAd(activity, listener);    // the random interstitial on YOUR button; it is also AUTOMATIC over every 3rd new screen (no call needed; everyNScreens(0) or autoShow(false) = off; runtime switch: setAutoRandomInterstitialEnabled(boolean)); + loadRandomInterstitialDoubleAd
 GamechiefAds.loadRewardedAd(activity, listener);
+GamechiefAds.checkSetup() / setTestMode(boolean) / openAdInspector(): QA tools (setup checker also prints in logcat in debug builds); docs/starter/ = copy-paste starter. Intro and language natives default to SMALL_MEDIA.
 AdsUi.loadIntroNativeAd(frameLayout);  AdsUi.loadFullScreenNativeAd(activity, listener);   // ui module
 NativeListAds ads = new NativeListAds(NativeSize.SMALL);  // config .listNativeUnit(id): ONE unit, no floors; positions: new NativeListPositions() (first ad after 4 rows, then every 8); RC "nativeSize" on any native placement changes its size remotely;  // native ads in a RecyclerView: ads.bind(rowFrameLayout, adIndex) in onBindViewHolder, ads.destroy() in onDestroy; each ad requested ONCE
 AdsUi.loadNativeAd(frameLayout, "placement_name", NativeSize.MEDIUM[, style, listener]);   // any native spot, only a FrameLayout needed (tag: gads_native:<placement>[:<size>])

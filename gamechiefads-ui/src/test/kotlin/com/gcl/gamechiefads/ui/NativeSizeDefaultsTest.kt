@@ -8,7 +8,8 @@ import org.junit.Test
 class NativeSizeDefaultsTest {
     @Test fun noSizeGivenMeansASmallCardAndSmallMediaOnTheLanguageScreen() {
         assertEquals(NativeSize.SMALL_MEDIA, NativeSize.defaultFor(Placements.LANGUAGE_NATIVE))
-        for (p in listOf(Placements.INTRO_NATIVE, Placements.LIST_NATIVE, Placements.FULLSCREEN_NATIVE, "my_own_spot", null)) assertEquals(NativeSize.SMALL, NativeSize.defaultFor(p))
+        assertEquals(NativeSize.SMALL_MEDIA, NativeSize.defaultFor(Placements.INTRO_NATIVE))
+        for (p in listOf(Placements.LIST_NATIVE, Placements.FULLSCREEN_NATIVE, "my_own_spot", null)) assertEquals(NativeSize.SMALL, NativeSize.defaultFor(p))
     }
 
     @Test fun bigSizesAreNeverADefault() {

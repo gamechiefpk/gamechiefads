@@ -67,7 +67,7 @@ Your own extra spots (optional): `.interstitial(AdPlacement)`, `.rewarded(...)`,
 | `setLoadingDialog(ui)` / `setLoadingText(title, message)` | Replace / re-text the loading dialog. |
 | `skipNextAppOpenAd()` | Skip the next app-open ad. |
 | `loadSplashAppOpenAd(activity, callback)` | Splash. `callback` gets `ads`: call `ads.show(activity, onDone)`. |
-| `loadSplashAppOpenAd(activity, double, callback)` | Same, asking for the double in code (a Remote Config `true` turns it on even when this is false; the old `loadSplashAppOpenDoubleAd` still works, deprecated). Double is OFF by default: Remote Config `placements.splash.double`. |
+| `loadSplashAppOpenAd(activity, double, callback)` | Same, asking for the double in code (Firebase is the master both ways: its `true` or `false` wins over this; the old `loadSplashAppOpenDoubleAd` still works, deprecated). Double is OFF by default: Remote Config `placements.splash.double`. |
 | `loadSplashInterstitialAd(activity, callback)` | Same with an interstitial. |
 | `loadSplashInterstitialAd(activity, double, callback)` | Same for the interstitial (switch `placements.splash_interstitial.double`). |
 | `loadSplashBannerAd(frame[, listener])` | Large banner into a FrameLayout. |
@@ -76,7 +76,7 @@ Your own extra spots (optional): `.interstitial(AdPlacement)`, `.rewarded(...)`,
 | `loadCustomBannerAd(frame, unitId, type[, listener])` | Your own unit, size and type. |
 | `loadRandomInterstitialAd(activity, listener)` | The random interstitial on YOUR button (the automatic one needs no call). |
 | `setAutoRandomInterstitialEnabled(boolean)` / `isAutoRandomInterstitialEnabled()` | Switch the automatic random interstitial on/off at runtime (off: screens are not counted). |
-| `loadRandomInterstitialAd(activity, double, listener)` | Same, asking for the double in code (the remote switch `placements.random.double` turns it on even when this is false; OFF by default). |
+| `loadRandomInterstitialAd(activity, double, listener)` | Same, asking for the double in code (Firebase `placements.random.double` wins over this, true or false; OFF by default). |
 | `loadRewardedAd(activity, listener)` | Rewarded. Reward only in `onRewardEarned`. |
 | `AdsUi.loadIntroNativeAd(frame[, listener])` | Small native (ui module). |
 | `AdsUi.loadFullScreenNativeAd(activity[, listener])` | Full-screen native (ui module). |
@@ -246,6 +246,16 @@ A FrameLayout with `android:tag="gads_banner"` (also `gads_banner_fast`, `gads_e
 `gads_splash_banner`) is filled by the library when its screen opens, no code in the activity (`.tagBanners(false)` or
 `{"tagBanners": false}` turns it off). `AdsActivity` (ui module) is an optional base screen with short overridable ad methods.
 Details and examples: USE_CASES recipes 4b and 4c.
+
+## 14c. QA tools and the setup checker
+
+| Call | What it does |
+|---|---|
+| `GamechiefAds.checkSetup()` | Returns a list of the usual integration mistakes in plain words, each starting with `[ERROR]`, `[WARN]` or `[INFO]` (empty = all good). Debug builds also print it in logcat (tag `GamechiefAds`) at start. It checks: the AdMob app id in the manifest, the old `play-services-ads` still in the app, Google TEST unit ids in a release build, unit ids that do not look like AdMob ids, slots without units, a double asked without a second unit, a missing ui module, an http rules file. |
+| `GamechiefAds.setTestMode(true)` | Every ad request uses Google TEST unit ids, in any build (also release), so testers can click ads without risking your account. Off by default, not remembered across restarts: put it behind your debug or QA menu. |
+| `GamechiefAds.openAdInspector()` | Opens Google's Ad Inspector (requests and responses of this device). |
+
+A copy-paste starter with a complete small flow is in [starter/](starter/README.md). The sample app has a "QA tools" screen.
 
 ## 14. Changing behaviour for every app without a release
 

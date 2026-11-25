@@ -31,7 +31,7 @@ internal class InterstitialController(
     fun showOnDemand(activity: Activity, name: String, listener: InterstitialListener?, double: Boolean? = null) {
         val events = ListenerDispatcher(listener)
         AdLog.d("interstitial") { "$name: showOnDemand requested from ${activity.javaClass.simpleName} (double=$double)" }
-        val p = allowed(activity, name, events)?.let { if (double != null) it.copy(doubleAd = double) else it } ?: return
+        val p = allowed(activity, name, events)?.let { it.copy(doubleAd = it.wantsDouble(double)) } ?: return
         runOnDemand(activity, name, p, events)
     }
 
@@ -49,7 +49,7 @@ internal class InterstitialController(
         val events = ListenerDispatcher(object : InterstitialListener {
             override fun onShown() { callsSinceAd = 0 }
         })
-        runOnDemand(activity, Placements.RANDOM, p, events)
+        runOnDemand(activity, Placements.RANDOM, p.copy(doubleAd = p.wantsDouble()), events)
     }
 
     private var callsSinceAd = 0

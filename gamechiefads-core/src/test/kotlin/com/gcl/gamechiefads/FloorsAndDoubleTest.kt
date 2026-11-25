@@ -82,7 +82,7 @@ class FloorsAndDoubleTest {
     // ---- double ads ----
 
     @Test fun doubleInterstitialLoadsTwoAndShowsThemBackToBackAsOneBreak() = runTest {
-        val r = rig { doubleAd(true) }
+        val r = rig { doubleAd(true).secondUnit("hf2") }
         val ads = mutableListOf<FakeAd>()
         r.loadBehavior = { FakeAd.manual().also { ads += it } }
         val l = RecordingListener()
@@ -99,7 +99,7 @@ class FloorsAndDoubleTest {
     }
 
     @Test fun doubleFallsBackToOneAdWhenTheSecondIsMissing() = runTest {
-        val r = rig { doubleAd(true) }
+        val r = rig { doubleAd(true).secondUnit("hf2") }
         var n = 0
         r.loadBehavior = { if (n++ == 0) FakeAd(it) else null }
         val l = RecordingListener()
@@ -111,9 +111,9 @@ class FloorsAndDoubleTest {
     @Test fun remoteConfigCanSwitchDoubleOnAndOff() {
         val base = AdsConfig.builder().interstitial("home").units("a").build()
         val on = RemoteOverrides.apply(base, """{"placements":{"home":{"double":true}}}""")
-        assertTrue(on.placement("home")!!.doubleAd)
+        assertEquals(true, on.placement("home")!!.doubleRemote)
         val off = RemoteOverrides.apply(on, """{"placements":{"home":{"double":false}}}""")
-        assertFalse(off.placement("home")!!.doubleAd)
+        assertEquals(false, off.placement("home")!!.doubleRemote)
     }
 
     @Test fun showAllWithAFailedFirstStillShowsTheOther() = runTest {

@@ -14,6 +14,8 @@ internal class AdLoadPipeline(
     private val ready: suspend (Activity?) -> Boolean,
     private val debug: Boolean,
     private val floors: FloorPolicy = FloorPolicy { System.currentTimeMillis() },
+    /** QA test mode: Google test unit ids for every request, in any build (GamechiefAds.setTestMode). */
+    private val forceTestIds: () -> Boolean = { false },
 ) {
     suspend fun <T : Any> load(
         p: PlacementConfig,
@@ -26,7 +28,7 @@ internal class AdLoadPipeline(
             AdLog.d("pipeline") { "${p.name}: SDK not ready (consent denied, no activity, or init failed) -> no ad" }
             return null
         }
-        val useTestIds = debug && config().testIdsInDebug
+        val useTestIds = forceTestIds() || (debug && config().testIdsInDebug)
         val all = AdUnits.resolve(p, useTestIds)
         val units = floors.active(p, all)
         AdLog.d("pipeline") {

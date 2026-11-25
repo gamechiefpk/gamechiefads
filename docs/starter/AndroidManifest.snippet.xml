@@ -1,0 +1,15 @@
+<!-- Step 0: inside <application> of your AndroidManifest.xml.
+     Also give the <application> tag your Application class: android:name=".MyApp" -->
+<meta-data
+    android:name="com.google.android.gms.ads.APPLICATION_ID"
+    android:value="ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY" />
+
+<activity android:name=".SplashActivity" android:exported="true">
+    <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+    </intent-filter>
+</activity>
+<activity android:name=".LanguageActivity" />
+<activity android:name=".IntroActivity" />
+<activity android:name=".HomeActivity" />

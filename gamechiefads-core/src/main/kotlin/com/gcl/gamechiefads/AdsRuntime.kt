@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** Builds and wires every object once. Only wiring here, no logic. Must be created on the main thread. */
-internal class AdsRuntime(app: Application, private val baseConfig: AdsConfig) {
+internal class AdsRuntime(private val app: Application, private val baseConfig: AdsConfig) {
     @Volatile private var base = baseConfig
     @Volatile var config = baseConfig
         private set
@@ -54,6 +54,8 @@ internal class AdsRuntime(app: Application, private val baseConfig: AdsConfig) {
     )
 
     val state = AdState()
+    /** QA test mode: Google test unit ids for every ad request, whatever the build. Off by default. */
+    @Volatile var testMode = false
     private val debuggable = AdUnits.isDebuggable(app)
     init {
         AdLog.enabled = debuggable
@@ -77,7 +79,7 @@ internal class AdsRuntime(app: Application, private val baseConfig: AdsConfig) {
         init = { sdkInit.ensure(config.appId ?: AdUnits.TEST_APP_ID, config.initTimeoutMs) },
         clock = clock,
     )
-    private val pipeline = AdLoadPipeline({ config }, gate::ready, AdUnits.isDebuggable(app), FloorPolicy(clock))
+    private val pipeline = AdLoadPipeline({ config }, gate::ready, AdUnits.isDebuggable(app), FloorPolicy(clock)) { testMode }
     private val shower = FullScreenShower(state, clock, scope)
 
     val rewarded = RewardedController(state, { config }, pipeline, shower, tracker, scope, clock, { loaderUi ?: defaultLoader }, RewardedSource::load, noFill, noAd)
@@ -122,6 +124,7 @@ internal class AdsRuntime(app: Application, private val baseConfig: AdsConfig) {
         remote.addDefaults(baseConfig.remoteDefaults)
         applyRemoteRules()
         remote.start(baseConfig.remoteFetchIntervalSeconds) { applyRemoteRules() }
+        if (debuggable) runCatching { logSetup() }
     }
 
     // ---- remote rules in layers, lowest first: your config < shared file (https) < Firebase Remote Config < applyRemoteConfig(json)
@@ -174,6 +177,32 @@ internal class AdsRuntime(app: Application, private val baseConfig: AdsConfig) {
         base = base.copy(loaderTitle = title, loaderMessage = message)
         recompute()
     }
+
+    /** The setup checker (see [SetupChecker]): the usual integration mistakes, in plain words. */
+    fun checkSetup(): List<String> {
+        fun has(cls: String) = runCatching { Class.forName(cls) }.isSuccess
+        val meta = runCatching {
+            app.packageManager.getApplicationInfo(app.packageName, android.content.pm.PackageManager.GET_META_DATA).metaData?.containsKey("com.google.android.gms.ads.APPLICATION_ID") == true
+        }.getOrDefault(true)
+        return SetupChecker.check(
+            config,
+            SetupChecker.Env(
+                debuggable = debuggable, hasAdMobAppIdInManifest = meta,
+                legacyPlayServicesAdsPresent = has("com.google.android.gms.ads.MobileAds"),
+                uiModulePresent = has("com.gcl.gamechiefads.ui.DefaultLoaderDialog"),
+                firebaseModulePresent = has("com.gcl.gamechiefads.remoteconfig.FirebaseRemoteConfigSource"),
+            ),
+        )
+    }
+
+    /** Debug builds: say it in logcat (warnings) once at start. */
+    private fun logSetup() {
+        val issues = checkSetup()
+        if (issues.isEmpty()) Log.i(TAG, "setup check: nothing to report")
+        else issues.forEach { if (it.startsWith("[INFO]")) Log.i(TAG, "setup: $it") else Log.w(TAG, "setup: $it") }
+    }
+
+    fun openAdInspector(onClosed: Runnable?) = com.gcl.gamechiefads.sdk.AdInspector.open { onClosed?.run() }
 
     fun pauseAppOpenOnce() = appOpen.pauseOnce()
 

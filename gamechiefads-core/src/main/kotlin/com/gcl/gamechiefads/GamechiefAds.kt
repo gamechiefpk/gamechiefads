@@ -1,6 +1,7 @@
 package com.gcl.gamechiefads
 
 import android.app.Activity
+import android.util.Log
 import android.app.Application
 import android.content.Context
 import android.view.View
@@ -38,6 +39,35 @@ object GamechiefAds {
     @JvmStatic
     fun applyRemoteConfig(json: String?) {
         runtime?.applyRemote(json)
+    }
+
+    /**
+     * The setup checker: the usual integration mistakes (missing AdMob app id in the manifest, the old play-services-ads still in the app,
+     * Google test unit ids in a release build, missing units...), in plain words, each starting with [ERROR], [WARN] or [INFO]. Empty = all good.
+     * Debug builds also print it in logcat at start. Call it yourself any time, for example from a QA screen.
+     */
+    @JvmStatic
+    fun checkSetup(): List<String> = runtime?.checkSetup() ?: listOf("[ERROR] GamechiefAds.init(app, config) was not called yet (do it in Application.onCreate).")
+
+    /**
+     * QA test mode: every ad request uses Google TEST unit ids, in any build (also release). Put it behind your debug or QA menu so testers can
+     * click ads without risking your account. Off by default and not remembered: call it again after a restart.
+     */
+    @JvmStatic
+    fun setTestMode(enabled: Boolean) {
+        runtime?.testMode = enabled
+        Log.w("GamechiefAds", if (enabled) "TEST MODE ON: all ads use Google test unit ids" else "test mode off")
+    }
+
+    @JvmStatic
+    fun isTestMode(): Boolean = runtime?.testMode ?: false
+
+    /** Opens Google's Ad Inspector (requests and responses of this device) for QA. [onClosed] may be null. Does nothing if the SDK is not ready. */
+    @JvmStatic
+    @JvmOverloads
+    fun openAdInspector(onClosed: Runnable? = null) {
+        val r = runtime
+        if (r == null) onClosed?.run() else r.openAdInspector(onClosed)
     }
 
     /** Debug trace in logcat (tag "GamechiefAds"). On by default in debuggable apps, always off in release builds. */
@@ -109,7 +139,7 @@ object GamechiefAds {
     private fun splash(activity: Activity, callback: SplashCallback, name: String, double: Boolean?) {
         val r = runtime
         if (r == null) callback.onReady(NoSplashAds)
-        else r.splash.prepare(activity, callback, name, DoubleSwitch.resolve(double, r.config.placement(name)?.doubleAd ?: false))
+        else r.splash.prepare(activity, callback, name, DoubleSwitch.resolve(r.config.placement(name), double))
     }
 
     // =====================================================================================================
@@ -218,7 +248,7 @@ object GamechiefAds {
     private fun randomInterstitial(activity: Activity, listener: InterstitialListener?, double: Boolean?) {
         val r = runtime
         if (r == null) ListenerDispatcher(listener).onFinished(false, "not initialized")
-        else r.interstitial.showRandom(activity, listener, DoubleSwitch.resolve(double, r.config.placement(Placements.RANDOM)?.doubleAd ?: false))
+        else r.interstitial.showRandom(activity, listener, DoubleSwitch.resolve(r.config.placement(Placements.RANDOM), double))
     }
 
     /**
