@@ -125,7 +125,14 @@ pager.setOnFinished(() -> startActivity(new Intent(this, HomeActivity.class))); 
 //           pager.setPageFactories(list of PageFactory)          pages made from code
 ```
 
-**How many full-screen native ads: from Firebase.** Add a Remote Config parameter named **`noOfBigNativeAdInIntro`** (a number). `0` or missing = none (the default).
+**Two ads, two sets of units:**
+
+| Ad | Where | Units in the config | Floors |
+|---|---|---|---|
+| Small native (small media) | bottom of every slide | `.introNativeUnits(HIGH, MEDIUM, ALL)` | **yes**, high floor first |
+| Big native (full screen) | its own page between slides | `.introSlideNativeUnit(id)` | **no**, one unit |
+
+The small native is on by default (`pager.setSmallNativeOnPages(false)` turns it off). **How many full-screen native ads: from Firebase.** Add a Remote Config parameter named **`noOfBigNativeAdInIntro`** (a number). `0` or missing = none (the default).
 `1` puts one ad page in the middle of the slider, `2` two, spread evenly. Never before the first page, never after the last one, at most one between two slides.
 Units: `.introSlideNativeUnit(id)` in the config (ONE unit, no floors).
 
@@ -135,9 +142,9 @@ Units: `.introSlideNativeUnit(id)` in the config (ONE unit, no floors).
 | 1 | slide, slide, **AD**, slide, slide |
 | 2 | slide, **AD**, slide, slide, **AD**, slide |
 
-- **Fast, no repeated requests:** each ad is requested **once**, one after the other, as soon as the intro opens, so it is already loaded when the user reaches it.
-  It is never requested again. An ad that has not loaded, failed, or is turned off leaves **no blank page**: its page is simply not there. Premium users get none.
-- **The ad page:** full screen, with a close button that appears after 3 seconds (`pager.closeDelaySeconds`). Until then the page ignores touches (no accidental ad clicks)
+- **Light, no repeated requests:** every ad is requested **once**, one after the other. Big ads are preloaded as soon as the intro opens. Small ads are requested for the slide you are on and the next one only. Nothing is requested again.
+- **Never stuck, never empty:** the slides never wait for an ad. While an ad is loading, has failed, is turned off or cannot be drawn there is **nothing** in its place: no placeholder, no empty box, no blank page (a big ad that cannot be drawn is removed from the slider again at once). A premium user gets no ads.
+- **The full-screen ad page** has the same close button as the full-screen native ad: a dark pill "Close in 3", then a close mark (`pager.closeDelaySeconds`). Until then the page ignores touches (no accidental ad clicks) and cannot be swiped, and Back is held with `if (!pager.handleBack()) super.onBackPressed();` in the activity. Tapping the close mark swipes to the next slide.
   and cannot be swiped. Tapping the close button swipes to the next slide.
 - **Get started** shows on the last slide. The dots count the slides only.
 - Firebase is read when the intro opens: the first launch of an app usually has the value by then (it is fetched during the splash).

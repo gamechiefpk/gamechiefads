@@ -48,8 +48,10 @@ public class SampleApp extends Application {
                 .randomInterstitialDoubleUnit(interstitial)
 
                 // ---- native ----
-                .introNativeUnits(NO_FILL_UNIT, nativeUnit, nativeUnit).tierTimeoutMs(10000).unitTimeoutMs(NO_FILL_UNIT, 1500) // small, floors
-                .introSlideNativeUnit(nativeUnit)                          // full-screen native pages in the intro slider: ONE unit, no floors
+                // small intro native (small media), WITH floors: HIGH floor first, then MEDIUM, then ALL (normal)
+                .introNativeUnits(NO_FILL_UNIT /* HIGH */, nativeUnit /* MEDIUM */, nativeUnit /* ALL */).tierTimeoutMs(10000).unitTimeoutMs(NO_FILL_UNIT, 1500)
+                // big intro native (full-screen pages between the slides), WITHOUT floors: ONE unit
+                .introSlideNativeUnit(nativeUnit)
                 .fullScreenNativeUnit(nativeUnit).enabled(true)           // one unit, no floors; an EXTRA ad that is OFF by default, switched on here for the demo
                 .languageNativeUnits(nativeUnit, nativeUnit)            // language screen native (SMALL_MEDIA by default), floors
                 .listNativeUnit(nativeUnit)                               // native ads inside a RecyclerView: ONE unit, no floors

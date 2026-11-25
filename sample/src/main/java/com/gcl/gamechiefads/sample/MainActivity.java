@@ -31,6 +31,7 @@ public class MainActivity extends DemoActivity {
         button("Intro slider (IntroPager) with Firebase count = 0", () -> introWithAds(0));
         button("Intro slider with Firebase count = 1", () -> introWithAds(1));
         button("Intro slider with Firebase count = 2", () -> introWithAds(2));
+        button("Intro slider: ads that NEVER fill (must stay clean)", () -> introNoFill());
         button("DEBUG PANEL (bottom sheet, debug builds only)", () -> GamechiefAds.showDebugPanel(this));
         button("QA screen (debug builds only)", () -> GamechiefAds.openQaScreen(this));
         button("Library trace (logcat GamechiefAds)", () -> open(TraceActivity.class));
@@ -78,6 +79,14 @@ public class MainActivity extends DemoActivity {
             DemoLog.clear();
             recreate();
         });
+    }
+
+    /** Both intro ad units never fill: the slider must show only the slides, no placeholder, no empty box, no stuck page. */
+    private void introNoFill() {
+        String bad = "ca-app-pub-3940256099942544/0000000000";
+        GamechiefAds.applyRemoteConfig("{\"placements\":{\"intro_native\":{\"units\":[\"" + bad + "\"]},\"intro_slide_native\":{\"units\":[\"" + bad + "\"]}}}");
+        say("intro ad units set to a unit that never fills (use \"Back to app defaults\" to undo)");
+        introWithAds(2);
     }
 
     /** Pretends you set the Firebase value noOfBigNativeAdInIntro, then opens the intro slider. */

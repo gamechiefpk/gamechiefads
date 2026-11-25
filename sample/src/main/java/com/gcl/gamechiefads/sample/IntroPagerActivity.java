@@ -37,7 +37,15 @@ public class IntroPagerActivity extends Activity {
             Toast.makeText(this, "Get started tapped: open your home screen here", Toast.LENGTH_SHORT).show();
             finish();
         });
+        this.pager = pager;
         setContentView(pager);
+    }
+
+    private IntroPager pager;
+
+    @Override
+    public void onBackPressed() {
+        if (!pager.handleBack()) super.onBackPressed();     // Back never skips the countdown of a full-screen ad page
     }
 
     private View page(int i) {

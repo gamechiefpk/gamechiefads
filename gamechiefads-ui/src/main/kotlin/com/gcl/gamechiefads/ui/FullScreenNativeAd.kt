@@ -95,34 +95,11 @@ object FullScreenNativeAd {
                 autoLoad = false
                 bind(ad) // the view now owns the ad and destroys it with the dialog
             }
-            val close = TextView(activity).apply {
-                gravity = Gravity.CENTER
-                setTextColor(Color.WHITE)
-                textSize = 13f
-                typeface = Typeface.DEFAULT_BOLD
-                minWidth = (36 * dp).toInt()
-                minHeight = (36 * dp).toInt()
-                setPadding((12 * dp).toInt(), 0, (12 * dp).toInt(), 0)
-                background = GradientDrawable().apply {
-                    setColor(0xAA000000.toInt())
-                    cornerRadius = 18 * dp
-                }
-                isEnabled = false
-            }
+            val close = NativeCloseButton.create(activity)
             val root = FrameLayout(activity).apply {
                 setBackgroundColor(Color.BLACK)
                 addView(nativeView, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-                addView(
-                    close,
-                    FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.END)
-                        .apply { setMargins(0, (16 * dp).toInt(), (16 * dp).toInt(), 0) },
-                )
-                // keep the close button below the status bar / cutout
-                setOnApplyWindowInsetsListener { _, insets ->
-                    (close.layoutParams as FrameLayout.LayoutParams).topMargin = (16 * dp).toInt() + insets.systemWindowInsetTop
-                    close.requestLayout()
-                    insets
-                }
+                NativeCloseButton.place(this, close)
             }
             dialog.setContentView(root)
 
@@ -132,11 +109,9 @@ object FullScreenNativeAd {
                 override fun run() {
                     if (left <= 0) {
                         closable = true
-                        close.isEnabled = true
-                        close.text = "✕" // ✕
-                        close.contentDescription = activity.getString(R.string.gads_close)
+                        NativeCloseButton.ready(close)
                     } else {
-                        close.text = activity.getString(R.string.gads_close_in, left--)
+                        NativeCloseButton.countdown(close, left--)
                         handler.postDelayed(this, 1000)
                     }
                 }

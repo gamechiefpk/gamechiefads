@@ -1,6 +1,7 @@
 package com.gcl.gamechiefads.ui
 
 import android.app.Activity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import com.gcl.gamechiefads.AdPlacement
@@ -57,11 +58,16 @@ object AdsUi {
     ) {
         val size = size ?: NativeSize.defaultFor(placement) // no size given: a small card (SMALL_MEDIA on the language and intro screens)
         container.removeAllViews()
+        container.visibility = View.VISIBLE
         val view = NativeAdTemplateView(container.context).apply {
             this.size = size
             this.style = style
             autoLoad = false
-            this.listener = listener
+            // the container follows the ad: no ad = the container is gone too (no empty box, no leftover padding or margin)
+            this.listener = object : NativeAdTemplateView.Listener {
+                override fun onLoaded() { container.visibility = View.VISIBLE; listener?.onLoaded() }
+                override fun onFailed(reason: String) { container.visibility = View.GONE; listener?.onFailed(reason) }
+            }
         }
         val height = if (size == NativeSize.FULL) ViewGroup.LayoutParams.MATCH_PARENT else ViewGroup.LayoutParams.WRAP_CONTENT
         container.addView(view, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height))

@@ -22,8 +22,8 @@ public class MyApp extends Application {
 
                 // natives
                 .languageNativeUnits("HIGH_FLOOR_ID", "NORMAL_ID")         // language screen (small media)
-                .introNativeUnits("HIGH_FLOOR_ID", "NORMAL_ID")            // intro screens (small media)
-                .introSlideNativeUnit("INTRO_SLIDE_ID")                    // full-screen native pages in the IntroPager: ONE unit, off until Firebase noOfBigNativeAdInIntro > 0
+                .introNativeUnits("HIGH_FLOOR_ID", "MEDIUM_FLOOR_ID", "ALL_ID")   // small native on each intro slide (small media), WITH floors
+                .introSlideNativeUnit("INTRO_BIG_ID")                      // big (full-screen) native pages between the slides: ONE unit, NO floors; off until Firebase noOfBigNativeAdInIntro > 0
 
                 // banners
                 .bannerUnits("HIGH_FLOOR_ID", "MEDIUM_FLOOR_ID", "NORMAL_ID")   // every screen
