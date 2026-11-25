@@ -98,6 +98,7 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
     private var onBound: OnPageBoundListener? = null
     private var onFinished: Runnable? = null
     private var destroyed = false
+    private var backHold: Any? = null              // the Android 13+ back callback that holds Back while an ad page counts down
 
     init {
         pager.layoutParams = LayoutParams(-1, -1)
@@ -121,6 +122,21 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
      * (Back never skips the countdown, like the full-screen native ad).
      */
     fun handleBack(): Boolean = countdown != null
+
+    /**
+     * Holds Back while a full-screen ad page counts down. On Android 13+ and the back gesture the pager does it by itself (a back callback on the
+     * activity). On older versions call it from onBackPressed: `if (!pager.handleBack()) super.onBackPressed();`.
+     */
+    private fun holdBack() {
+        if (android.os.Build.VERSION.SDK_INT < 33 || backHold != null) return
+        runCatching { backHold = BackHold.register(context) }
+    }
+
+    private fun releaseBack() {
+        val h = backHold ?: return
+        backHold = null
+        runCatching { if (android.os.Build.VERSION.SDK_INT >= 33) BackHold.unregister(context, h) }
+    }
 
     /** The pages as layout files (the usual way). */
     fun setPages(@LayoutRes vararg layouts: Int) {
@@ -293,10 +309,11 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
         shownAds += k
         pager.isUserInputEnabled = false
         var left = closeDelaySeconds.coerceAtLeast(0)
+        holdBack()
         val tick = object : Runnable {
             override fun run() {
                 val h = adHolder(k)
-                if (left <= 0) { h?.ready(); pager.isUserInputEnabled = true; countdown = null; return }
+                if (left <= 0) { h?.ready(); pager.isUserInputEnabled = true; countdown = null; releaseBack(); return }
                 h?.countdown(left--)
                 main.postDelayed(this, 1000)
             }
@@ -308,6 +325,7 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
     private fun cancelCountdown() {
         countdown?.let { main.removeCallbacks(it) }
         countdown = null
+        releaseBack()
     }
 
     private fun adHolder(k: Int): AdHolder? {
@@ -414,6 +432,28 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
             }
             slot.visibility = VISIBLE
             v.bindShared(ad)
+        }
+    }
+
+    /** Android 13+ only (kept in its own object so older versions never load the new classes). */
+    @androidx.annotation.RequiresApi(33)
+    private object BackHold {
+        fun register(context: Context): Any? {
+            val a = activityOf(context) ?: return null
+            val cb = android.window.OnBackInvokedCallback { }                      // swallows Back
+            a.onBackInvokedDispatcher.registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT, cb)
+            return cb
+        }
+
+        fun unregister(context: Context, cb: Any) {
+            val a = activityOf(context) ?: return
+            a.onBackInvokedDispatcher.unregisterOnBackInvokedCallback(cb as android.window.OnBackInvokedCallback)
+        }
+
+        private fun activityOf(context: Context): android.app.Activity? {
+            var c = context
+            while (c is android.content.ContextWrapper) { if (c is android.app.Activity) return c; c = c.baseContext }
+            return null
         }
     }
 

@@ -144,7 +144,7 @@ Units: `.introSlideNativeUnit(id)` in the config (ONE unit, no floors).
 
 - **Light, no repeated requests:** every ad is requested **once**, one after the other. Big ads are preloaded as soon as the intro opens. Small ads are requested for the slide you are on and the next one only. Nothing is requested again.
 - **Never stuck, never empty:** the slides never wait for an ad. While an ad is loading, has failed, is turned off or cannot be drawn there is **nothing** in its place: no placeholder, no empty box, no blank page (a big ad that cannot be drawn is removed from the slider again at once). A premium user gets no ads.
-- **The full-screen ad page** has the same close button as the full-screen native ad: a dark pill "Close in 3", then a close mark (`pager.closeDelaySeconds`). Until then the page ignores touches (no accidental ad clicks) and cannot be swiped, and Back is held with `if (!pager.handleBack()) super.onBackPressed();` in the activity. Tapping the close mark swipes to the next slide.
+- **The full-screen ad page** has the same close button as the full-screen native ad: a dark pill "Close in 3", then a close mark (`pager.closeDelaySeconds`). Until then the page ignores touches (no accidental ad clicks) and cannot be swiped, and Back is held too: automatically on Android 13+ (a back callback), and on older versions with `if (!pager.handleBack()) super.onBackPressed();` in the activity. Tapping the close mark swipes to the next slide.
   and cannot be swiped. Tapping the close button swipes to the next slide.
 - **Get started** shows on the last slide. The dots count the slides only.
 - Firebase is read when the intro opens: the first launch of an app usually has the value by then (it is fetched during the splash).
