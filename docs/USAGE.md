@@ -67,7 +67,7 @@ Your own extra spots (optional): `.interstitial(AdPlacement)`, `.rewarded(...)`,
 | `setLoadingDialog(ui)` / `setLoadingText(title, message)` | Replace / re-text the loading dialog. |
 | `skipNextAppOpenAd()` | Skip the next app-open ad. |
 | `loadSplashAppOpenAd(activity, callback)` | Splash. `callback` gets `ads`: call `ads.show(activity, onDone)`. |
-| `loadSplashAppOpenAd(activity, double, callback)` | Same, with the double chosen for this call (the old `loadSplashAppOpenDoubleAd` still works, deprecated). Double is OFF by default: Remote Config `placements.splash.double`. |
+| `loadSplashAppOpenAd(activity, double, callback)` | Same, asking for the double in code (a Remote Config `true` turns it on even when this is false; the old `loadSplashAppOpenDoubleAd` still works, deprecated). Double is OFF by default: Remote Config `placements.splash.double`. |
 | `loadSplashInterstitialAd(activity, callback)` | Same with an interstitial. |
 | `loadSplashInterstitialAd(activity, double, callback)` | Same for the interstitial (switch `placements.splash_interstitial.double`). |
 | `loadSplashBannerAd(frame[, listener])` | Large banner into a FrameLayout. |
@@ -76,7 +76,7 @@ Your own extra spots (optional): `.interstitial(AdPlacement)`, `.rewarded(...)`,
 | `loadCustomBannerAd(frame, unitId, type[, listener])` | Your own unit, size and type. |
 | `loadRandomInterstitialAd(activity, listener)` | The random interstitial on YOUR button (the automatic one needs no call). |
 | `setAutoRandomInterstitialEnabled(boolean)` / `isAutoRandomInterstitialEnabled()` | Switch the automatic random interstitial on/off at runtime (off: screens are not counted). |
-| `loadRandomInterstitialAd(activity, double, listener)` | Same, with the double chosen for this call (switch `placements.random.double`, OFF by default). |
+| `loadRandomInterstitialAd(activity, double, listener)` | Same, asking for the double in code (the remote switch `placements.random.double` turns it on even when this is false; OFF by default). |
 | `loadRewardedAd(activity, listener)` | Rewarded. Reward only in `onRewardEarned`. |
 | `AdsUi.loadIntroNativeAd(frame[, listener])` | Small native (ui module). |
 | `AdsUi.loadFullScreenNativeAd(activity[, listener])` | Full-screen native (ui module). |

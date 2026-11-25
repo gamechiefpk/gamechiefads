@@ -292,7 +292,7 @@ GamechiefAds.applyRemoteConfig(remoteConfig.getString("ads_config"));
 
 The slot names are `splash`, `splash_interstitial`, `splash_banner`, `app_open`, `banner`, `exit_banner`, `random`,
 `intro_native`, `fullscreen_native`, `rewarded`. Bad JSON is ignored. `{"enabled": false}` turns every ad off.
-Single or double: OFF by default. Turn the double on from Remote Config (`{"placements":{"random":{"double":true}}}`, also `splash`, `splash_interstitial`), `.doubleAd(true)` in the config, or per call with the boolean (`loadRandomInterstitialAd(this, true, listener)`). There is no separate double method any more (the old ones still work, deprecated).
+Single or double: OFF by default. Turn the double on from Remote Config (`{"placements":{"random":{"double":true}}}`, also `splash`, `splash_interstitial`), `.doubleAd(true)` in the config, or per call with the boolean (`loadRandomInterstitialAd(this, true, listener)`). The Remote Config switch always wins: when it is `true` the double shows even if the code passes `false`. There is no separate double method any more (the old ones still work, deprecated).
 
 ### 13. Why did no ad show?
 

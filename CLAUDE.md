@@ -49,7 +49,7 @@ take ONE unit, no floors. The second ad of a double is ONE unit, no floors (the 
 ```java
 GamechiefAds.init(app, config);   GamechiefAds.setPremium(boolean);   GamechiefAds.applyRemoteConfig(json);
 GamechiefAds.setLoadingDialog(ui); GamechiefAds.setLoadingText(title, message); GamechiefAds.skipNextAppOpenAd();
-GamechiefAds.loadSplashAppOpenAd(activity[, double], callback);   // + loadSplashInterstitialAd(activity[, double], callback); double = a boolean per call or the slot switch (config .doubleAd / RC placements.splash.double), OFF by default; the old ...DoubleAd methods are deprecated aliases
+GamechiefAds.loadSplashAppOpenAd(activity[, double], callback);   // + loadSplashInterstitialAd(activity[, double], callback); double = the slot switch (RC placements.splash.double or config .doubleAd), OFF by default, and the RC switch turns it on even if the code passes false (the boolean only lets code ask for it); the old ...DoubleAd methods are deprecated aliases
 GamechiefAds.loadSplashBannerAd(frameLayout);                 // always LARGE_BANNER, ONE unit (splashBannerUnit), no floors
 GamechiefAds.loadBannerAd(frameLayout, BannerType[, isEnableFlooring]);  // type for one call; app default: AdsConfig .defaultBannerType(type); tag gads_banner:<type>
 GamechiefAds.loadBannerAd(frameLayout[, isEnableFlooring]);  GamechiefAds.loadExitBannerAd(frameLayout[, isEnableFlooring]);   // false = one request, last unit

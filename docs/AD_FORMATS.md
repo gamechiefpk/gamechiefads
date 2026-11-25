@@ -68,7 +68,7 @@ GamechiefAds.loadSplashAppOpenAd(this, ads ->
 | Interstitial instead of app open | `loadSplashInterstitialAd(this, callback)` |
 | Two interstitials together ("double") | `loadSplashInterstitialAd(this, true, callback)`, or the remote switch |
 
-- **Double is OFF by default**, there is no separate method: the normal methods show a second ad only when the switch is on, from Remote Config `{"placements":{"splash":{"double":true}}}` (slots `splash`, `splash_interstitial`, `random`) or `.doubleAd(true)` in the config. A call can also decide: `loadSplashAppOpenAd(this, true, callback)`. The old `...DoubleAd` methods still work (deprecated).
+- **Double is OFF by default**, there is no separate method: the normal methods show a second ad only when the switch is on, from Remote Config `{"placements":{"splash":{"double":true}}}` (slots `splash`, `splash_interstitial`, `random`) or `.doubleAd(true)` in the config. The code can also ask for it: `loadSplashAppOpenAd(this, true, callback)`. **Remote Config is in charge**: when the switch is `true` the double shows even if the code passes `false`, so developers never need to handle it. The old `...DoubleAd` methods still work (deprecated).
 - **Double:** both ads are requested together and shown on top of each other, so closing the first reveals the second at once. The second uses its own single unit (the same id as the first is fine).
 - **Floors off:** add `.flooring(false)` after the units in the config: one request to the last unit (faster).
 - **Time limit:** consent dialog (EU), SDK start and the ad together are limited to `splashTimeoutMs` (12 s). Changeable remotely.

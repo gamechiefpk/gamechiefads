@@ -80,7 +80,7 @@ object GamechiefAds {
     fun loadSplashAppOpenAd(activity: Activity, callback: SplashCallback) =
         splash(activity, callback, Placements.SPLASH, null)
 
-    /** Same, choosing single or double for this call (true = also load and show the second ad: one request to splashAppOpenDoubleUnit, no floors). */
+    /** Same, asking for the double in code (true = also load and show the second ad: one request to splashAppOpenDoubleUnit, no floors). The Remote Config switch still turns the double on when this is false. */
     @JvmStatic
     fun loadSplashAppOpenAd(activity: Activity, double: Boolean, callback: SplashCallback) =
         splash(activity, callback, Placements.SPLASH, double)
@@ -105,11 +105,11 @@ object GamechiefAds {
     fun loadSplashInterstitialDoubleAd(activity: Activity, callback: SplashCallback) =
         splash(activity, callback, Placements.SPLASH_INTERSTITIAL, true)
 
-    /** [double] null = follow the slot's switch (config or Remote Config, default off). */
+    /** [double]: what the code asked for; the slot switch (Remote Config) can turn the double on whatever the code says. */
     private fun splash(activity: Activity, callback: SplashCallback, name: String, double: Boolean?) {
         val r = runtime
         if (r == null) callback.onReady(NoSplashAds)
-        else r.splash.prepare(activity, callback, name, double ?: r.config.placement(name)?.doubleAd ?: false)
+        else r.splash.prepare(activity, callback, name, DoubleSwitch.resolve(double, r.config.placement(name)?.doubleAd ?: false))
     }
 
     // =====================================================================================================
@@ -218,7 +218,7 @@ object GamechiefAds {
     private fun randomInterstitial(activity: Activity, listener: InterstitialListener?, double: Boolean?) {
         val r = runtime
         if (r == null) ListenerDispatcher(listener).onFinished(false, "not initialized")
-        else r.interstitial.showRandom(activity, listener, double ?: r.config.placement(Placements.RANDOM)?.doubleAd ?: false)
+        else r.interstitial.showRandom(activity, listener, DoubleSwitch.resolve(double, r.config.placement(Placements.RANDOM)?.doubleAd ?: false))
     }
 
     /**

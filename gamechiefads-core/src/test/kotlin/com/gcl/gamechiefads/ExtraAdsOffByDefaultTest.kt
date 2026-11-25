@@ -48,3 +48,14 @@ class ExtraAdsOffByDefaultTest {
         assertTrue(c.placement(Placements.INTRO_NATIVE)!!.enabled)
     }
 }
+
+class DoubleSwitchTest {
+    @Test fun theRemoteSwitchTurnsTheDoubleOnWhateverTheCodeAsked() {
+        assertTrue(DoubleSwitch.resolve(null, true)); assertTrue(DoubleSwitch.resolve(false, true)); assertTrue(DoubleSwitch.resolve(true, true))
+    }
+
+    @Test fun theCodeCanAskForTheDoubleItselfAndBothOffMeansSingle() {
+        assertTrue(DoubleSwitch.resolve(true, false))
+        assertFalse(DoubleSwitch.resolve(null, false)); assertFalse(DoubleSwitch.resolve(false, false))
+    }
+}
