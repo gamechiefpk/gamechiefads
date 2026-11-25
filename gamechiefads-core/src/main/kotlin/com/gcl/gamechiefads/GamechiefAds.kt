@@ -367,6 +367,17 @@ object GamechiefAds {
         runtime?.remote?.setListener(listener)
     }
 
+    /** Like [setRemoteConfigListener] but for many callers (a screen adds it when it opens and removes it when it closes). */
+    @JvmStatic
+    fun addRemoteChangeListener(listener: Runnable) {
+        runtime?.remote?.addListener(listener)
+    }
+
+    @JvmStatic
+    fun removeRemoteChangeListener(listener: Runnable) {
+        runtime?.remote?.removeListener(listener)
+    }
+
     /** True if a Remote Config source (Firebase) is running. False = getters only return your defaults and fallbacks. */
     @JvmStatic
     fun isRemoteConfigAvailable(): Boolean = runtime?.remote?.available ?: false

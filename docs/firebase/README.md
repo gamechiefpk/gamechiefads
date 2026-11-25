@@ -14,7 +14,8 @@ The parameter name must be exactly **`gamechief_ads_config`** (the library reads
 1. Firebase console, your project, **Engagement > Remote Config**.
 2. **Add parameter**: name `gamechief_ads_config`, data type **JSON**, default value: paste the whole content of `gamechief_ads_config.json`.
 3. **Add a second parameter**: name `noOfBigNativeAdInIntro`, data type **Number**, default value `0` (how many full-screen native pages the intro slider shows; the template file has it too).
-4. **Save**, then **Publish changes**.
+4. Add the three RecyclerView parameters (the template has them): `enableNativeInScroll` (Boolean, default `false`), `positionOfAdAt` (Number, default `4`), `scrollNativeAdType` (String, default `small`).
+5. **Save**, then **Publish changes**.
 
 ## Option B: Firebase CLI
 
@@ -41,6 +42,9 @@ a change reaches users on their next fetch, with no app update.
 | `global.*` | timeouts in ms: splash, one waterfall, SDK start, second ad of a double, "no ad" message |
 | `placements.splash.double`, `placements.splash_interstitial.double`, `placements.random.double` | the **double** ads (a second ad shown with the first). OFF by default. **Your value here is the master**: `true` shows doubles even if the app code asks for a single, `false` shows a single ad even if the code asks for a double. Needs a second unit declared in the app, otherwise it is a single ad |
 | Parameter `noOfBigNativeAdInIntro` (a NUMBER, not inside the JSON) | how many full-screen native pages the `IntroPager` puts between the intro slides. `0` = none (default), `1`, `2`... spread evenly. Needs `.introSlideNativeUnit(id)` in the app |
+| Parameters `enableNativeInScroll` (BOOLEAN), `positionOfAdAt` (NUMBER), `scrollNativeAdType` (STRING) | the ONE native ad that `NativeAdAdapter` puts in a RecyclerView: the switch (default false = no ad and no request), the row (default 4), the size (tiny, small, small_media, medium, large). They also work while the screen is open: switching off removes the row smoothly, no new request on scroll |
+| `nativeUnitFallback` (root key, true/false) | a native spot without ad units borrows the units of another declared native spot (default true) |
+| `placements.app_open.double` | the double app-open ad when the user comes back (second unit: `.appOpenDoubleUnit(id)`), same rules as the other doubles |
 | `placements.fullscreen_native.enabled` | the full-screen native ad. OFF; set `true` to turn on |
 | `placements.random` | `every` (every Nth new screen, 0 = off), `gap` (seconds between ads), `everyNCalls` (button calls), `auto` |
 | `placements.<slot>.enabled` | switch one slot off: `splash`, `splash_interstitial`, `splash_banner`, `app_open`, `banner`, `exit_banner`, `random`, `intro_native`, `fullscreen_native`, `list_native`, `rewarded` |

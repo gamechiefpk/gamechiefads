@@ -25,7 +25,8 @@ public class MainActivity extends DemoActivity {
         button("Remote Config: your own values", () -> open(RemoteConfigActivity.class));
         button("Banners: ready-made and custom", () -> open(BannerActivity.class));
         button("Banners from layout tags (no ad code)", () -> open(TagBannerActivity.class));
-        button("Native ads in a RecyclerView (dummy list)", () -> open(RecyclerNativeActivity.class));
+        button("RecyclerView: ONE native ad, Firebase switch (NativeAdAdapter)", () -> open(ScrollAdapterActivity.class));
+        button("RecyclerView: several native ads (NativeListAds)", () -> open(RecyclerNativeActivity.class));
         button("Native: intro, full screen, 6 sizes", () -> open(NativeActivity.class));
         button("App-open (leave and return)", () -> open(AppOpenActivity.class));
         button("Intro slider (IntroPager) with Firebase count = 0", () -> introWithAds(0));

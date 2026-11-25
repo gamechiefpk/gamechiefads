@@ -37,7 +37,35 @@ public class IntroPagerActivity extends Activity {
             Toast.makeText(this, "Get started tapped: open your home screen here", Toast.LENGTH_SHORT).show();
             finish();
         });
-        setContentView(pager);
+        // QA: how many ad requests this intro has sent (it must stay put while you swipe)
+        android.widget.FrameLayout root = new android.widget.FrameLayout(this);
+        root.addView(pager, new android.widget.FrameLayout.LayoutParams(-1, -1));
+        counter = new TextView(this);
+        counter.setTextColor(Color.WHITE);
+        counter.setBackgroundColor(0x88000000);
+        counter.setTextSize(11);
+        counter.setPadding(12, 4, 12, 4);
+        root.addView(counter, new android.widget.FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.START));
+        setContentView(root);
+        introPager = pager;
+        handler.post(tick);
+    }
+
+    private IntroPager introPager;
+    private TextView counter;
+    private final android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable tick = new Runnable() {
+        @Override
+        public void run() {
+            counter.setText(" ad requests: " + introPager.getAdRequestCount() + " ");
+            handler.postDelayed(this, 500);
+        }
+    };
+
+    @Override
+    protected void onDestroy() {
+        handler.removeCallbacks(tick);
+        super.onDestroy();
     }
 
     private View page(int i) {

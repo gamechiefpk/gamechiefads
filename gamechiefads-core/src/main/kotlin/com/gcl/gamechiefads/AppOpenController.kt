@@ -56,7 +56,7 @@ internal class AppOpenController(
         if (decision == Decision.ALLOW && screens.isUsable(activity)) {
             val ad = pool.take(Placements.APP_OPEN)
             if (ad != null) {
-                val second = if (p.doubleRemote ?: p.doubleAd) pool.take(Placements.APP_OPEN_SECOND) else null
+                val second = if (p.wantsDouble()) pool.take(Placements.APP_OPEN_SECOND) else null
                 AdLog.d("appopen") { "showing ${if (second != null) "2 ads (double)" else "1 ad"}" }
                 shower.showAll(activity, listOfNotNull(ad, second), object : FullScreenShower.Events {
                     override fun onShown() {}
@@ -80,10 +80,11 @@ internal class AppOpenController(
             AdLog.d("appopen") { "fetch skipped: no fill a moment ago" }
             return
         }
-        if (p.doubleRemote ?: p.doubleAd) {
+        if (p.wantsDouble()) {
             scope.launch {
                 try {
-                    pool.fill(Placements.APP_OPEN_SECOND) { pipeline.load(p, screens.current, source) { it.destroy() } }
+                    // the second ad of the double: ONE request to its own unit, no floors (same rule as every other double)
+                    pool.fill(Placements.APP_OPEN_SECOND) { pipeline.load(p.forSecondAd(), screens.current, source) { it.destroy() } }
                 } catch (e: CancellationException) {
                     throw e
                 } catch (t: Throwable) { /* fail open */ }

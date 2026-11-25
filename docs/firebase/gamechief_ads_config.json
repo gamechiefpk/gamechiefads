@@ -3,6 +3,7 @@
   "noFillRetrySeconds": 5,
   "quietSecondsAfterAppOpen": 30,
   "tagBanners": true,
+  "nativeUnitFallback": true,
   "loaderTitle": "Ad is loading",
   "loaderMessage": "Please wait...",
   "noAdMessage": "No ad available, please try again in a few seconds",
@@ -18,6 +19,9 @@
       "double": false
     },
     "splash_interstitial": {
+      "double": false
+    },
+    "app_open": {
       "double": false
     },
     "random": {

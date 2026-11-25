@@ -67,6 +67,13 @@ public class NativeActivity extends DemoActivity {
                 });
             });
         }
+        button("Undeclared native spot (borrows the declared native units)", () -> {
+            say("undeclared_spot: loading (no units of its own)");
+            AdsUi.loadNativeAd(any, "undeclared_spot", com.gcl.gamechiefads.ui.NativeSize.SMALL, NativeStyle.DEFAULT, new NativeAdTemplateView.Listener() {
+                @Override public void onLoaded() { say("undeclared_spot: loaded with the units of another native spot"); }
+                @Override public void onFailed(String reason) { say("undeclared_spot: " + reason); }
+            });
+        });
         button("Language screen: AdsUi.loadLanguageNativeAd(frame)  (SMALL_MEDIA by default)", () -> {
             say("language_native: loading");
             AdsUi.loadLanguageNativeAd(any, new NativeAdTemplateView.Listener() {

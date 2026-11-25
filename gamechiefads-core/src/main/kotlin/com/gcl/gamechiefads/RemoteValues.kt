@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap
 internal class RemoteValues(private val source: RemoteConfigSource?) {
     private val defaults = ConcurrentHashMap<String, Any>()
     @Volatile private var changed: Runnable? = null
+    private val extra = java.util.concurrent.CopyOnWriteArrayList<Runnable>()
 
     val available: Boolean get() = source != null
 
@@ -24,6 +25,11 @@ internal class RemoteValues(private val source: RemoteConfigSource?) {
     fun setListener(listener: Runnable?) {
         changed = listener
     }
+
+    /** More than one listener (screens come and go): each is called after every fetch or update. */
+    fun addListener(listener: Runnable) { extra.addIfAbsent(listener) }
+
+    fun removeListener(listener: Runnable) { extra.remove(listener) }
 
     /**
      * Starts the source: defaults, fetch interval, a first fetch, and real-time updates.
@@ -84,6 +90,7 @@ internal class RemoteValues(private val source: RemoteConfigSource?) {
 
     private fun notifyChanged() {
         runCatching { changed?.run() }
+        extra.forEach { runCatching { it.run() } }
     }
 
     private inline fun safe(block: () -> Unit) {

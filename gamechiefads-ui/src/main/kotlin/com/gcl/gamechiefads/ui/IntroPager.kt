@@ -13,7 +13,6 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
@@ -36,15 +35,16 @@ import com.google.android.libraries.ads.mobile.sdk.nativead.NativeAd
  * pager.setOnFinished(() -> startActivity(new Intent(this, HomeActivity.class)));   // "Get started" on the last page
  * ```
  *
- * Two ads, two sets of units (both in the app config):
- *  - SMALL native at the bottom of every page: `.introNativeUnits(HIGH, MEDIUM, ALL)`, with floors. Small media size.
- *  - FULL-SCREEN native pages between the pages: `.introSlideNativeUnit(id)`, ONE unit, no floors. How many: Firebase number parameter
- *    `noOfBigNativeAdInIntro` (0 or missing = none, the default). Spread evenly, never first, never after the last page.
+ * Two ads, as few requests as possible:
+ *  - ONE small native for the whole intro: `.introNativeUnits(HIGH, MEDIUM, ALL)` (floors, one pass). It is requested once when the pager is set up and the
+ *    SAME ad stays in a fixed area above the dots on every slide: swiping never loads another one.
+ *  - FULL-SCREEN native pages between the slides: `.introSlideNativeUnit(id)`, ONE unit, no floors. How many: Firebase number parameter
+ *    `noOfBigNativeAdInIntro` (0 or missing = none, the default). Spread evenly, never first, never after the last slide, each requested once.
+ *    While a full-screen page is on screen everything else is hidden (dots, small native, Get started); when it is closed the same small native is back.
  *
- * Light and never stuck: every ad is requested ONCE, one after the other (small ads for the page you are on and the next one only), and an ad that is
- * loading, failed, turned off or cannot be shown leaves NOTHING behind: no placeholder, no empty box, no blank page. The slides never wait for an ad.
- * A full-screen ad page has the same close button as the full-screen native ad: "Close in 3", then a close mark (until then the page ignores touches
- * and cannot be swiped, so it cannot be clicked by accident). Tap it to go to the next slide. The last slide shows "Get started".
+ * Never stuck, never empty: the slides never wait for an ad. While an ad is loading, failed, turned off or cannot be drawn there is NOTHING in its place:
+ * no placeholder, no empty box, no blank page. A full-screen page has the same close button as the full-screen native ad ("Close in 3", then a close
+ * mark; until then it ignores touches and cannot be swiped). Tap it to go to the next slide. The last slide shows "Get started".
  */
 class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : FrameLayout(context, attrs) {
 
@@ -70,8 +70,12 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
     /** For tests and QA: how many full-screen ad pages to use instead of the Firebase value. Null = read `noOfBigNativeAdInIntro`. */
     var adCountOverride: Int? = null
 
-    /** Show the small native (units `introNativeUnits`, floors) at the bottom of every content page. false = only the full-screen ad pages. */
+    /** Show the small native (units `introNativeUnits`, floors) above the dots. false = only the full-screen ad pages. */
     var smallNativeOnPages = true
+
+    /** How many ad requests this pager has sent (small native: 1, plus one per full-screen page). For QA: it never grows while the user swipes. */
+    var adRequestCount = 0
+        private set
 
     private val dp = resources.displayMetrics.density
     private val main = Handler(Looper.getMainLooper())
@@ -79,19 +83,23 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
     private val dots = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER }
     private val bar = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL }
 
+    /** The one small native, above the dots. GONE until an ad is loaded and bound: no empty box. */
+    private val smallFrame = FrameLayout(context).apply { visibility = GONE }
+    private var smallView: NativeAdTemplateView? = null
+    private var smallAd: NativeAd? = null
+    private var smallHandle: AdRequestHandle? = null
+
     private var factories: List<PageFactory> = emptyList()
     private var slots: List<Int> = emptyList()
     private var items: MutableList<IntroPlan.Item> = ArrayList()
     private val included = HashSet<Int>()
     private val shownAds = HashSet<Int>()
+    private val hosts = java.util.Collections.newSetFromMap(java.util.WeakHashMap<PageHost, Boolean>())
+    private var barReserve = (60 * dp).toInt()          // how much of the bottom the page layouts leave free for the bar
 
     // full-screen ad pages: one request per ad, one after the other
     private var big: ListAdSlots<NativeAd>? = null
     private var bigHandle: AdRequestHandle? = null
-
-    // small native of each content page: one request per page, current page first, then the next, one at a time
-    private var small: ListAdSlots<NativeAd>? = null
-    private var smallHandle: AdRequestHandle? = null
 
     private var generation = 0                     // a late answer of an old setup is thrown away
     private var countdown: Runnable? = null
@@ -103,10 +111,16 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
     init {
         pager.layoutParams = LayoutParams(-1, -1)
         addView(pager)
+        bar.addView(smallFrame, LinearLayout.LayoutParams(-1, -2).apply { setMargins((12 * dp).toInt(), 0, (12 * dp).toInt(), (6 * dp).toInt()) })
         bar.addView(dots, LinearLayout.LayoutParams(-2, -2))
         bar.addView(getStartedButton, LinearLayout.LayoutParams((280 * dp).toInt(), -2).apply { topMargin = (12 * dp).toInt() })
-        addView(bar, LayoutParams(-1, -2, Gravity.BOTTOM).apply { bottomMargin = (24 * dp).toInt() })
+        addView(bar, LayoutParams(-1, -2, Gravity.BOTTOM).apply { bottomMargin = (16 * dp).toInt() })
         getStartedButton.setOnClickListener { onFinished?.run() }
+        // the page layouts always stay above the bar, whatever its height is (dots, small native, Get started)
+        bar.addOnLayoutChangeListener { _, _, top, _, bottom, _, _, _, _ ->
+            val h = (bottom - top) + (16 * dp).toInt()
+            if (h != barReserve) { barReserve = h; hosts.forEach { it.setReserve(h) } }
+        }
         pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) = selected(position)
         })
@@ -118,25 +132,10 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
     fun setOnFinished(r: Runnable?) { onFinished = r }
 
     /**
-     * Call it from the activity's onBackPressed: `if (!pager.handleBack()) super.onBackPressed();`. Returns true while a full-screen ad page counts down
-     * (Back never skips the countdown, like the full-screen native ad).
-     */
-    fun handleBack(): Boolean = countdown != null
-
-    /**
      * Holds Back while a full-screen ad page counts down. On Android 13+ and the back gesture the pager does it by itself (a back callback on the
      * activity). On older versions call it from onBackPressed: `if (!pager.handleBack()) super.onBackPressed();`.
      */
-    private fun holdBack() {
-        if (android.os.Build.VERSION.SDK_INT < 33 || backHold != null) return
-        runCatching { backHold = BackHold.register(context) }
-    }
-
-    private fun releaseBack() {
-        val h = backHold ?: return
-        backHold = null
-        runCatching { if (android.os.Build.VERSION.SDK_INT >= 33) BackHold.unregister(context, h) }
-    }
+    fun handleBack(): Boolean = countdown != null
 
     /** The pages as layout files (the usual way). */
     fun setPages(@LayoutRes vararg layouts: Int) {
@@ -158,14 +157,48 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
         pager.adapter = PagesAdapter()
         pager.post { if (gen == generation) selected(pager.currentItem) }
         AdLog.d("intro") { "pager: ${pages.size} pages, $n full-screen ad page(s) wanted (Firebase $REMOTE_KEY=$wanted), after page(s) $slots, small native=${smallNativeOnPages && !premium}" }
+        if (smallNativeOnPages && !premium && pages.isNotEmpty()) loadSmall(gen)
         if (n > 0) {
             big = ListAdSlots(n, TTL_MS, { SystemClock.elapsedRealtime() }, { ad -> runCatching { ad.destroy() } })
             requestNextBig(gen)
         }
-        if (smallNativeOnPages && !premium && pages.isNotEmpty()) {
-            small = ListAdSlots(pages.size, TTL_MS, { SystemClock.elapsedRealtime() }, { ad -> runCatching { ad.destroy() } })
-            pumpSmall(gen)
+    }
+
+    // ---- the ONE small native: a single request (floors, one pass), the same ad on every slide
+
+    private fun loadSmall(gen: Int) {
+        AdLog.d("intro") { "small native: ONE request for the whole intro" }
+        adRequestCount++
+        var finished = false
+        val h = GamechiefAds.loadNative(context, Placements.INTRO_NATIVE, object : NativeLoadCallback {
+            override fun onLoaded(ad: NativeAd) {
+                finished = true; smallHandle = null
+                if (gen != generation || destroyed) { runCatching { ad.destroy() }; return }
+                AdLog.d("intro") { "small native: loaded, shown above the dots on every slide" }
+                smallAd = ad
+                showSmall(ad)
+            }
+
+            override fun onFailed(reason: String) {
+                finished = true; smallHandle = null
+                AdLog.d("intro") { "small native: no ad ($reason), nothing is shown" }
+            }
+        })
+        if (!finished) smallHandle = h
+    }
+
+    private fun showSmall(ad: NativeAd) {
+        val v = smallView ?: NativeAdTemplateView(context).apply {
+            size = NativeSize.fromName(GamechiefAds.nativeSizeOf(Placements.INTRO_NATIVE)) ?: NativeSize.defaultFor(Placements.INTRO_NATIVE)
+            autoLoad = false
+            listener = object : NativeAdTemplateView.Listener {
+                override fun onFailed(reason: String) { smallFrame.visibility = GONE }       // cannot be drawn: gone, no empty box
+            }
+            smallFrame.addView(this, LayoutParams(-1, -2))
+            smallView = this
         }
+        smallFrame.visibility = VISIBLE
+        v.bindShared(ad)
     }
 
     // ---- full-screen ad pages: one request per ad, one after the other, loaded ahead of time
@@ -182,6 +215,7 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
 
     private fun loadBig(k: Int, gen: Int) {
         AdLog.d("intro") { "full-screen native #$k: request" }
+        adRequestCount++
         var finished = false
         val h = GamechiefAds.loadNative(context, Placements.INTRO_SLIDE_NATIVE, object : NativeLoadCallback {
             override fun onLoaded(ad: NativeAd) {
@@ -232,55 +266,6 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
         }
     }
 
-    // ---- small native of each content page
-
-    /** One request at a time: the page you are on first, then the next one. Failed or loading pages show nothing at all. */
-    private fun pumpSmall(gen: Int) {
-        val s = small ?: return
-        if (destroyed || gen != generation || smallHandle != null) return
-        val here = currentContentPage()
-        for (k in intArrayOf(here, here + 1)) {
-            if (k !in factories.indices) continue
-            if (s.plan(k).request) { loadSmall(k, gen); return }
-        }
-    }
-
-    private fun currentContentPage(): Int {
-        var i = pager.currentItem.coerceIn(0, (items.size - 1).coerceAtLeast(0))
-        while (i >= 0) { (items.getOrNull(i) as? IntroPlan.Item.Page)?.let { return it.index }; i-- }
-        return 0
-    }
-
-    private fun loadSmall(k: Int, gen: Int) {
-        AdLog.d("intro") { "small native, page $k: request" }
-        var finished = false
-        val h = GamechiefAds.loadNative(context, Placements.INTRO_NATIVE, object : NativeLoadCallback {
-            override fun onLoaded(ad: NativeAd) {
-                finished = true; smallHandle = null
-                val s = small
-                if (gen != generation || s == null || !s.loaded(k, ad)) { runCatching { ad.destroy() }; return }
-                AdLog.d("intro") { "small native, page $k: loaded" }
-                bindSmall(k)
-                pumpSmall(gen)
-            }
-
-            override fun onFailed(reason: String) {
-                finished = true; smallHandle = null
-                if (gen != generation) return
-                small?.failed(k)
-                AdLog.d("intro") { "small native, page $k: no ad ($reason), nothing is shown" }
-                pumpSmall(gen)
-            }
-        })
-        if (!finished) smallHandle = h
-    }
-
-    private fun bindSmall(k: Int) {
-        val pos = items.indexOfFirst { it is IntroPlan.Item.Page && it.index == k }
-        val holder = (pager.getChildAt(0) as? RecyclerView)?.findViewHolderForAdapterPosition(pos) as? PageHolder ?: return
-        holder.host.showSmall(small?.current(k)?.ad)
-    }
-
     // ---- the page being looked at
 
     private fun selected(position: Int) {
@@ -288,15 +273,14 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
         cancelCountdown()
         when (item) {
             is IntroPlan.Item.Ad -> {
-                bar.visibility = GONE                                  // a full-screen ad: no dots, no button
+                bar.visibility = GONE                                  // a full-screen ad: everything else is hidden (dots, small native, button)
                 startCountdown(item.adIndex)
             }
             is IntroPlan.Item.Page -> {
                 pager.isUserInputEnabled = true
-                bar.visibility = VISIBLE
+                bar.visibility = VISIBLE                               // the same small native is back, no new request
                 getStartedButton.visibility = if (item.index == factories.size - 1) VISIBLE else GONE
                 updateDots(item.index)
-                pumpSmall(generation)
             }
             null -> Unit
         }
@@ -308,8 +292,8 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
         if (k in shownAds) { holder?.ready(); pager.isUserInputEnabled = true; return }
         shownAds += k
         pager.isUserInputEnabled = false
-        var left = closeDelaySeconds.coerceAtLeast(0)
         holdBack()
+        var left = closeDelaySeconds.coerceAtLeast(0)
         val tick = object : Runnable {
             override fun run() {
                 val h = adHolder(k)
@@ -326,6 +310,17 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
         countdown?.let { main.removeCallbacks(it) }
         countdown = null
         releaseBack()
+    }
+
+    private fun holdBack() {
+        if (android.os.Build.VERSION.SDK_INT < 33 || backHold != null) return
+        runCatching { backHold = BackHold.register(context) }
+    }
+
+    private fun releaseBack() {
+        val h = backHold ?: return
+        backHold = null
+        runCatching { if (android.os.Build.VERSION.SDK_INT >= 33) BackHold.unregister(context, h) }
     }
 
     private fun adHolder(k: Int): AdHolder? {
@@ -363,7 +358,10 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
         bigHandle?.cancel(); bigHandle = null
         smallHandle?.cancel(); smallHandle = null
         big?.destroy(); big = null
-        small?.destroy(); small = null
+        smallView?.destroy()
+        smallFrame.visibility = GONE
+        smallAd?.let { runCatching { it.destroy() } }; smallAd = null
+        adRequestCount = 0
     }
 
     override fun onDetachedFromWindow() {
@@ -388,52 +386,31 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
                 // posted: the adapter must not change while it is binding
                 return AdHolder(context, { k -> next(k) }, { k -> main.post { if (gen == generation) dropAd(k) } })
             }
-            val page = factories[viewType].create(parent)
-            val last = viewType == factories.size - 1
-            return PageHolder(PageHost(context, page, bottomReserve = if (last) LAST_PAGE_RESERVE_DP else PAGE_RESERVE_DP, dp = dp))
+            val host = PageHost(context, factories[viewType]).also { hosts += it; it.setReserve(barReserve) }
+            return PageHolder(host)
         }
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
             when (val i = items[position]) {
-                is IntroPlan.Item.Page -> {
-                    onBound?.onPageBound(i.index, (holder as PageHolder).host.page)
-                    holder.host.showSmall(small?.current(i.index)?.ad)       // null (loading, failed, off) = nothing shown
-                }
+                is IntroPlan.Item.Page -> onBound?.onPageBound(i.index, (holder as PageHolder).host.page)
                 is IntroPlan.Item.Ad -> (holder as AdHolder).bind(i.adIndex, big?.current(i.adIndex)?.ad, i.adIndex !in shownAds)
             }
         }
-
-        private val RecyclerView.ViewHolder.host get() = (this as PageHolder).host
     }
 
-    /** A content page: your layout, and below it the small native when there is one. The slot is GONE otherwise: no empty box. */
-    private class PageHost(context: Context, val page: View, bottomReserve: Int, private val dp: Float) : LinearLayout(context) {
-        private val slot = FrameLayout(context).apply { visibility = GONE }
-        private var adView: NativeAdTemplateView? = null
+    /** A content page: your layout, kept above the bar (dots, small native, Get started) by a bottom padding. */
+    private class PageHost(context: Context, factory: PageFactory) : FrameLayout(context) {
+        val page: View = factory.create(this)
 
         init {
-            orientation = VERTICAL
             layoutParams = RecyclerView.LayoutParams(-1, -1)
-            addView(page, LayoutParams(-1, 0, 1f))
-            addView(slot, LayoutParams(-1, -2).apply { setMargins((12 * dp).toInt(), (4 * dp).toInt(), (12 * dp).toInt(), (4 * dp).toInt()) })
-            setPadding(0, 0, 0, (bottomReserve * dp).toInt())          // room for the dots (and the Get started button on the last page)
+            addView(page, LayoutParams(-1, -1))
         }
 
-        fun showSmall(ad: NativeAd?) {
-            if (ad == null) { slot.visibility = GONE; adView?.destroy(); return }
-            val v = adView ?: NativeAdTemplateView(context).apply {
-                size = NativeSize.fromName(GamechiefAds.nativeSizeOf(Placements.INTRO_NATIVE)) ?: NativeSize.defaultFor(Placements.INTRO_NATIVE)
-                autoLoad = false
-                listener = object : NativeAdTemplateView.Listener {
-                    override fun onFailed(reason: String) { slot.visibility = GONE }     // cannot be drawn: gone, no empty box
-                }
-                slot.addView(this, LayoutParams(-1, -2))
-                adView = this
-            }
-            slot.visibility = VISIBLE
-            v.bindShared(ad)
-        }
+        fun setReserve(px: Int) = setPadding(0, 0, 0, px)
     }
+
+    private class PageHolder(val host: PageHost) : RecyclerView.ViewHolder(host)
 
     /** Android 13+ only (kept in its own object so older versions never load the new classes). */
     @androidx.annotation.RequiresApi(33)
@@ -456,8 +433,6 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
             return null
         }
     }
-
-    private class PageHolder(val host: PageHost) : RecyclerView.ViewHolder(host)
 
     /** A full-screen native page: the ad, the shield and the close button (same look as the full-screen native ad). */
     private class AdHolder(context: Context, private val onClose: (Int) -> Unit, private val onBindFailed: (Int) -> Unit) :
@@ -501,7 +476,5 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
         const val REMOTE_KEY = "noOfBigNativeAdInIntro"
         private const val AD_TYPE = -1
         private const val TTL_MS = 50 * 60_000L
-        private const val PAGE_RESERVE_DP = 40            // dots
-        private const val LAST_PAGE_RESERVE_DP = 100      // dots + Get started
     }
 }

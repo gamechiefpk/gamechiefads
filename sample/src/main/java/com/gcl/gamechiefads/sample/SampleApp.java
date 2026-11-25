@@ -37,6 +37,7 @@ public class SampleApp extends Application {
 
                 // ---- app open when the user returns to the app: ONE unit, no floors ----
                 .appOpenUnit(appOpen).minGapSeconds(10).excludeScreens(SplashActivity.class)
+                .appOpenDoubleUnit(appOpen)                                // the second ad of the double (only when Firebase placements.app_open.double is true)
 
                 // ---- banners ----
                 .bannerUnits(NO_FILL_UNIT, banner, banner).tierTimeoutMs(10000).unitTimeoutMs(NO_FILL_UNIT, 1500) // all normal screens (floors)

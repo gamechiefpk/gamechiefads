@@ -33,6 +33,7 @@ internal object RemoteOverrides {
             enabled = if (root.opt("enabled") is Boolean) allEnabled else base.enabled, // a layer without the key keeps the earlier answer
             noAdMessage = noAd, noFillRetrySeconds = retry, quietSecondsAfterAppOpen = quiet,
             tagBanners = if (root.opt("tagBanners") is Boolean) root.getBoolean("tagBanners") else base.tagBanners,
+            nativeUnitFallback = if (root.opt("nativeUnitFallback") is Boolean) root.getBoolean("nativeUnitFallback") else base.nativeUnitFallback,
             splashTimeoutMs = ms("splashTimeoutMs", 1) ?: base.splashTimeoutMs,
             overallBudgetMs = ms("overallBudgetMs", 1) ?: base.overallBudgetMs,
             initTimeoutMs = ms("initTimeoutMs", 1) ?: base.initTimeoutMs,

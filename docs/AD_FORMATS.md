@@ -129,7 +129,7 @@ pager.setOnFinished(() -> startActivity(new Intent(this, HomeActivity.class))); 
 
 | Ad | Where | Units in the config | Floors |
 |---|---|---|---|
-| Small native (small media) | bottom of every slide | `.introNativeUnits(HIGH, MEDIUM, ALL)` | **yes**, high floor first |
+| Small native (small media) | ONE ad for the whole intro, in a fixed area above the dots | `.introNativeUnits(HIGH, MEDIUM, ALL)` | **yes**, high floor first (one pass, still ONE ad) |
 | Big native (full screen) | its own page between slides | `.introSlideNativeUnit(id)` | **no**, one unit |
 
 The small native is on by default (`pager.setSmallNativeOnPages(false)` turns it off). **How many full-screen native ads: from Firebase.** Add a Remote Config parameter named **`noOfBigNativeAdInIntro`** (a number). `0` or missing = none (the default).
@@ -142,7 +142,7 @@ Units: `.introSlideNativeUnit(id)` in the config (ONE unit, no floors).
 | 1 | slide, slide, **AD**, slide, slide |
 | 2 | slide, **AD**, slide, slide, **AD**, slide |
 
-- **Light, no repeated requests:** every ad is requested **once**, one after the other. Big ads are preloaded as soon as the intro opens. Small ads are requested for the slide you are on and the next one only. Nothing is requested again.
+- **Light, no repeated requests:** the small native is ONE request for the whole intro (the same ad stays above the dots on every slide, swiping never loads another). Every big ad is requested once, one after the other, as soon as the intro opens. Nothing is requested again. While a full-screen ad page is on screen everything else (dots, small native, Get started) is hidden, and when it is closed the same small native is back. `pager.getAdRequestCount()` shows the total (small 1 + one per big page) for QA.
 - **Never stuck, never empty:** the slides never wait for an ad. While an ad is loading, has failed, is turned off or cannot be drawn there is **nothing** in its place: no placeholder, no empty box, no blank page (a big ad that cannot be drawn is removed from the slider again at once). A premium user gets no ads.
 - **The full-screen ad page** has the same close button as the full-screen native ad: a dark pill "Close in 3", then a close mark (`pager.closeDelaySeconds`). Until then the page ignores touches (no accidental ad clicks) and cannot be swiped, and Back is held too: automatically on Android 13+ (a back callback), and on older versions with `if (!pager.handleBack()) super.onBackPressed();` in the activity. Tapping the close mark swipes to the next slide.
   and cannot be swiped. Tapping the close button swipes to the next slide.
@@ -218,6 +218,45 @@ recycler.setAdapter(new MyAdapter(ads, new NativeListPositions()));
 Rules: the ad row's root **must be the FrameLayout** (so a failed ad collapses the whole row); the ad number comes from `pos.adIndex(position)`, never the raw position
 (inserting items does not move ads). Remote `nativeSize` may be `tiny`, `small`, `small_media`, `medium`, `large` or `full`; use `full` only where the row can be tall.
 Try it in the sample: "Native ads in a RecyclerView (dummy list)".
+
+## 3c. One native ad in any RecyclerView, controlled from Firebase: `NativeAdAdapter`
+
+The easiest list ad: wrap your adapter, nothing else changes. One ad, **one request**, three Firebase values.
+
+```java
+// onCreate
+NativeAdAdapter<MyHolder> adapter = new NativeAdAdapter<>(myAdapter);
+recyclerView.setAdapter(adapter);
+// onDestroy
+adapter.destroy();
+```
+
+| Firebase value | Type | Default | What it does |
+|---|---|---|---|
+| `enableNativeInScroll` | boolean | `false` | the switch. `false` = no ad and **no request** |
+| `positionOfAdAt` | number | `4` | the row of the ad (the end of the list if the list is shorter) |
+| `scrollNativeAdType` | text | `small` | size: `tiny`, `small`, `small_media`, `medium`, `large` |
+
+**Why it cannot flood Google with requests**
+- The ad is requested **once**, when the list is created. Not when you scroll, not when rows are recycled, not when you scroll away and back: the loaded ad is kept and shown again from memory.
+- Switch `false` = zero requests. If it turns `false` while the screen is open, the row leaves with the normal list animation and the ad is freed; turning it on again sends one new request.
+- No ad (not loaded, no fill, cannot be drawn) = **no row**: no placeholder, no empty box, and no retry.
+- Position and size changes from Firebase are applied live with **no new request** (the same ad is drawn in the new place or size).
+- One unit, no floors: `.listNativeUnit(id)`. If you did not declare it, another native unit you declared is used (see "One native unit for every spot" below).
+- `adapter.getRequestCount()` tells you how many requests the list sent: it stays 1 however much you scroll (the sample screen shows it live).
+
+Your adapter's inserts, removes and moves are forwarded. While the ad row is shown they refresh the list without the item animations (the ad row is a position in the list, so a change anywhere can move it).
+Need several ads in one long list? Use `NativeListAds` (section 3b).
+
+**One native unit for every spot.** A dev who declares only ONE native unit (say `.introNativeUnits(...)`) still gets ads in every native space (language screen, intro, list, big intro pages, custom spots): a native spot without units of its own borrows the units of another declared native spot.
+Floors spots walk the floors; single-request spots (list, intro big pages) use only the last unit. It is on by default: `.nativeUnitFallback(false)` or Firebase `{"nativeUnitFallback": false}` turns it off. The full-screen native popup never borrows (it is an extra, off by default).
+
+**Suggestions that keep requests low and revenue steady**
+1. Keep one ad per screen of content: a first ad around row 4 to 6 and no more than one per two screens of scrolling. More ads in one list = more requests and lower fill.
+2. Prefer `small` or `small_media` in lists. Test `medium` from Firebase on a small share first (use a different parameter per app if you want to try it on one).
+3. Leave `enableNativeInScroll` `false` until the app has real traffic, then switch it on from Firebase and watch fill and clicks before moving the position up.
+4. The ad is per screen: a new screen that creates the list asks once. If your users open the same list screen again and again, consider keeping the adapter in a ViewModel so a rotation does not ask again.
+5. Do not add ad rows yourself for premium users: `GamechiefAds.setPremium(true)` already means no request and no row.
 
 ## 4. Home screen (and every normal screen): banner
 

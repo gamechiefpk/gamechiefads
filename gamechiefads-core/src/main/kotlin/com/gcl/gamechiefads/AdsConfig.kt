@@ -14,6 +14,11 @@ data class AdsConfig(
     val fallbackToLoad: Boolean = false,
     /** Request a new ad after a preloaded one was shown. Off: no requests the app did not ask for. */
     val autoRefill: Boolean = false,
+    /**
+     * A native spot without ad units of its own uses the units of another native spot you did declare (a dev who gives only ONE native unit gets it
+     * everywhere). Default true. false = a native spot without units simply shows nothing. The full-screen native popup never borrows (it is an extra, off by default).
+     */
+    val nativeUnitFallback: Boolean = true,
     /** Upper bound for one whole waterfall, whatever the tier count. */
     val overallBudgetMs: Long = DEFAULT_OVERALL_BUDGET_MS,
     /** Hard limit for the splash loads (loadSplash...Ad): consent + init + waterfall together. */
@@ -89,6 +94,7 @@ data class AdsConfig(
         private var fallbackToLoad = false
         private var autoRefill = false
         private var tagBanners = true
+        private var nativeUnitFallback = true
         private var defaultBannerType: BannerType? = null
         private var overallBudgetMs = DEFAULT_OVERALL_BUDGET_MS
         private var splashTimeoutMs = DEFAULT_SPLASH_TIMEOUT_MS
@@ -114,6 +120,8 @@ data class AdsConfig(
         fun splashBannerUnit(id: String) = slot(Placements.SPLASH_BANNER, AdFormat.BANNER, arrayOf(id)).bannerType(BannerType.LARGE_BANNER)
         /** App-open ad when the user returns to the app: ONE unit, no floors. Automatic, nothing to call. */
         fun appOpenUnit(id: String) = slot(Placements.APP_OPEN, AdFormat.APP_OPEN, arrayOf(id))
+        /** The ONE unit of the second app-open ad of a double (when the user comes back). Used only when the double switch is on (Firebase `placements.app_open.double`). */
+        fun appOpenDoubleUnit(id: String) = second(Placements.APP_OPEN, id)
         /** Banner for all normal screens (GamechiefAds.loadBannerAd). */
         fun bannerUnits(vararg ids: String) = slot(Placements.BANNER, AdFormat.BANNER, ids)
         /**
@@ -240,6 +248,8 @@ data class AdsConfig(
         fun remoteFetchIntervalSeconds(seconds: Long) = apply { remoteFetchIntervalSeconds = seconds.coerceAtLeast(0) }
         /** Automatic banners from layout tags (android:tag="gads_banner" ...). Default on; false = only the load methods fill banners. */
         fun tagBanners(value: Boolean) = apply { tagBanners = value }
+        /** Default true: a native spot without units of its own borrows the units of another native spot you declared. false = it shows nothing. */
+        fun nativeUnitFallback(value: Boolean) = apply { nativeUnitFallback = value }
         fun fallbackToLoad(value: Boolean) = apply { fallbackToLoad = value }
         fun autoRefill(value: Boolean) = apply { autoRefill = value }
         fun overallBudgetMs(ms: Long) = apply { overallBudgetMs = ms.coerceAtLeast(1) }
@@ -268,6 +278,7 @@ data class AdsConfig(
                 quietSecondsAfterAppOpen = quietSecondsAfterAppOpen,
                 remoteConfigUrl = remoteConfigUrl, remoteConfigUrlIntervalSeconds = remoteConfigUrlIntervalSeconds,
                 tagBanners = tagBanners,
+                nativeUnitFallback = nativeUnitFallback,
             )
         }
 
