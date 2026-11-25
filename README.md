@@ -16,7 +16,7 @@ dependencyResolutionManagement {
 }
 ```
 
-App `build.gradle` (replace `TAG` with the latest release tag, e.g. `v1.0.4`):
+App `build.gradle` (replace `TAG` with the latest release tag, e.g. `v1.0.5`):
 
 ```groovy
 dependencies {
