@@ -44,6 +44,4 @@ object Placements {
     /** Rewarded ad (units with floors). */
     const val REWARDED = "rewarded"
 
-    /** Pool key for the second app-open ad of a double break. Not a configurable placement. */
-    internal const val APP_OPEN_SECOND = "app_open_second"
 }

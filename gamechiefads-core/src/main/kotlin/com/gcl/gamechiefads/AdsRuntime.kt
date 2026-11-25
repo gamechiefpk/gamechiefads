@@ -117,6 +117,7 @@ internal class AdsRuntime(private val app: Application, private val baseConfig: 
         tracker.onResumed = { activity -> tagBanners.onScreen(activity) }
         app.registerActivityLifecycleCallbacks(tracker)
         ProcessLifecycleOwner.get().lifecycle.addObserver(ProcessForegroundObserver(appOpen::onForeground))
+        if (debuggable) startShake(app)
         scope.launch { state.premium.drop(1).filter { it }.collect { banner.hideAll() } }
 
         // remote values: defaults, last known values right away, then a fetch; the ads rules (one JSON key) are re-applied each time
@@ -226,6 +227,17 @@ internal class AdsRuntime(private val app: Application, private val baseConfig: 
         app.packageManager.getPackageInfo(app.packageName, android.content.pm.PackageManager.GET_ACTIVITIES)
             .activities?.any { it.name == "com.google.android.gms.ads.AdActivity" } == true
     }.getOrDefault(false)
+
+    /** DEBUG BUILDS ONLY: shake the phone while the app is in front and the debug panel opens. No sensor is ever registered in a release build. */
+    private fun startShake(app: Application) {
+        val shake = ShakeWatcher(app, { config.debugShake && remote.boolean(ShakeWatcher.KEY, true) }) {
+            tracker.current?.let { GamechiefAds.showDebugPanel(it) }
+        }
+        ProcessLifecycleOwner.get().lifecycle.addObserver(object : androidx.lifecycle.DefaultLifecycleObserver {
+            override fun onStart(owner: androidx.lifecycle.LifecycleOwner) = shake.start()
+            override fun onStop(owner: androidx.lifecycle.LifecycleOwner) = shake.stop()
+        })
+    }
 
     /** Debug builds: say it in logcat (warnings) once at start. */
     private fun logSetup() {

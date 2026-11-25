@@ -54,6 +54,8 @@ data class AdsConfig(
     val remoteConfigUrlIntervalSeconds: Long = DEFAULT_REMOTE_INTERVAL_SECONDS,
     /** FrameLayouts tagged gads_banner / gads_exit_banner / ... in the layout XML are filled by the library when the screen opens. */
     val tagBanners: Boolean = true,
+    /** DEBUG BUILDS ONLY: shaking the phone opens the debug panel. Firebase `debugShakeEnabled` (default true) can switch it off. Never active in a release build. */
+    val debugShake: Boolean = true,
 ) {
     fun placement(name: String): PlacementConfig? = placements[name]
 
@@ -95,6 +97,7 @@ data class AdsConfig(
         private var autoRefill = false
         private var tagBanners = true
         private var nativeUnitFallback = true
+        private var debugShake = true
         private var defaultBannerType: BannerType? = null
         private var overallBudgetMs = DEFAULT_OVERALL_BUDGET_MS
         private var splashTimeoutMs = DEFAULT_SPLASH_TIMEOUT_MS
@@ -120,8 +123,6 @@ data class AdsConfig(
         fun splashBannerUnit(id: String) = slot(Placements.SPLASH_BANNER, AdFormat.BANNER, arrayOf(id)).bannerType(BannerType.LARGE_BANNER)
         /** App-open ad when the user returns to the app: ONE unit, no floors. Automatic, nothing to call. */
         fun appOpenUnit(id: String) = slot(Placements.APP_OPEN, AdFormat.APP_OPEN, arrayOf(id))
-        /** The ONE unit of the second app-open ad of a double (when the user comes back). Used only when the double switch is on (Firebase `placements.app_open.double`). */
-        fun appOpenDoubleUnit(id: String) = second(Placements.APP_OPEN, id)
         /** Banner for all normal screens (GamechiefAds.loadBannerAd). */
         fun bannerUnits(vararg ids: String) = slot(Placements.BANNER, AdFormat.BANNER, ids)
         /**
@@ -250,6 +251,8 @@ data class AdsConfig(
         fun tagBanners(value: Boolean) = apply { tagBanners = value }
         /** Default true: a native spot without units of its own borrows the units of another native spot you declared. false = it shows nothing. */
         fun nativeUnitFallback(value: Boolean) = apply { nativeUnitFallback = value }
+        /** Debug builds only: shake the phone to open the debug panel (default true). Also switchable from Firebase with the boolean `debugShakeEnabled`. */
+        fun debugShake(value: Boolean) = apply { debugShake = value }
         fun fallbackToLoad(value: Boolean) = apply { fallbackToLoad = value }
         fun autoRefill(value: Boolean) = apply { autoRefill = value }
         fun overallBudgetMs(ms: Long) = apply { overallBudgetMs = ms.coerceAtLeast(1) }
@@ -279,6 +282,7 @@ data class AdsConfig(
                 remoteConfigUrl = remoteConfigUrl, remoteConfigUrlIntervalSeconds = remoteConfigUrlIntervalSeconds,
                 tagBanners = tagBanners,
                 nativeUnitFallback = nativeUnitFallback,
+                debugShake = debugShake,
             )
         }
 

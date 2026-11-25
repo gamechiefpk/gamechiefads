@@ -33,6 +33,14 @@ public class MainActivity extends DemoActivity {
         button("Intro slider with Firebase count = 1", () -> introWithAds(1));
         button("Intro slider with Firebase count = 2", () -> introWithAds(2));
         button("Intro slider: ads that NEVER fill (must stay clean)", () -> introNoFill());
+        button("Firebase: debugShakeEnabled = FALSE (shake does nothing)", () -> {
+            DemoRemoteSource.INSTANCE.publish("debugShakeEnabled", false);
+            say("Firebase debugShakeEnabled = false: shaking the phone no longer opens the panel");
+        });
+        button("Firebase: debugShakeEnabled = TRUE (shake opens the panel)", () -> {
+            DemoRemoteSource.INSTANCE.publish("debugShakeEnabled", true);
+            say("Firebase debugShakeEnabled = true: shake the phone to open the debug panel");
+        });
         button("DEBUG PANEL (bottom sheet, debug builds only)", () -> GamechiefAds.showDebugPanel(this));
         button("QA screen (debug builds only)", () -> GamechiefAds.openQaScreen(this));
         button("Library trace (logcat GamechiefAds)", () -> open(TraceActivity.class));

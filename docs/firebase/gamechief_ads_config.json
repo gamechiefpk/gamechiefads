@@ -21,9 +21,6 @@
     "splash_interstitial": {
       "double": false
     },
-    "app_open": {
-      "double": false
-    },
     "random": {
       "enabled": true,
       "every": 3,

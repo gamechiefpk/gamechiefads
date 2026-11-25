@@ -110,6 +110,7 @@ class FirebaseFilesTest {
         assertEquals("false", ps.getJSONObject("enableNativeInScroll").getJSONObject("defaultValue").getString("value"))      // the list ad is off by default
         assertEquals("4", ps.getJSONObject("positionOfAdAt").getJSONObject("defaultValue").getString("value"))
         assertEquals("small", ps.getJSONObject("scrollNativeAdType").getJSONObject("defaultValue").getString("value"))
+        assertEquals("true", ps.getJSONObject("debugShakeEnabled").getJSONObject("defaultValue").getString("value"))        // shake for the debug panel: on by default, debug builds only
         val p = t.getJSONObject("parameters").getJSONObject(AdsConfig.DEFAULT_REMOTE_KEY)
         assertEquals("JSON", p.getString("valueType"))
         assertEquals(org.json.JSONObject(rules).toString(), org.json.JSONObject(p.getJSONObject("defaultValue").getString("value")).toString())

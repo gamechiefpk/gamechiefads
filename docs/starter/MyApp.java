@@ -19,7 +19,6 @@ public class MyApp extends Application {
                 .splashAppOpenDoubleUnit("SECOND_AD_ID")                   // only used when the double switch is on in Firebase
 
                 .appOpenUnit("APP_OPEN_ID")                                // when the user comes back to the app (automatic)
-                .appOpenDoubleUnit("APP_OPEN_SECOND_ID")                   // the second app-open ad of a double; used only when Firebase placements.app_open.double is true
 
                 // natives
                 .languageNativeUnits("HIGH_FLOOR_ID", "NORMAL_ID")         // language screen (small media)

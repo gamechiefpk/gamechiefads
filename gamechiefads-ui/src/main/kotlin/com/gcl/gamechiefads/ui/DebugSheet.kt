@@ -16,7 +16,7 @@ object DebugSheet {
     @JvmStatic
     fun show(activity: Activity) {
         if (!GamechiefAds.isDebugBuild() || activity.isFinishing || activity.isDestroyed) return
-        current?.dismiss()
+        if (current?.isShowing == true) return          // a second shake or call while the panel is open does nothing
         val d = Dialog(activity, android.R.style.Theme_DeviceDefault_Dialog_NoActionBar)
         d.requestWindowFeature(Window.FEATURE_NO_TITLE)
         d.setContentView(DebugPanelView(activity), ViewGroup.LayoutParams(-1, (activity.resources.displayMetrics.heightPixels * 0.78).toInt()))

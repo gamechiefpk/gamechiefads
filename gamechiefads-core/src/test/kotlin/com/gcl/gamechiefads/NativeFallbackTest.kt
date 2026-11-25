@@ -69,31 +69,3 @@ class NativeFallbackTest {
     }
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
-class AppOpenDoubleTest {
-    private fun TestScope.rig(doubleUnit: String?, remote: String? = null): Rig {
-        var b = AdsConfig.builder().appOpenUnit("o").doubleAd(true)
-        if (doubleUnit != null) b = b.appOpenDoubleUnit(doubleUnit)
-        var c = b.build()
-        if (remote != null) c = RemoteOverrides.apply(c, remote)
-        return Rig(this, c)
-    }
-
-    @Test fun theDoubleBackFromTheBackgroundUsesItsOwnUnitInOneRequest() = runTest {
-        val r = rig("o2")
-        r.appOpen.onForeground(); advanceUntilIdle()
-        assertEquals(setOf("o", "o2"), r.loads.toSet())                       // first ad and the second ad, each requested once
-        assertEquals(2, r.loads.size)
-    }
-
-    @Test fun noSecondUnitDeclaredIsAQuietSingleAndFirebaseIsTheMaster() = runTest {
-        val single = rig(null); single.appOpen.onForeground(); advanceUntilIdle()
-        assertEquals(listOf("o"), single.loads)
-        val off = rig("o2", remote = """{"placements":{"app_open":{"double":false}}}"""); off.appOpen.onForeground(); advanceUntilIdle()
-        assertEquals(listOf("o"), off.loads)                                    // Firebase false beats the code
-        val on = AdsConfig.builder().appOpenUnit("o").appOpenDoubleUnit("o2").build()
-        val r = Rig(this, RemoteOverrides.apply(on, """{"placements":{"app_open":{"double":true}}}"""))
-        r.appOpen.onForeground(); advanceUntilIdle()
-        assertEquals(2, r.loads.size)                                          // Firebase true beats the code
-    }
-}

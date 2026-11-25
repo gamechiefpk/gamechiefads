@@ -56,9 +56,8 @@ internal class AppOpenController(
         if (decision == Decision.ALLOW && screens.isUsable(activity)) {
             val ad = pool.take(Placements.APP_OPEN)
             if (ad != null) {
-                val second = if (p.wantsDouble()) pool.take(Placements.APP_OPEN_SECOND) else null
-                AdLog.d("appopen") { "showing ${if (second != null) "2 ads (double)" else "1 ad"}" }
-                shower.showAll(activity, listOfNotNull(ad, second), object : FullScreenShower.Events {
+                AdLog.d("appopen") { "showing 1 ad" }       // the app-open ad on return is always ONE ad (no double)
+                shower.showAll(activity, listOf(ad), object : FullScreenShower.Events {
                     override fun onShown() {}
                     override fun onFinished(shown: Boolean, reason: String?) {
                         if (shown) state.markAppOpenClosed(clock()) // interstitials stay quiet for a while after this
@@ -79,16 +78,6 @@ internal class AppOpenController(
         if ((cooldown?.remainingMs(Placements.APP_OPEN) ?: 0L) > 0) {
             AdLog.d("appopen") { "fetch skipped: no fill a moment ago" }
             return
-        }
-        if (p.wantsDouble()) {
-            scope.launch {
-                try {
-                    // the second ad of the double: ONE request to its own unit, no floors (same rule as every other double)
-                    pool.fill(Placements.APP_OPEN_SECOND) { pipeline.load(p.forSecondAd(), screens.current, source) { it.destroy() } }
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (t: Throwable) { /* fail open */ }
-            }
         }
         scope.launch {
             try {
