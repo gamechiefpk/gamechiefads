@@ -8,7 +8,7 @@ All ad units are given once in `Application` (see [USE_CASES](USE_CASES.md) reci
 |---|---|---|
 | 1. Splash | Large banner + app open **or** interstitial (single or double) | `loadSplashBannerAd`, `loadSplashAppOpenAd`, `loadSplashInterstitialAd` |
 | 2. Language selection | Native (medium or large) | `NativeAdTemplateView` |
-| 3. Intro / onboarding screens | Small native at the bottom, or the `IntroPager` with full-screen native pages (Firebase `noOfBigNativeAdInIntro`) | `AdsUi.loadIntroNativeAd`, `IntroPager` |
+| 3. Intro / onboarding screens | Small native at the bottom, or the `IntroPager` with full-screen native pages (Firebase `introScrBigNativeEnable` + `noOfBigNativeAdsInIntro`) | `AdsUi.loadIntroNativeAd`, `IntroPager` |
 | 4. Home and other screens | Banner | `loadBannerAd` or the tag `gads_banner` |
 | 5. Exit dialog | Banner (300x250) or a native | `loadExitBannerAd` |
 | 6. Button clicks / transitions | Random interstitial (automatic + buttons) | `loadRandomInterstitialAd` |
@@ -132,11 +132,11 @@ pager.setOnFinished(() -> startActivity(new Intent(this, HomeActivity.class))); 
 | Small native (small media) | ONE ad for the whole intro, in a fixed area above the dots | `.introNativeUnits(HIGH, MEDIUM, ALL)` | **yes**, high floor first (one pass, still ONE ad) |
 | Big native (full screen) | its own page between slides | `.introSlideNativeUnit(id)` | **no**, one unit |
 
-The small native is on by default (`pager.setSmallNativeOnPages(false)` turns it off). **How many full-screen native ads: from Firebase.** Add a Remote Config parameter named **`noOfBigNativeAdInIntro`** (a number). `0` or missing = none (the default).
+The small native is on by default (`pager.setSmallNativeOnPages(false)` turns it off). **How many full-screen native ads: from Firebase.** Add two Remote Config parameters: **`introScrBigNativeEnable`** (boolean, default false) and **`noOfBigNativeAdsInIntro`** (number). Off or `0` = none (the default).
 `1` puts one ad page in the middle of the slider, `2` two, spread evenly. Never before the first page, never after the last one, at most one between two slides.
 Units: `.introSlideNativeUnit(id)` in the config (ONE unit, no floors).
 
-| Firebase `noOfBigNativeAdInIntro` | 4 slides become |
+| Firebase `introScrBigNativeEnable` + `noOfBigNativeAdsInIntro` | 4 slides become |
 |---|---|
 | 0 (default) | slide, slide, slide, slide |
 | 1 | slide, slide, **AD**, slide, slide |

@@ -90,13 +90,10 @@ class RemoteUrlConfigTest {
         assertFalse(c.enabled); assertFalse(c.placement(Placements.BANNER)!!.enabled)
     }
 
-    @Test fun globalTimingsCanBeChangedRemotely() {
+    @Test fun timingsAreNeverChangedRemotely() {
         val c = layers("""{"global":{"splashTimeoutMs":15000,"overallBudgetMs":6000,"initTimeoutMs":9000,"doubleSecondWaitMs":1000,"noAdMessageMs":1200}}""")
-        assertEquals(15_000L, c.splashTimeoutMs); assertEquals(6_000L, c.overallBudgetMs); assertEquals(9_000L, c.initTimeoutMs)
-        assertEquals(1_000L, c.doubleSecondWaitMs); assertEquals(1_200L, c.noAdMessageMs)
-        val bad = layers("""{"global":{"splashTimeoutMs":-5,"overallBudgetMs":"x","noAdMessageMs":999999}}""")
-        assertEquals(base.splashTimeoutMs, bad.splashTimeoutMs); assertEquals(base.overallBudgetMs, bad.overallBudgetMs)
-        assertEquals(10_000L, bad.noAdMessageMs)
+        assertEquals(base.splashTimeoutMs, c.splashTimeoutMs); assertEquals(base.overallBudgetMs, c.overallBudgetMs); assertEquals(base.initTimeoutMs, c.initTimeoutMs)
+        assertEquals(base.noAdMessageMs, c.noAdMessageMs)
     }
 
     @Test fun theBuilderKeepsTheUrlAndASaneInterval() {

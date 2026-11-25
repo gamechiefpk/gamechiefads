@@ -12,7 +12,7 @@ import kotlinx.coroutines.withTimeoutOrNull
  * Splash: consent -> init -> waterfall -> timeout. The callback runs exactly once, inside
  * config.splashTimeoutMs, with or without an ad (premium, consent denied, offline, no fill all
  * give "no ad"). If the optional `splash_second` placement is enabled (Remote Config can switch it)
- * both ads are requested together; the second is waited for at most config.doubleSecondWaitMs after
+ * both ads are requested together; the second is used only if it is already there after
  * the first arrived, and both are shown back to back as one break.
  */
 internal class SplashFlow(
@@ -52,10 +52,7 @@ internal class SplashFlow(
                             if (a != null) {
                                 ads.first = a
                                 if (d2 != null) {
-                                    val b = withTimeoutOrNull(cfg.doubleSecondWaitMs) { d2.await() }
-                                    if (b != null) ads.second = b
-                                    else if (d2.isCompleted && !d2.isCancelled) ads.second = d2.getCompleted()
-                                    else d2.cancel()
+                                    if (d2.isCompleted && !d2.isCancelled) ads.second = d2.getCompleted() else d2.cancel()
                                 }
                             } else if (d2 != null) {
                                 ads.first = d2.await() // nothing from the splash units: use the second ad alone

@@ -40,7 +40,7 @@ class NoFillTest {
         r.interstitial.showRandom(r.activity, s, false); advanceUntilIdle()
         assertEquals(3, r.loads.size)                                   // still the first pass only
         assertEquals(2, r.noAdCalls); assertTrue(s.calls[0].startsWith("not:no ad available, retry in"))
-        r.now += 6_000                                                  // more than the default 5 s
+        r.now += 61_000                                                 // more than the 60 s wait
         r.interstitial.showRandom(r.activity, null, false); advanceUntilIdle()
         assertEquals(6, r.loads.size)                                   // one new pass, then waiting again
     }
@@ -48,7 +48,7 @@ class NoFillTest {
     @Test fun aSuccessfulAdClearsTheWait() = runTest {
         val r = rig(); r.loadBehavior = { null }
         r.interstitial.showRandom(r.activity, null, false); advanceUntilIdle()
-        r.now += 6_000; r.loadBehavior = { FakeAd(it) }
+        r.now += 61_000; r.loadBehavior = { FakeAd(it) }
         r.interstitial.showRandom(r.activity, null, false); advanceUntilIdle()
         r.interstitial.showRandom(r.activity, null, false); advanceUntilIdle()
         assertEquals(1, r.noAdCalls)                                    // only the first failure told the user
@@ -81,16 +81,16 @@ class NoFillTest {
         assertEquals(1, r.loads.size)
         r.appOpen.onForeground(); advanceUntilIdle()
         assertEquals(1, r.loads.size)                                   // within the wait: no new request
-        r.now += 6_000
+        r.now += 61_000
         r.appOpen.onForeground(); advanceUntilIdle()
         assertEquals(2, r.loads.size)
     }
 
     @Test fun remoteConfigCanChangeTheMessageAndTheWait() {
         val base = AdsConfig.builder().randomInterstitialUnits("a").build()
-        assertEquals(5, base.noFillRetrySeconds); assertEquals(AdsConfig.DEFAULT_NO_AD_MESSAGE, base.noAdMessage)
+        assertEquals(60, base.noFillRetrySeconds); assertEquals(AdsConfig.DEFAULT_NO_AD_MESSAGE, base.noAdMessage)
         val c = RemoteOverrides.apply(base, """{"noAdMessage":"Try later","noFillRetrySeconds":12}""")
-        assertEquals("Try later", c.noAdMessage); assertEquals(12, c.noFillRetrySeconds)
+        assertEquals("Try later", c.noAdMessage); assertEquals(60, c.noFillRetrySeconds) // the wait is not remote
         assertEquals(null, RemoteOverrides.apply(base, """{"noAdMessage":""}""").noAdMessage)
         assertEquals(null, AdsConfig.builder().noAdMessage(null).build().noAdMessage)
     }

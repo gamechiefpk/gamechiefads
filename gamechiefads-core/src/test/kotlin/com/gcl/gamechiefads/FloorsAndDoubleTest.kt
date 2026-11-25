@@ -142,7 +142,7 @@ class FloorsAndDoubleTest {
             "disabledUnits":["b"],"skipAfterFails":3,"skipForSec":120,"bannerType":"medium-rectangle"}}}"""
         val p = RemoteOverrides.apply(base, json).placement("home")!!
         assertEquals(WaterfallMode.PARALLEL, p.waterfall)
-        assertEquals(mapOf("a" to 1500L), p.unitTimeouts)
+        assertTrue(p.unitTimeouts.isEmpty()) // timeouts are never remote
         assertEquals(setOf("b"), p.disabledUnits)
         assertEquals(3, p.skipAfterFails); assertEquals(120, p.skipForSeconds)
         assertEquals(BannerType.MEDIUM_RECTANGLE, p.bannerType)

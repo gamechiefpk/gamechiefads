@@ -1,46 +1,144 @@
 {
-    "parameters":  {
-                       "gamechief_ads_config":  {
-                                                    "defaultValue":  {
-                                                                         "value":  "{\"enabled\":true,\"noFillRetrySeconds\":5,\"quietSecondsAfterAppOpen\":30,\"tagBanners\":true,\"nativeUnitFallback\":true,\"loaderTitle\":\"Ad is loading\",\"loaderMessage\":\"Please wait...\",\"noAdMessage\":\"No ad available, please try again in a few seconds\",\"global\":{\"splashTimeoutMs\":10000,\"overallBudgetMs\":8000,\"initTimeoutMs\":8000,\"doubleSecondWaitMs\":2500,\"noAdMessageMs\":1800},\"placements\":{\"splash\":{\"double\":false},\"splash_interstitial\":{\"double\":false},\"random\":{\"enabled\":true,\"every\":3,\"gap\":30,\"everyNCalls\":1,\"auto\":true,\"double\":false},\"banner\":{\"enabled\":true},\"exit_banner\":{\"enabled\":true},\"fullscreen_native\":{\"enabled\":false},\"rewarded\":{\"enabled\":true,\"premiumGetsReward\":true}}}"
-                                                                     },
-                                                    "description":  "GamechiefAds rules (JSON). See docs/USE_CASES.md recipe 21.",
-                                                    "valueType":  "JSON"
-                                                },
-                       "noOfBigNativeAdInIntro":  {
-                                                      "defaultValue":  {
-                                                                           "value":  "0"
-                                                                       },
-                                                      "description":  "How many full-screen native ad pages the IntroPager shows between the intro slides. 0 = none.",
-                                                      "valueType":  "NUMBER"
-                                                  },
-                       "enableNativeInScroll":  {
-                                                    "defaultValue":  {
-                                                                         "value":  "false"
-                                                                     },
-                                                    "description":  "NativeAdAdapter: show ONE native ad in the RecyclerView. false = no ad and no request.",
-                                                    "valueType":  "BOOLEAN"
-                                                },
-                       "positionOfAdAt":  {
-                                              "defaultValue":  {
-                                                                   "value":  "4"
-                                                               },
-                                              "description":  "NativeAdAdapter: the row of the native ad (the end of the list when the list is shorter).",
-                                              "valueType":  "NUMBER"
-                                          },
-                       "scrollNativeAdType":  {
-                                                  "defaultValue":  {
-                                                                       "value":  "small"
-                                                                   },
-                                                  "description":  "NativeAdAdapter: native size: tiny, small, small_media, medium, large.",
-                                                  "valueType":  "STRING"
-                                              },
-                       "debugShakeEnabled":  {
-                                                 "defaultValue":  {
-                                                                      "value":  "true"
-                                                                  },
-                                                 "description":  "Debug builds only: shake the phone to open the GamechiefAds debug panel. false = off. Release builds ignore it.",
-                                                 "valueType":  "BOOLEAN"
-                                             }
-                   }
+  "parameters": {
+    "gamechief_ads_config": {
+      "defaultValue": {
+        "value": "{\"enabled\":true,\"quietSecondsAfterAppOpen\":30,\"tagBanners\":true,\"nativeUnitFallback\":true,\"loaderTitle\":\"Ad is loading\",\"loaderMessage\":\"Please wait...\",\"noAdMessage\":\"No ad available, please try again in a few seconds\",\"placements\":{\"banner\":{\"enabled\":true},\"exit_banner\":{\"enabled\":true},\"fullscreen_native\":{\"enabled\":false},\"rewarded\":{\"premiumGetsReward\":true}}}"
+      },
+      "valueType": "JSON",
+      "description": "GamechiefAds rules (advanced). The simple keys below win over it."
+    },
+    "splashType": {
+      "defaultValue": {
+        "value": "appopen"
+      },
+      "valueType": "STRING",
+      "description": "appopen or interstitial: which ad loadSplashAd shows"
+    },
+    "splashDoubleEnable": {
+      "defaultValue": {
+        "value": "false"
+      },
+      "valueType": "BOOLEAN",
+      "description": "double ad on the splash"
+    },
+    "splashBannerAd": {
+      "defaultValue": {
+        "value": "true"
+      },
+      "valueType": "BOOLEAN",
+      "description": "banner on the splash screen"
+    },
+    "langaugeSelectionNativeType": {
+      "defaultValue": {
+        "value": "smallMedia"
+      },
+      "valueType": "STRING",
+      "description": "size of the language screen native (tiny, small, smallMedia, medium, large)"
+    },
+    "introScrBigNativeEnable": {
+      "defaultValue": {
+        "value": "false"
+      },
+      "valueType": "BOOLEAN",
+      "description": "full-screen native pages in the intro slider"
+    },
+    "noOfBigNativeAdsInIntro": {
+      "defaultValue": {
+        "value": "2"
+      },
+      "valueType": "NUMBER",
+      "description": "how many full-screen native pages (when the switch above is on)"
+    },
+    "interstitialOnPremiumDismiss": {
+      "defaultValue": {
+        "value": "false"
+      },
+      "valueType": "BOOLEAN",
+      "description": "interstitial when the premium screen is closed"
+    },
+    "homescrBannerType": {
+      "defaultValue": {
+        "value": "adaptive"
+      },
+      "valueType": "STRING",
+      "description": "home banner type: adaptive, collapsible, ..."
+    },
+    "bannerAdType": {
+      "defaultValue": {
+        "value": "adaptive"
+      },
+      "valueType": "STRING",
+      "description": "type of the normal banner"
+    },
+    "randomClickInterstitialAd": {
+      "defaultValue": {
+        "value": "true"
+      },
+      "valueType": "BOOLEAN",
+      "description": "random interstitial on or off"
+    },
+    "doubleInterstitialAdEnable": {
+      "defaultValue": {
+        "value": "false"
+      },
+      "valueType": "BOOLEAN",
+      "description": "double random interstitial"
+    },
+    "randomClickAdInterval": {
+      "defaultValue": {
+        "value": "3"
+      },
+      "valueType": "NUMBER",
+      "description": "every N-th click / new screen"
+    },
+    "randomClickTimeGap": {
+      "defaultValue": {
+        "value": "30"
+      },
+      "valueType": "NUMBER",
+      "description": "seconds between two random interstitials"
+    },
+    "randomClickAdAutoEnable": {
+      "defaultValue": {
+        "value": "true"
+      },
+      "valueType": "BOOLEAN",
+      "description": "automatic random interstitial over new screens"
+    },
+    "rewardedAdEnable": {
+      "defaultValue": {
+        "value": "true"
+      },
+      "valueType": "BOOLEAN",
+      "description": "rewarded ads on or off"
+    },
+    "enableNativeInScroll": {
+      "defaultValue": {
+        "value": "false"
+      },
+      "valueType": "BOOLEAN",
+      "description": "one native ad in a RecyclerView (NativeAdAdapter)"
+    },
+    "positionOfAdAt": {
+      "defaultValue": {
+        "value": "4"
+      },
+      "valueType": "NUMBER",
+      "description": "row of that ad"
+    },
+    "scrollNativeAdType": {
+      "defaultValue": {
+        "value": "small"
+      },
+      "valueType": "STRING",
+      "description": "size of that ad"
+    },
+    "debugShakeEnabled": {
+      "defaultValue": {
+        "value": "true"
+      },
+      "valueType": "BOOLEAN",
+      "description": "debug builds only: shake opens the debug panel"
+    }
+  }
 }

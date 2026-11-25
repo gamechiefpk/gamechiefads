@@ -55,6 +55,18 @@ public class MainActivity extends DemoActivity {
             say("premium=" + premium);
         });
 
+        note("Firebase simple keys (flat values, like in the console)");
+        flat("splashDoubleEnable", true); flat("splashDoubleEnable", false);
+        flat("doubleInterstitialAdEnable", true); flat("doubleInterstitialAdEnable", false);
+        flat("randomClickInterstitialAd", false); flat("randomClickInterstitialAd", true);
+        flat("randomClickAdInterval", 1L); flat("randomClickTimeGap", 0L);
+        flat("rewardedAdEnable", false); flat("rewardedAdEnable", true);
+        flat("bannerAdType", "collapsible"); flat("bannerAdType", "adaptive");
+        flat("langaugeSelectionNativeType", "smallMedia"); flat("splashType", "interstitial");
+        flat("splashBannerAd", false); flat("interstitialOnPremiumDismiss", true);
+        button("loadSplashAd (follows Firebase splashType)", () -> GamechiefAds.loadSplashAd(this, new com.gcl.gamechiefads.SplashCallback() {
+            @Override public void onReady(com.gcl.gamechiefads.SplashAds ads) { say("splash ad ready: " + ads.hasAd()); ads.show(MainActivity.this, () -> say("splash done")); }
+        }));
         note("Remote Config (what you would read from Firebase and pass to applyRemoteConfig)");
         button("Random: every call, no gap", () -> {
             GamechiefAds.applyRemoteConfig("{\"placements\":{\"random\":{\"everyNCalls\":1,\"gap\":0}}}");
@@ -98,11 +110,19 @@ public class MainActivity extends DemoActivity {
         introWithAds(2);
     }
 
-    /** Pretends you set the Firebase value noOfBigNativeAdInIntro, then opens the intro slider. */
+    /** Pretends you set the Firebase values introScrBigNativeEnable and noOfBigNativeAdsInIntro, then opens the intro slider. */
     private void introWithAds(long count) {
-        DemoRemoteSource.INSTANCE.publish("noOfBigNativeAdInIntro", count);
-        say("Firebase noOfBigNativeAdInIntro = " + count + " (read now: " + GamechiefAds.getRemoteLong("noOfBigNativeAdInIntro", -1) + ")");
+        DemoRemoteSource.INSTANCE.publish("introScrBigNativeEnable", count > 0);
+        DemoRemoteSource.INSTANCE.publish("noOfBigNativeAdsInIntro", count);
+        say("Firebase introScrBigNativeEnable = " + (count > 0) + ", noOfBigNativeAdsInIntro = " + count);
         open(IntroPagerActivity.class);
+    }
+
+    private void flat(String key, Object value) {
+        button("Firebase " + key + " = " + value, () -> {
+            DemoRemoteSource.INSTANCE.publish(key, value);
+            say("Firebase " + key + " = " + value);
+        });
     }
 
     private void open(Class<?> c) {

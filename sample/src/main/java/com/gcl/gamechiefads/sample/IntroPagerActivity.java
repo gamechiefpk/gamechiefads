@@ -15,7 +15,7 @@ import java.util.List;
 
 /**
  * The intro slider with the ads built in: only the pages are yours. Full-screen native pages between them come from the Firebase value
- * noOfBigNativeAdInIntro (set it with the buttons on the hub; 0 = none). Swipe through, tap the close button of an ad page (it appears after 3 s),
+ * noOfBigNativeAdsInIntro (set it with the buttons on the hub; 0 = none). Swipe through, tap the close button of an ad page (it appears after 3 s),
  * and "Get started" shows on the last page.
  */
 public class IntroPagerActivity extends Activity {

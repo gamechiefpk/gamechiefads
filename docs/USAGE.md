@@ -50,8 +50,7 @@ Options you can chain after a slot method (they apply to that slot):
 ```
 
 Global options: `appId`, `splashTimeoutMs` (default 10 s, the hard limit of a splash), `overallBudgetMs` (default 8 s, the
-limit of one whole floors walk), `initTimeoutMs`, `doubleSecondWaitMs` (how long to wait for the 2nd ad of a double,
-default 2.5 s), `defaultLoaderText(title, message)`, `testIdsInDebug(false)` (to try your real ids in a debug build; debug
+limit of one whole floors walk), `initTimeoutMs` (in code only: timeouts are never changed from Remote Config), `defaultLoaderText(title, message)`, `testIdsInDebug(false)` (to try your real ids in a debug build; debug
 builds otherwise always use Google test ids).
 
 Your own extra spots (optional): `.interstitial(AdPlacement)`, `.rewarded(...)`, `.banner(...)`, `.nativeAd(...)` with
@@ -85,8 +84,7 @@ All listeners are optional (`null` is fine) and all callbacks run on the main th
 
 ## 4. How a double ad works
 
-Both ads are requested at the same time. The first uses its units with floors; the second is ONE request to its own single unit, **never floors** (paste the same id as the first ad, or another one; if you give none, the last unit of the first set is used). When both are loaded (the
-second one is waited for at most `doubleSecondWaitMs`; if it is missing, one ad is shown) they are shown **at the same time**,
+Both ads are requested at the same time. The first uses its units with floors; the second is the **same request** as the first (same units), started together, so there is no extra delay; a `...DoubleUnit` is only an optional override (ONE request to that unit). The second is used only if it is already loaded when the first arrives, otherwise one ad is shown. Both are shown **at the same time**,
 stacked. The user closes the top ad and the other is already underneath, so it feels like the first ad never closed. The
 "ad showing" flag is held until the last one closes, and your callback runs once, after the last ad.
 
@@ -219,11 +217,11 @@ A floors pass requests every unit once (HF, MF, NORMAL) and never repeats. When 
 
 1. The loading dialog turns into the message `noAdMessage` (default "No ad available, please try again in a few seconds"; no spinner) and stays `noAdMessageMs` (default 1800 ms), then closes. A custom `AdLoaderUi` that does not implement `showNoAd(...)` gets a toast instead.
 2. Then the listener runs (`onNotShown` then `onComplete(false)`; rewarded: `onNotAvailable("no fill")`): the app moves on.
-3. That placement is **not requested again** for `noFillRetrySeconds` (default 5). A tap inside that time gets the message and
+3. That placement is **not requested again** for a fixed 60 s (set in code with `.noFillRetrySeconds`, never remote). A tap inside that time gets the message and
    `onNotShown("no ad available, retry in Ns")` with no requests; a tap after it starts one new pass. A success clears the wait.
 4. The app-open prefetch follows the same wait, so returning to the app again and again cannot send repeated requests.
 
-Config: `.noAdMessage(text or null)`, `.noAdMessageMs(ms)`, `.noFillRetrySeconds(seconds)`. Remote Config root keys: `noAdMessage`, `noFillRetrySeconds`.
+Config: `.noAdMessage(text or null)`, `.noAdMessageMs(ms)`, `.noFillRetrySeconds(seconds)`. Remote Config root key: `noAdMessage`.
 Splash and banners are not delayed by this wait: the splash is one pass per launch, a banner is one pass per screen.
 
 ## 13. Interstitial and app open: no overlap, quiet time

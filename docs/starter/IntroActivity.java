@@ -9,7 +9,7 @@ import com.gcl.gamechiefads.ui.IntroPager;
 
 /**
  * Step 4: the intro slider. You give only the page layouts. The library adds the dots, the "Get started" button on the last page and, when Firebase
- * says so (value noOfBigNativeAdInIntro, default 0 = none), full-screen native ad pages between the slides. A full-screen ad page has a close
+ * says so (introScrBigNativeEnable + noOfBigNativeAdsInIntro, off by default), full-screen native ad pages between the slides. A full-screen ad page has a close
  * button that appears after 3 seconds; tapping it moves to the next slide. Nothing else to do in code.
  */
 public class IntroActivity extends AppCompatActivity {

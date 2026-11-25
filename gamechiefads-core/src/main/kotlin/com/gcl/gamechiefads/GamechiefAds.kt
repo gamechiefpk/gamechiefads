@@ -173,6 +173,20 @@ object GamechiefAds {
         splash(activity, callback, Placements.SPLASH_INTERSTITIAL, true)
 
     /** [double]: what the code asked for; the slot switch (Remote Config) can turn the double on whatever the code says. */
+    /** The splash ad that Firebase `splashType` picks: `interstitial` or `appopen` (default: app open). One call, no code change when you switch. */
+    @JvmStatic
+    fun loadSplashAd(activity: Activity, callback: SplashCallback) {
+        val t = FlatRemote.normalize(getRemoteString(FlatRemote.SPLASH_TYPE, ""))
+        splash(activity, callback, if (t == "interstitial") Placements.SPLASH_INTERSTITIAL else Placements.SPLASH, null)
+    }
+
+    /** Same, with the double chosen for this call (Firebase `splashDoubleEnable` still decides when it is set). */
+    @JvmStatic
+    fun loadSplashAd(activity: Activity, double: Boolean, callback: SplashCallback) {
+        val t = FlatRemote.normalize(getRemoteString(FlatRemote.SPLASH_TYPE, ""))
+        splash(activity, callback, if (t == "interstitial") Placements.SPLASH_INTERSTITIAL else Placements.SPLASH, double)
+    }
+
     private fun splash(activity: Activity, callback: SplashCallback, name: String, double: Boolean?) {
         val r = runtime
         if (r == null) callback.onReady(NoSplashAds)
@@ -188,8 +202,20 @@ object GamechiefAds {
     /** Large banner (320x100) for the splash screen. One unit (splashBannerUnit), never floors. */
     @JvmStatic
     @JvmOverloads
-    fun loadSplashBannerAd(container: FrameLayout, listener: BannerListener? = null) =
-        banner(container, Placements.SPLASH_BANNER, listener, false)
+    fun loadSplashBannerAd(container: FrameLayout, listener: BannerListener? = null) {
+        if (!getRemoteBoolean(FlatRemote.SPLASH_BANNER, true)) { // Firebase splashBannerAd = false
+            container.visibility = View.GONE
+            listener?.onFailed("disabled")
+        } else banner(container, Placements.SPLASH_BANNER, listener, false)
+    }
+
+    /** Banner of the home screen. Its type comes from Firebase `homescrBannerType` (adaptive, collapsible, ...); unset = the app's default banner type. */
+    @JvmStatic
+    @JvmOverloads
+    fun loadHomeBannerAd(container: FrameLayout, listener: BannerListener? = null) {
+        val t = FlatRemote.bannerType(getRemoteString(FlatRemote.HOME_BANNER_TYPE, ""))
+        banner(container, Placements.BANNER, listener, true, t)
+    }
 
     /** Banner for all normal screens (units from bannerUnits), with floors. */
     @JvmStatic
@@ -281,6 +307,13 @@ object GamechiefAds {
     @Deprecated("Use loadRandomInterstitialAd(activity, true, listener), or turn the double switch on in the config or Remote Config.", ReplaceWith("loadRandomInterstitialAd(activity, true, listener)"))
     @JvmStatic
     fun loadRandomInterstitialDoubleAd(activity: Activity, listener: InterstitialListener?) = randomInterstitial(activity, listener, true)
+
+    /** Call when the premium screen is closed without buying. Shows the random interstitial only when Firebase `interstitialOnPremiumDismiss` is true (default false). */
+    @JvmStatic
+    fun showInterstitialOnPremiumDismiss(activity: Activity, listener: InterstitialListener?) {
+        if (!getRemoteBoolean(FlatRemote.PREMIUM_DISMISS_INTERSTITIAL, false)) ListenerDispatcher(listener).onFinished(false, "disabled")
+        else randomInterstitial(activity, listener, null)
+    }
 
     private fun randomInterstitial(activity: Activity, listener: InterstitialListener?, double: Boolean?) {
         val r = runtime

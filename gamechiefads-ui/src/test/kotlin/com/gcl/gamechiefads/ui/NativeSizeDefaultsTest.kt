@@ -19,6 +19,7 @@ class NativeSizeDefaultsTest {
 
     @Test fun namesAreFoundInAnyCaseAndUnknownOnesAreNull() {
         assertEquals(NativeSize.SMALL_MEDIA, NativeSize.fromName(" Small_Media "))
+        assertEquals(NativeSize.SMALL_MEDIA, NativeSize.fromName("smallMedia")); assertEquals(IntroPager.bigAdCount(false, 5), 0); assertEquals(IntroPager.bigAdCount(true, 2), 2); assertEquals(IntroPager.bigAdCount(true, 99), 20)
         assertNull(NativeSize.fromName("huge")); assertNull(NativeSize.fromName(null))
     }
 }

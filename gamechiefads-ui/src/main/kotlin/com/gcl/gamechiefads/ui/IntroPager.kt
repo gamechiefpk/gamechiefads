@@ -39,7 +39,7 @@ import com.google.android.libraries.ads.mobile.sdk.nativead.NativeAd
  *  - ONE small native for the whole intro: `.introNativeUnits(HIGH, MEDIUM, ALL)` (floors, one pass). It is requested once when the pager is set up and the
  *    SAME ad stays in a fixed area above the dots on every slide: swiping never loads another one.
  *  - FULL-SCREEN native pages between the slides: `.introSlideNativeUnit(id)`, ONE unit, no floors. How many: Firebase number parameter
- *    `noOfBigNativeAdInIntro` (0 or missing = none, the default). Spread evenly, never first, never after the last slide, each requested once.
+ *    `introScrBigNativeEnable` (true) and `noOfBigNativeAdsInIntro` (the number; off or 0 = none, the default). Spread evenly, never first, never after the last slide, each requested once.
  *    While a full-screen page is on screen everything else is hidden (dots, small native, Get started); when it is closed the same small native is back.
  *
  * Never stuck, never empty: the slides never wait for an ad. While an ad is loading, failed, turned off or cannot be drawn there is NOTHING in its place:
@@ -67,7 +67,7 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
     var dotColor = 0x55888888
     var dotSelectedColor = 0xFF444444.toInt()
 
-    /** For tests and QA: how many full-screen ad pages to use instead of the Firebase value. Null = read `noOfBigNativeAdInIntro`. */
+    /** For tests and QA: how many full-screen ad pages to use instead of the Firebase value. Null = read `introScrBigNativeEnable` and `noOfBigNativeAdsInIntro`. */
     var adCountOverride: Int? = null
 
     /** Show the small native (units `introNativeUnits`, floors) above the dots. false = only the full-screen ad pages. */
@@ -147,7 +147,7 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
         resetAds()
         val gen = generation
         factories = pages
-        val wanted = adCountOverride ?: GamechiefAds.getRemoteLong(REMOTE_KEY, 0L).coerceIn(0L, 20L).toInt()
+        val wanted = adCountOverride ?: bigAdCount(GamechiefAds.getRemoteBoolean(ENABLE_KEY, false), GamechiefAds.getRemoteLong(REMOTE_KEY, 0L))
         val premium = GamechiefAds.isPremium()
         val n = if (premium) 0 else IntroPlan.adCount(pages.size, wanted)
         slots = IntroPlan.adSlots(pages.size, n)
@@ -473,7 +473,11 @@ class IntroPager @JvmOverloads constructor(context: Context, attrs: AttributeSet
 
     companion object {
         /** The Firebase Remote Config value that sets how many full-screen native pages the intro gets (0 = none). */
-        const val REMOTE_KEY = "noOfBigNativeAdInIntro"
+        const val REMOTE_KEY = "noOfBigNativeAdsInIntro"
+        const val ENABLE_KEY = "introScrBigNativeEnable"
+
+        /** Full-screen ad pages wanted: 0 unless the switch is on, then the number (0..20). */
+        fun bigAdCount(enabled: Boolean, count: Long): Int = if (enabled) count.coerceIn(0L, 20L).toInt() else 0
         private const val AD_TYPE = -1
         private const val TTL_MS = 50 * 60_000L
     }

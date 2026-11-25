@@ -37,6 +37,9 @@ enum class NativeSize(@param:LayoutRes internal val layout: Int, internal val pl
             if (placement == com.gcl.gamechiefads.Placements.LANGUAGE_NATIVE || placement == com.gcl.gamechiefads.Placements.INTRO_NATIVE) SMALL_MEDIA else SMALL
 
         /** A size by name (tiny, small, small_media, medium, large, full; any case), or null when unknown. Used by Remote Config. */
-        fun fromName(name: String?): NativeSize? = entries.firstOrNull { it.name.equals(name?.trim(), ignoreCase = true) }
+        fun fromName(name: String?): NativeSize? {
+            val n = name.orEmpty().trim().replace(Regex("([a-z0-9])([A-Z])"), "$1_$2").replace('-', '_').replace(' ', '_')
+            return entries.firstOrNull { it.name.equals(n, ignoreCase = true) }
+        }
     }
 }

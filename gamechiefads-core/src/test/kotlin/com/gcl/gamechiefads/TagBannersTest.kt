@@ -95,7 +95,7 @@ class FirebaseFilesTest {
         val base = AdsConfig.builder().randomInterstitialUnits("r").bannerUnits("b").exitBannerUnits("e").rewardedUnits("w").build()
         val c = RemoteOverrides.apply(base, rules)
         assertTrue(c.enabled); assertTrue(c.tagBanners)
-        assertEquals(5, c.noFillRetrySeconds); assertEquals(30, c.quietSecondsAfterAppOpen)
+        assertEquals(60, c.noFillRetrySeconds); assertEquals(30, c.quietSecondsAfterAppOpen)
         assertEquals(base.splashTimeoutMs, c.splashTimeoutMs); assertEquals(base.overallBudgetMs, c.overallBudgetMs)
         val r = c.placement(Placements.RANDOM)!!
         assertEquals(3, r.everyNScreens); assertEquals(30, r.minGapSeconds)
@@ -105,7 +105,7 @@ class FirebaseFilesTest {
 
     @Test fun theFirebaseTemplateCarriesTheSameRulesInTheRightKey() {
         val t = org.json.JSONObject(java.io.File(dir, "remoteconfig.template.json").readText())
-        assertEquals("0", t.getJSONObject("parameters").getJSONObject("noOfBigNativeAdInIntro").getJSONObject("defaultValue").getString("value"))   // the intro ads count, off by default
+        assertEquals("false", t.getJSONObject("parameters").getJSONObject("introScrBigNativeEnable").getJSONObject("defaultValue").getString("value"))   // the intro ads are off by default
         val ps = t.getJSONObject("parameters")
         assertEquals("false", ps.getJSONObject("enableNativeInScroll").getJSONObject("defaultValue").getString("value"))      // the list ad is off by default
         assertEquals("4", ps.getJSONObject("positionOfAdAt").getJSONObject("defaultValue").getString("value"))

@@ -26,7 +26,6 @@ data class AdsConfig(
     /** How long one ad request waits for the SDK to finish its (one-time) init. A late init is kept, not restarted. */
     val initTimeoutMs: Long = DEFAULT_INIT_TIMEOUT_MS,
     /** Double ads: after the first ad is ready, how long to wait for the second before showing just one. */
-    val doubleSecondWaitMs: Long = DEFAULT_DOUBLE_WAIT_MS,
     /** Debug builds replace your unit ids by Google test ids (default). false = use the configured units even in debug. */
     val testIdsInDebug: Boolean = true,
     /** Default texts of the loading overlay for every placement without its own. Null = the loader's own text. */
@@ -61,7 +60,7 @@ data class AdsConfig(
 
     companion object {
         const val DEFAULT_REMOTE_KEY = "gamechief_ads_config"
-        const val DEFAULT_NO_FILL_RETRY_SECONDS = 5
+        const val DEFAULT_NO_FILL_RETRY_SECONDS = 60
         const val DEFAULT_QUIET_AFTER_APP_OPEN_SECONDS = 30
         /** The random interstitial is automatic: every 3rd NEW screen (activity transition), at least 30 s after the last ad. */
         const val DEFAULT_RANDOM_EVERY_N_SCREENS = 3
@@ -72,7 +71,6 @@ data class AdsConfig(
         const val DEFAULT_OVERALL_BUDGET_MS = 8_000L
         const val DEFAULT_SPLASH_TIMEOUT_MS = 10_000L
         const val DEFAULT_INIT_TIMEOUT_MS = 8_000L
-        const val DEFAULT_DOUBLE_WAIT_MS = 2_500L
 
         @JvmStatic
         fun builder(): Builder = Builder()
@@ -102,7 +100,6 @@ data class AdsConfig(
         private var overallBudgetMs = DEFAULT_OVERALL_BUDGET_MS
         private var splashTimeoutMs = DEFAULT_SPLASH_TIMEOUT_MS
         private var initTimeoutMs = DEFAULT_INIT_TIMEOUT_MS
-        private var doubleSecondWaitMs = DEFAULT_DOUBLE_WAIT_MS
         private var testIdsInDebug = true
         private var loaderTitle: String? = null
         private var loaderMessage: String? = null
@@ -145,7 +142,7 @@ data class AdsConfig(
         fun randomInterstitialDoubleUnit(id: String) = second(Placements.RANDOM, id)
         /** Small native ad at the bottom of the intro screens (AdsUi.loadIntroNativeAd). Floors. */
         fun introNativeUnits(vararg ids: String) = slot(Placements.INTRO_NATIVE, AdFormat.NATIVE, ids)
-        /** Full-screen native pages between the intro slides (IntroPager in the ui module): ONE unit, no floors. How many pages: Firebase value `noOfBigNativeAdInIntro`, 0 (default) = none. */
+        /** Full-screen native pages between the intro slides (IntroPager in the ui module): ONE unit, no floors. How many pages: Firebase value `noOfBigNativeAdsInIntro`, 0 (default) = none. */
         fun introSlideNativeUnit(id: String) = slot(Placements.INTRO_SLIDE_NATIVE, AdFormat.NATIVE, arrayOf(id)).flooring(false)
         /** Native ad for the language selection screen (AdsUi.loadLanguageNativeAd): small media size by default, floors. */
         fun languageNativeUnits(vararg ids: String) = slot(Placements.LANGUAGE_NATIVE, AdFormat.NATIVE, ids)
@@ -259,7 +256,6 @@ data class AdsConfig(
 
         fun splashTimeoutMs(ms: Long) = apply { splashTimeoutMs = ms.coerceAtLeast(1) }
         fun initTimeoutMs(ms: Long) = apply { initTimeoutMs = ms.coerceAtLeast(1) }
-        fun doubleSecondWaitMs(ms: Long) = apply { doubleSecondWaitMs = ms.coerceAtLeast(0) }
 
         /** Set false to try your real or custom unit ids (e.g. floors) in a debug build. Release builds always use your units. */
         fun testIdsInDebug(value: Boolean) = apply { testIdsInDebug = value }
@@ -274,7 +270,7 @@ data class AdsConfig(
             return AdsConfig(
                 placements = done.toMap(), appId = appId, remoteConfigKey = remoteConfigKey, fallbackToLoad = fallbackToLoad,
                 autoRefill = autoRefill, overallBudgetMs = overallBudgetMs, splashTimeoutMs = splashTimeoutMs,
-                initTimeoutMs = initTimeoutMs, doubleSecondWaitMs = doubleSecondWaitMs, testIdsInDebug = testIdsInDebug,
+                initTimeoutMs = initTimeoutMs, testIdsInDebug = testIdsInDebug,
                 loaderTitle = loaderTitle, loaderMessage = loaderMessage,
                 remoteDefaults = remoteDefaults.toMap(), remoteFetchIntervalSeconds = remoteFetchIntervalSeconds, remoteSource = remoteSource,
                 noFillRetrySeconds = noFillRetrySeconds, noAdMessage = noAdMessage, noAdMessageMs = noAdMessageMs,

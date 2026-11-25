@@ -1,12 +1,7 @@
 {
   "enabled": true,
-  "noFillRetrySeconds": 5,
   "quietSecondsAfterAppOpen": 30,
   "tagBanners": true,
-  "global": {
-    "splashTimeoutMs": 12000,
-    "overallBudgetMs": 8000
-  },
   "placements": {
     "random": {
       "every": 3,

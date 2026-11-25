@@ -358,10 +358,10 @@ Floors are **one pass**: high floor, then medium, then normal, each requested on
 ```java
 .noAdMessage("Ad nahi mila, thori der baad try karein")    // your own text or language (null = no message at all)
 .noAdMessageMs(1500)                                          // how long the message stays in the dialog (default 1800)
-.noFillRetrySeconds(10)                                      // wait before a new pass after "no ad" (default 5, 0 = no wait)
+.noFillRetrySeconds(10)                                      // wait before a new pass after "no ad" (default 60, 0 = no wait)
 ```
 
-Remote Config: `{"noAdMessage":"...","noFillRetrySeconds":10}`. This applies to the random interstitial, your own custom
+Remote Config: `{"noAdMessage":"..."}` (the wait and all timeouts are set in code only). This applies to the random interstitial, your own custom
 interstitials, rewarded ads and the app-open fetch. For rewarded ads you may show your own message in `onNotAvailable`
 instead: then use `.noAdMessage(null)`.
 
@@ -422,11 +422,8 @@ those apps with no release.
   "enabled": true,
   "loaderTitle": "Ad is loading", "loaderMessage": "Please wait...",
   "noAdMessage": "No ad available, please try again in a few seconds",
-  "noFillRetrySeconds": 5,
   "quietSecondsAfterAppOpen": 30,
   "tagBanners": true,
-  "global": { "splashTimeoutMs": 12000, "overallBudgetMs": 8000, "initTimeoutMs": 8000,
-              "doubleSecondWaitMs": 2500, "noAdMessageMs": 1800 },
   "placements": {
     "intro_native": { "nativeSize": "small" },
     "random": { "enabled": true, "units": ["hf","mf","normal"], "secondUnit": "x", "every": 3, "gap": 30,

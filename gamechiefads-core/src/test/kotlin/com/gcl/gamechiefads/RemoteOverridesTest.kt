@@ -27,7 +27,7 @@ class RemoteOverridesTest {
         assertEquals(60, r.minGapSeconds)
         assertFalse(r.enabled)
         assertEquals(AdMode.PRELOAD, r.mode)
-        assertEquals(2000L, r.tierTimeoutMs)
+        assertEquals(base.placement("random")!!.tierTimeoutMs, r.tierTimeoutMs) // timeouts are never remote
         assertEquals(base.placement("splash"), c.placement("splash"))
     }
 

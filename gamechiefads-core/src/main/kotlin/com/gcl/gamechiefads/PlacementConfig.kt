@@ -67,12 +67,12 @@ data class PlacementConfig(
      * When it says nothing, the code decides ([requestedByCode], else the `.doubleAd(...)` flag). Never double without a declared second unit:
      * that quietly gives a single ad, no error.
      */
-    fun wantsDouble(requestedByCode: Boolean? = null): Boolean = (doubleRemote ?: requestedByCode ?: doubleAd) && hasSecondUnit
+    fun wantsDouble(requestedByCode: Boolean? = null): Boolean = doubleRemote ?: requestedByCode ?: doubleAd
 
-    /** This placement as the SECOND ad of a double: one request, no floors, to [secondUnit] (else the last unit). */
+    /** The SECOND ad of a double: the SAME request as the first (same units), or one request to [secondUnit] when you declared one. */
     fun forSecondAd(): PlacementConfig {
-        val id = secondUnit?.takeIf { it.isNotBlank() } ?: units.lastOrNull()
-        return copy(units = listOfNotNull(id), flooring = false, disabledUnits = emptySet())
+        val id = secondUnit?.takeIf { it.isNotBlank() } ?: return this
+        return copy(units = listOf(id), flooring = false, disabledUnits = emptySet())
     }
 
     companion object {

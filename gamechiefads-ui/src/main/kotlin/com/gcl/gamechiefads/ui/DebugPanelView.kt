@@ -139,7 +139,7 @@ internal class DebugPanelView(private val activity: Activity) : LinearLayout(act
     }
 
     private fun refreshConfig() {
-        flags.text = "premium=${GamechiefAds.isPremium()}   test mode=${GamechiefAds.isTestMode()}   Firebase noOfBigNativeAdInIntro=${GamechiefAds.getRemoteLong(IntroPager.REMOTE_KEY, 0)}\n"
+        flags.text = "premium=${GamechiefAds.isPremium()}   test mode=${GamechiefAds.isTestMode()}   Firebase intro big ads=${IntroPager.bigAdCount(GamechiefAds.getRemoteBoolean(IntroPager.ENABLE_KEY, false), GamechiefAds.getRemoteLong(IntroPager.REMOTE_KEY, 0))}\n"
         config.text = GamechiefAds.debugConfig().joinToString("\n\n")
     }
 

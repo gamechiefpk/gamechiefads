@@ -144,7 +144,7 @@ internal class InterstitialController(
     /** One ad, or two for a "double" placement (loaded together, shown back to back). */
     private suspend fun loadAds(p: PlacementConfig, activity: Activity): List<FullScreenAd> {
         if (!p.doubleAd) return listOfNotNull(pipeline.load(p, activity, source) { it.destroy() })
-        val pair = pipeline.loadPair(p, activity, source, config().doubleSecondWaitMs) { it.destroy() }
+        val pair = pipeline.loadPair(p, activity, source) { it.destroy() }
         return listOfNotNull(pair?.first, pair?.second)
     }
 

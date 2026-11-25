@@ -135,8 +135,7 @@ internal class AdsRuntime(private val app: Application, private val baseConfig: 
 
     /** Firebase Remote Config: the rules key changed or was fetched. */
     fun applyRemoteRules() {
-        val key = base.remoteConfigKey ?: return
-        firebaseJson = remote.string(key, "").takeIf { it.isNotBlank() }
+        firebaseJson = base.remoteConfigKey?.let { key -> remote.string(key, "").takeIf { it.isNotBlank() } }
         recompute()
     }
 
@@ -148,7 +147,9 @@ internal class AdsRuntime(private val app: Application, private val baseConfig: 
 
     private fun recompute() {
         var c = base
-        for (layer in listOf(urlJson, firebaseJson, manualJson)) c = RemoteOverrides.apply(c, layer)
+        for (layer in listOf(urlJson, firebaseJson)) c = RemoteOverrides.apply(c, layer)
+        c = FlatRemote.apply(c) { k -> remote.string(k, "").takeIf { it.isNotBlank() } }   // the simple one-value Firebase keys
+        c = RemoteOverrides.apply(c, manualJson)
         config = c
         AdLog.d("remote") { "rules applied (shared file=${urlJson != null}, firebase=${firebaseJson != null}, manual=${manualJson != null})" }
     }

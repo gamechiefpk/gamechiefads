@@ -5,7 +5,7 @@ import org.json.JSONObject
 
 /**
  * Applies an optional JSON string (Firebase Remote Config value) over a base [AdsConfig]:
- * {"enabled":true,"placements":{"random":{"units":["a","b"],"every":3,"gap":30,"enabled":true,"mode":"preload","tierTimeoutMs":3000}}}
+ * {"enabled":true,"placements":{"random":{"units":["a","b"],"every":3,"gap":30,"enabled":true,"mode":"preload"}}}
  * Fail open: null/blank/invalid JSON or bad single values leave the base config untouched.
  * Only existing placements are changed; a remote string can never add a new placement.
  */
@@ -23,22 +23,13 @@ internal object RemoteOverrides {
         val title = if (root.has("loaderTitle")) root.optString("loaderTitle").takeIf { it.isNotBlank() } else base.loaderTitle
         val message = if (root.has("loaderMessage")) root.optString("loaderMessage").takeIf { it.isNotBlank() } else base.loaderMessage
         val noAd = if (root.has("noAdMessage")) root.optString("noAdMessage").takeIf { it.isNotBlank() } else base.noAdMessage
-        val retry = (root.opt("noFillRetrySeconds") as? Number)?.toInt()?.takeIf { it >= 0 } ?: base.noFillRetrySeconds
         val quiet = (root.opt("quietSecondsAfterAppOpen") as? Number)?.toInt()?.takeIf { it >= 0 } ?: base.quietSecondsAfterAppOpen
-        // global timings (ms): {"global":{"splashTimeoutMs":12000,"overallBudgetMs":8000,"initTimeoutMs":8000,"doubleSecondWaitMs":2500,"noAdMessageMs":1800}}
-        val g = root.optJSONObject("global")
-        fun ms(key: String, min: Long): Long? = (g?.opt(key) as? Number)?.toLong()?.takeIf { it >= min }
         return base.copy(
             placements = merged, loaderTitle = title, loaderMessage = message,
             enabled = if (root.opt("enabled") is Boolean) allEnabled else base.enabled, // a layer without the key keeps the earlier answer
-            noAdMessage = noAd, noFillRetrySeconds = retry, quietSecondsAfterAppOpen = quiet,
+            noAdMessage = noAd, quietSecondsAfterAppOpen = quiet,
             tagBanners = if (root.opt("tagBanners") is Boolean) root.getBoolean("tagBanners") else base.tagBanners,
             nativeUnitFallback = if (root.opt("nativeUnitFallback") is Boolean) root.getBoolean("nativeUnitFallback") else base.nativeUnitFallback,
-            splashTimeoutMs = ms("splashTimeoutMs", 1) ?: base.splashTimeoutMs,
-            overallBudgetMs = ms("overallBudgetMs", 1) ?: base.overallBudgetMs,
-            initTimeoutMs = ms("initTimeoutMs", 1) ?: base.initTimeoutMs,
-            doubleSecondWaitMs = ms("doubleSecondWaitMs", 0) ?: base.doubleSecondWaitMs,
-            noAdMessageMs = ms("noAdMessageMs", 0)?.coerceAtMost(10_000) ?: base.noAdMessageMs,
         )
     }
 
@@ -51,8 +42,6 @@ internal object RemoteOverrides {
         nonNegativeInt(o, "gap")?.let { r = r.copy(minGapSeconds = it) }
         if (o.opt("enabled") is Boolean) r = r.copy(enabled = o.getBoolean("enabled"))
         parseMode(o.optString("mode", ""))?.let { r = r.copy(mode = it) }
-        val tier = (o.opt("tierTimeoutMs") as? Number)?.toLong() ?: 0L
-        if (tier > 0) r = r.copy(tierTimeoutMs = tier)
         if (o.opt("double") is Boolean) r = r.copy(doubleRemote = o.getBoolean("double")) // the owner's master switch
         if (o.opt("auto") is Boolean) r = r.copy(autoShow = o.getBoolean("auto"))
         if (o.opt("premiumGetsReward") is Boolean) r = r.copy(premiumGetsReward = o.getBoolean("premiumGetsReward"))
@@ -60,10 +49,6 @@ internal object RemoteOverrides {
         o.optString("nativeSize", "").trim().lowercase().takeIf { it.isNotEmpty() && it.length <= 20 }?.let { r = r.copy(nativeSize = it) }
         if (o.opt("flooring") is Boolean) r = r.copy(flooring = o.getBoolean("flooring"))
         parseEnum<WaterfallMode>(o.optString("waterfall", ""))?.let { r = r.copy(waterfall = it) }
-        o.optJSONObject("tierTimeouts")?.let { t ->
-            val m = t.keys().asSequence().mapNotNull { k -> (t.opt(k) as? Number)?.toLong()?.takeIf { it > 0 }?.let { k to it } }.toMap()
-            r = r.copy(unitTimeouts = m)
-        }
         o.optJSONArray("disabledUnits")?.let { r = r.copy(disabledUnits = stringList(it).orEmpty().toSet()) }
         nonNegativeInt(o, "skipAfterFails")?.let { r = r.copy(skipAfterFails = it) }
         nonNegativeInt(o, "skipForSec")?.takeIf { it > 0 }?.let { r = r.copy(skipForSeconds = it) }

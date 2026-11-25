@@ -65,11 +65,13 @@ class DoubleSwitchTest {
         assertFalse(DoubleSwitch.resolve(slot(code = true), false))           // a call that says single beats the config flag
     }
 
-    @Test fun noSecondUnitDeclaredMeansAQuietSingleNeverACrashOrAnError() {
-        for (remote in listOf<Boolean?>(null, true, false)) for (code in listOf<Boolean?>(null, true, false))
-            assertFalse("remote=$remote code=$code", DoubleSwitch.resolve(slot(second = null, code = code == true, remote = remote), code))
-        assertFalse(DoubleSwitch.resolve(slot(second = " ", remote = true), true))   // a blank id counts as not declared
+    @Test fun noSecondUnitDeclaredStillDoublesWithTheSameRequest() {
+        assertTrue(DoubleSwitch.resolve(slot(second = null, remote = true), false))   // remote master, same request twice
+        assertFalse(DoubleSwitch.resolve(slot(second = null, code = true, remote = false), true))
         assertFalse(DoubleSwitch.resolve(null, true))                                 // unknown slot
+        val p = slot(second = null)
+        assertEquals(p, p.forSecondAd())                                              // the SAME request
+        assertEquals(listOf("u2"), slot(second = "u2").forSecondAd().units)           // or the unit you declared
     }
 
     @Test fun aLaterRemoteLayerThatSaysNothingKeepsTheOwnersValue() {
